@@ -1,0 +1,7 @@
+function find_first_index(t, value)
+  for i, v in pairs(t) do
+    if v == value then
+      return i
+    end
+  end
+end

@@ -1,0 +1,126 @@
+#include utils
+
+FONT_COLOUR = {37/255, 37/255, 50/255}
+
+CONDITION_HEALTHY_LABEL = ":)"
+CONDITION_INJURED_LABEL = ":("
+CONDITION_FAINTED_LABEL = "X("
+
+CONDITION_HEALTHY_COLOUR = {100/255, 200/255, 100/255}
+CONDITION_INJURED_COLOUR = {250/255, 200/255, 100/255}
+CONDITION_FAINTED_COLOUR = {250/255, 100/255, 100/255}
+
+local condition_index = 0
+local condition_label = CONDITION_HEALTHY_LABEL
+local condition_colour = CONDITION_HEALTHY_COLOUR
+
+local loading_finished = false
+
+local status_token_GUIDs_applied = {}
+
+function onLoad()
+  condition_button_params = {
+      click_function = "condition_button_toggle",
+      function_owner = self,
+      label          = condition_label,
+      position       = {0.73, 0.3, -1.25},
+      width          = 250,
+      height         = 200,
+      font_size      = 100,
+      color          = CONDITION_HEALTHY_COLOUR,
+      hover_color    = {1, 1, 1},
+      press_color    = {1, 1, 1},
+      font_color     = FONT_COLOUR
+    }
+  self.createButton(condition_button_params)
+
+  attack_button_params = {
+    click_function = "dummy_button",
+    function_owner = self,
+    label          = attack,
+    position       = {0.73, 0.3, 0.95},
+    width          = 0,
+    height         = 0,
+    font_size      = 150,
+    color          = {1, 1, 1},
+    font_color     = FONT_COLOUR,
+    tooltip        = "Attack"
+  }
+  self.createButton(attack_button_params)
+
+  defence_button_params = {
+    click_function = "dummy_button",
+    function_owner = self,
+    label          = defence,
+    position       = {0.73, 0.3, 1.2},
+    width          = 0,
+    height         = 0,
+    font_size      = 150,
+    color          = {1, 1, 1},
+    font_color     = FONT_COLOUR,
+    tooltip        = "Defence"
+  }
+  self.createButton(defence_button_params)
+
+  loading_finished = true
+end
+
+function dummy_button()
+end
+
+function condition_button_toggle(_, _, alt_click)
+  condition_index = (condition_index + (not alt_click and 1 or -1)) % 3
+
+  if condition_index == 0 then
+    condition_label = CONDITION_HEALTHY_LABEL
+    condition_colour = CONDITION_HEALTHY_COLOUR
+  elseif condition_index == 1 then
+    condition_label = CONDITION_INJURED_LABEL
+    condition_colour = CONDITION_INJURED_COLOUR
+  elseif condition_index == 2 then
+    condition_label = CONDITION_FAINTED_LABEL
+    condition_colour = CONDITION_FAINTED_COLOUR
+  end
+  self.editButton({
+    index=0,
+    label=condition_label,
+    color=condition_colour
+  })
+end
+
+function update_stats_ui()
+  if loading_finished then
+    self.editButton({index=1, label=attack})
+    self.editButton({index=2, label=defence})
+  end
+end
+
+function onCollisionEnter(info)
+  -- Check to see if this Status Token has already been applied
+  for _, status_token_GUID in pairs(status_token_GUIDs_applied) do
+    if info.collision_object:getGUID() == status_token_GUID then
+      return
+    end
+  end
+
+  if info.collision_object:getName() == "Weakness Token" then
+    defence = defence - 3
+  else
+    return
+  end
+
+  table.insert(status_token_GUIDs_applied, info.collision_object:getGUID())
+  update_stats_ui()
+end
+
+function onCollisionExit(info)
+  if info.collision_object:getName() == "Weakness Token" then
+    defence = defence + 3
+  else
+    return
+  end
+
+  index = find_first_index(status_token_GUIDs_applied, info.collision_object:getGUID())
+  table.remove(status_token_GUIDs_applied, index)
+  update_stats_ui()
+end

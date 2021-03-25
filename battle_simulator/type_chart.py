@@ -17,9 +17,9 @@ DARK = 'dark'
 STEEL = 'steel'
 FAIRY = 'fairy'
 
-WEAK = 2.0
-RESIST = 0.5
-IMMUNE = 0
+WEAK = 2
+RESIST = -2
+IMMUNE = -4
 
 TYPE_CHART = {
     NORMAL: {ROCK: RESIST, GHOST: IMMUNE, STEEL: RESIST},

@@ -1,0 +1,8 @@
+STATUS_TOKEN_TAG = "Status Token"
+
+WEAKNESS_TOKEN_NAME = "Weakness Token"
+
+
+function onload()
+  print("Root Loaded")
+end
