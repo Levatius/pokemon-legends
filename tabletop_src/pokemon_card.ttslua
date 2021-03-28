@@ -1,6 +1,5 @@
+#include config
 #include utils
-
-FONT_COLOUR = {37/255, 37/255, 50/255}
 
 CONDITION_HEALTHY_LABEL = ":)"
 CONDITION_INJURED_LABEL = ":("
@@ -16,7 +15,7 @@ local condition_colour = CONDITION_HEALTHY_COLOUR
 
 local loading_finished = false
 
-local status_token_GUIDs_applied = {}
+local status_token_guids_applied = {}
 
 function onLoad()
   condition_button_params = {
@@ -97,30 +96,30 @@ end
 
 function onCollisionEnter(info)
   -- Check to see if this Status Token has already been applied
-  for _, status_token_GUID in pairs(status_token_GUIDs_applied) do
-    if info.collision_object:getGUID() == status_token_GUID then
+  for _, status_token_guid in pairs(status_token_guids_applied) do
+    if info.collision_object:getGUID() == status_token_guid then
       return
     end
   end
 
-  if info.collision_object:getName() == "Weakness Token" then
+  if info.collision_object:getName() == WEAKNESS_TOKEN_NAME then
     defence = defence - 3
   else
     return
   end
 
-  table.insert(status_token_GUIDs_applied, info.collision_object:getGUID())
+  table.insert(status_token_guids_applied, info.collision_object:getGUID())
   update_stats_ui()
 end
 
 function onCollisionExit(info)
-  if info.collision_object:getName() == "Weakness Token" then
+  if info.collision_object:getName() == WEAKNESS_TOKEN_NAME then
     defence = defence + 3
   else
     return
   end
 
-  index = find_first_index(status_token_GUIDs_applied, info.collision_object:getGUID())
-  table.remove(status_token_GUIDs_applied, index)
+  index = find_first_index(status_token_guids_applied, info.collision_object:getGUID())
+  table.remove(status_token_guids_applied, index)
   update_stats_ui()
 end

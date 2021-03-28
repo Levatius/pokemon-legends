@@ -1,8 +1,27 @@
-STATUS_TOKEN_TAG = "Status Token"
+#include utils
 
-WEAKNESS_TOKEN_NAME = "Weakness Token"
+active_pokemon_zone_guids = {"f11abe", "085e19"}
+arena_control_panel_guids = {"5c2c5a", "590eb7"}
 
 
 function onload()
   print("Root Loaded")
+end
+
+function onObjectEnterScriptingZone(zone, enter_object)
+  if contains(active_pokemon_zone_guids, zone:getGUID()) then
+    for _, arena_control_panel_guid in pairs(arena_control_panel_guids) do
+      local arena_control_panel = getObjectFromGUID(arena_control_panel_guid)
+      Wait.frames(arena_control_panel:getVar("update_ui"), 30)
+    end
+  end
+end
+
+function onObjectLeaveScriptingZone(zone, enter_object)
+  if contains(active_pokemon_zone_guids, zone:getGUID()) then
+    for _, arena_control_panel_guid in pairs(arena_control_panel_guids) do
+      local arena_control_panel = getObjectFromGUID(arena_control_panel_guid)
+      Wait.frames(arena_control_panel:getVar("update_ui"), 30)
+    end
+  end
 end

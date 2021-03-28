@@ -5,3 +5,8 @@ function find_first_index(t, value)
     end
   end
 end
+
+function contains(t, value)
+  local first_index = find_first_index(t, value)
+  return first_index != nil
+end

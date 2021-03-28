@@ -1,0 +1,87 @@
+#include config
+#include utils
+
+function onLoad()
+  for i = 0, 2 do
+    move_params = {
+      click_function = "move_button_toggle",
+      function_owner = self,
+      position       = {-0.65, 0.05, -2.1 + i * 0.525},
+      width          = 600,
+      height         = 225,
+      font_size      = 100,
+      font_color     = FONT_COLOUR
+    }
+    self.createButton(move_params)
+  end
+
+  for i = 0, 2 do
+    damage_params = {
+      click_function = "move_button_toggle",
+      function_owner = self,
+      position       = {0.65, 0.05, -2.1 + i * 0.525},
+      width          = 0,
+      height         = 0,
+      font_size      = 100,
+      font_color     = FONT_COLOUR
+    }
+    self.createButton(damage_params)
+  end
+
+  update_ui()
+end
+
+function get_pokemon_from(zone_guid)
+  zone = getObjectFromGUID(zone_guid)
+  for _, contained_object in pairs(zone:getObjects()) do
+    return getObjectFromGUID(contained_object.guid)
+  end
+end
+
+function get_effectiveness_between(move_type, enemy_types)
+  local effectiveness = 0
+  for _, enemy_type in pairs(enemy_types) do
+    effectiveness = effectiveness + (TYPE_CHART[move_type][enemy_type] and TYPE_CHART[move_type][enemy_type] or 0)
+  end
+  return effectiveness
+end
+
+function update_ui()
+  local our_active_pokemon = get_pokemon_from(our_active_pokemon_zone_guid)
+  local enemy_active_pokemon = get_pokemon_from(enemy_active_pokemon_zone_guid)
+
+  for i = 0, 2 do
+    local type = (our_active_pokemon and our_active_pokemon:getVar("moves"))
+      and our_active_pokemon:getVar("moves")[i + 1] or nil
+
+    self.editButton({
+      index=i,
+      label=type and type or "Move " .. (i + 1),
+      color=type and TYPE_COLOURS[type] or LIGHT_BACKING_COLOUR
+    })
+  end
+
+  local our_attack = our_active_pokemon and our_active_pokemon:getVar("attack") or 0
+  local enemy_defence = enemy_active_pokemon and enemy_active_pokemon:getVar("defence") or 0
+
+  local our_types = our_active_pokemon and our_active_pokemon:getVar("types") or nil
+  local enemy_types = enemy_active_pokemon and enemy_active_pokemon:getVar("types") or nil
+
+  for i = 0, 2 do
+    local move_type = (our_active_pokemon and our_active_pokemon:getVar("moves"))
+      and our_active_pokemon:getVar("moves")[i + 1] or nil
+
+    local move_effectiveness = (move_type and enemy_types)
+      and get_effectiveness_between(move_type, enemy_types) or 0
+
+    local stab_bonus = (move_type and our_types and contains(our_types, move_type))
+      and 1 or 0
+
+    local damage = our_attack - enemy_defence + move_effectiveness + stab_bonus
+
+    self.editButton({
+      index=3 + i,
+      label=damage
+    })
+  end
+end

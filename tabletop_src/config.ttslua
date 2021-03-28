@@ -1,0 +1,57 @@
+-- Names
+WEAKNESS_TOKEN_NAME = "Weakness Token"
+
+-- Colours
+FONT_COLOUR = {37/255, 37/255, 50/255}
+LIGHT_BACKING_COLOUR = {225/255, 220/255, 215/255}
+TYPE_COLOURS = {
+  Normal = {144/255, 153/255, 161/255},
+  Fire = {217/255, 119/255, 70/255},
+  Water = {77/255, 144/255, 213/255},
+  Electric = {243/255, 210/255, 59/255},
+  Grass = {99/255, 187/255, 91/255},
+  Ice = {116/255, 206/255, 192/255},
+  Fighting = {206/255, 64/255, 105/255},
+  Poison = {171/255, 106/255, 200/255},
+  Ground = {217/255, 119/255, 70/255},
+  Flying = {143/255, 168/255, 221/255},
+  Psychic = {249/255, 113/255, 118/255},
+  Bug = {144/255, 193/255, 44/255},
+  Rock = {199/255, 183/255, 139/255},
+  Ghost = {82/255, 105/255, 172/255},
+  Dragon = {10/255, 109/255, 196/255},
+  Dark = {90/255, 83/255, 102/255},
+  Steel = {90/255, 142/255, 161/255},
+  Fairy = {236/255, 143/255, 230/255}
+}
+
+-- Type Chart
+WEAK = 2
+RESIST = -2
+IMMUNE = -4
+
+TYPE_CHART = {
+  Normal = {Rock = RESIST, Ghost = IMMUNE, Steel = RESIST},
+  Fire = {Fire = RESIST, Water = RESIST, Grass = WEAK, Ice = WEAK, Bug = WEAK, Rock = RESIST, Dragon = RESIST, Steel = WEAK},
+  Water = {Fire = WEAK, Water = RESIST, Grass = RESIST, Ground = WEAK, Rock = WEAK, Dragon = RESIST},
+  Electric = {Water = WEAK, Electric = RESIST, Grass = RESIST, Ground = IMMUNE, Flying = WEAK, Dragon = RESIST},
+  Grass = {Fire = RESIST, Water = WEAK, Grass = RESIST, Poison = RESIST, Ground = WEAK, Flying = RESIST, Bug = RESIST,
+          Rock = WEAK, Dragon = RESIST, Steel = RESIST},
+  Ice = {Fire = RESIST, Water = RESIST, Grass = WEAK, Ice = RESIST, Ground = WEAK, Flying = WEAK, Dragon = WEAK,
+        Steel = RESIST},
+  Fighting = {Normal = WEAK, Ice = WEAK, Poison = RESIST, Flying = RESIST, Psychic = RESIST, Bug = RESIST, Rock = WEAK,
+             Ghost = IMMUNE, Dark = WEAK, Steel = WEAK, Fairy = RESIST},
+  Poison = {Grass = WEAK, Poison = RESIST, Ground = RESIST, Rock = RESIST},
+  Ground = {Fire = WEAK, Electric = WEAK, Grass = RESIST, Poison = WEAK, Flying = IMMUNE, Bug = RESIST, Rock = WEAK,
+           Steel = WEAK},
+  Flying = {Electric = RESIST, Grass = WEAK, Fighting = WEAK, Bug = WEAK, Rock = RESIST, Steel = RESIST},
+  Psychic = {Fighting = WEAK, Poison = WEAK, Psychic = RESIST, Dark = IMMUNE, Steel = RESIST},
+  Bug = {Fire = RESIST, Grass = WEAK, Fighting = RESIST, Poison = RESIST, Flying = RESIST, Psychic = WEAK, Ghost = RESIST,
+        Dark = WEAK, Steel = RESIST, Fairy = RESIST},
+  Rock = {Fire = WEAK, Ice = WEAK, Fighting = RESIST, Ground = RESIST, Flying = WEAK, Bug = WEAK, Steel = RESIST},
+  Ghost = {Normal = IMMUNE, Psychic = WEAK, Ghost = WEAK, Dark = RESIST},
+  Dragon = {Dragon = WEAK, Steel = RESIST, Fairy = IMMUNE},
+  Dark = {Fighting = RESIST, Psychic = WEAK, Dark = RESIST, Fairy = RESIST},
+  Steel = {Fire = RESIST, Water = RESIST, Grass = RESIST, Ice = WEAK, Rock = WEAK, Steel = RESIST, Fairy = WEAK},
+  Fairy = {Fire = RESIST, Fighting = WEAK, Poison = RESIST, Dragon = WEAK, Dark = WEAK, Steel = RESIST}
+}
