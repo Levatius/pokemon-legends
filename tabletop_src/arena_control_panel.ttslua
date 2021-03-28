@@ -75,7 +75,7 @@ function update_ui()
       and get_effectiveness_between(move_type, enemy_types) or 0
 
     local stab_bonus = (move_type and our_types and contains(our_types, move_type))
-      and 1 or 0
+      and STAB_BONUS or 0
 
     local damage = our_attack - enemy_defence + move_effectiveness + stab_bonus
 

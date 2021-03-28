@@ -1,18 +1,11 @@
 #include config
 #include utils
 
-CONDITION_HEALTHY_LABEL = ":)"
-CONDITION_INJURED_LABEL = ":("
-CONDITION_FAINTED_LABEL = "X("
+CONDITION_LABEL = {":)", ":(", "X("}
+CONDITION_COLOUR = {{100/255, 200/255, 100/255}, {250/255, 200/255, 100/255}, {150/255, 150/255, 150/255}}
+CONDITION_TOOLTIP = {"Healthy", "Injured", "Fainted"}
 
-CONDITION_HEALTHY_COLOUR = {100/255, 200/255, 100/255}
-CONDITION_INJURED_COLOUR = {250/255, 200/255, 100/255}
-CONDITION_FAINTED_COLOUR = {250/255, 100/255, 100/255}
-
-local condition_index = 0
-local condition_label = CONDITION_HEALTHY_LABEL
-local condition_colour = CONDITION_HEALTHY_COLOUR
-
+local condition_index = 1
 local loading_finished = false
 
 local status_token_guids_applied = {}
@@ -21,15 +14,16 @@ function onLoad()
   condition_button_params = {
       click_function = "condition_button_toggle",
       function_owner = self,
-      label          = condition_label,
+      label          = CONDITION_LABEL[condition_index],
       position       = {0.73, 0.3, -1.25},
       width          = 250,
       height         = 200,
       font_size      = 100,
-      color          = CONDITION_HEALTHY_COLOUR,
-      hover_color    = {1, 1, 1},
-      press_color    = {1, 1, 1},
-      font_color     = FONT_COLOUR
+      color          = CONDITION_COLOUR[condition_index],
+      hover_color    = CONDITION_COLOUR[get_next_condition_index(alt_click)],
+      press_color    = CONDITION_COLOUR[get_next_condition_index(alt_click)],
+      font_color     = FONT_COLOUR,
+      tooltip        = CONDITION_TOOLTIP[condition_index]
     }
   self.createButton(condition_button_params)
 
@@ -41,9 +35,7 @@ function onLoad()
     width          = 0,
     height         = 0,
     font_size      = 150,
-    color          = {1, 1, 1},
-    font_color     = FONT_COLOUR,
-    tooltip        = "Attack"
+    font_color     = FONT_COLOUR
   }
   self.createButton(attack_button_params)
 
@@ -55,9 +47,7 @@ function onLoad()
     width          = 0,
     height         = 0,
     font_size      = 150,
-    color          = {1, 1, 1},
-    font_color     = FONT_COLOUR,
-    tooltip        = "Defence"
+    font_color     = FONT_COLOUR
   }
   self.createButton(defence_button_params)
 
@@ -67,23 +57,20 @@ end
 function dummy_button()
 end
 
-function condition_button_toggle(_, _, alt_click)
-  condition_index = (condition_index + (not alt_click and 1 or -1)) % 3
+function get_next_condition_index()
+  return (condition_index % 3) + 1
+end
 
-  if condition_index == 0 then
-    condition_label = CONDITION_HEALTHY_LABEL
-    condition_colour = CONDITION_HEALTHY_COLOUR
-  elseif condition_index == 1 then
-    condition_label = CONDITION_INJURED_LABEL
-    condition_colour = CONDITION_INJURED_COLOUR
-  elseif condition_index == 2 then
-    condition_label = CONDITION_FAINTED_LABEL
-    condition_colour = CONDITION_FAINTED_COLOUR
-  end
+function condition_button_toggle()
+  condition_index = get_next_condition_index()
+
   self.editButton({
-    index=0,
-    label=condition_label,
-    color=condition_colour
+    index       = 0,
+    label       = CONDITION_LABEL[condition_index],
+    color       = CONDITION_COLOUR[condition_index],
+    hover_color = CONDITION_COLOUR[get_next_condition_index(alt_click)],
+    press_color = CONDITION_COLOUR[get_next_condition_index(alt_click)],
+    tooltip     = CONDITION_TOOLTIP[condition_index]
   })
 end
 
@@ -95,31 +82,54 @@ function update_stats_ui()
 end
 
 function onCollisionEnter(info)
+  -- Check to see if this is a Status Token
+  if not contains(info.collision_object:getTags(), STATUS_TOKEN_TAG) then
+    return
+  end
+  local status_token = info.collision_object
+  status_token:setRotation(self:getRotation())
+
   -- Check to see if this Status Token has already been applied
-  for _, status_token_guid in pairs(status_token_guids_applied) do
-    if info.collision_object:getGUID() == status_token_guid then
-      return
-    end
+  if contains(status_token_guids_applied, status_token_guid) then
+    return
   end
 
-  if info.collision_object:getName() == WEAKNESS_TOKEN_NAME then
-    defence = defence - 3
+  if status_token:getName() == FOCUS_TOKEN_NAME then
+    attack = attack + STATUS_MODIFIER
+  elseif status_token:getName() == REINFORCE_TOKEN_NAME then
+    defence = defence + STATUS_MODIFIER
+  elseif status_token:getName() == FEAR_TOKEN_NAME then
+    attack = attack - STATUS_MODIFIER
+  elseif status_token:getName() == WEAKNESS_TOKEN_NAME then
+    defence = defence - STATUS_MODIFIER
   else
     return
   end
 
-  table.insert(status_token_guids_applied, info.collision_object:getGUID())
+  table.insert(status_token_guids_applied, status_token:getGUID())
   update_stats_ui()
 end
 
 function onCollisionExit(info)
-  if info.collision_object:getName() == WEAKNESS_TOKEN_NAME then
-    defence = defence + 3
+  -- Check to see if this is a Status Token
+  if not contains(info.collision_object:getTags(), STATUS_TOKEN_TAG) then
+    return
+  end
+  local status_token = info.collision_object
+
+  if status_token:getName() == FOCUS_TOKEN_NAME then
+    attack = attack - STATUS_MODIFIER
+  elseif status_token:getName() == REINFORCE_TOKEN_NAME then
+    defence = defence - STATUS_MODIFIER
+  elseif status_token:getName() == FEAR_TOKEN_NAME then
+    attack = attack + STATUS_MODIFIER
+  elseif status_token:getName() == WEAKNESS_TOKEN_NAME then
+    defence = defence + STATUS_MODIFIER
   else
     return
   end
 
-  index = find_first_index(status_token_guids_applied, info.collision_object:getGUID())
+  index = find_first_index(status_token_guids_applied, status_token:getGUID())
   table.remove(status_token_guids_applied, index)
   update_stats_ui()
 end

@@ -1,4 +1,10 @@
+-- Tags
+STATUS_TOKEN_TAG = "Status Token"
+
 -- Names
+FOCUS_TOKEN_NAME = "Focus Token"
+REINFORCE_TOKEN_NAME = "Reinforce Token"
+FEAR_TOKEN_NAME = "Fear Token"
 WEAKNESS_TOKEN_NAME = "Weakness Token"
 
 -- Colours
@@ -25,11 +31,14 @@ TYPE_COLOURS = {
   Fairy = {236/255, 143/255, 230/255}
 }
 
--- Type Chart
+-- Modifiers
+STAB_BONUS = 1
+STATUS_MODIFIER = 2
 WEAK = 2
 RESIST = -2
 IMMUNE = -4
 
+-- Type Chart
 TYPE_CHART = {
   Normal = {Rock = RESIST, Ghost = IMMUNE, Steel = RESIST},
   Fire = {Fire = RESIST, Water = RESIST, Grass = WEAK, Ice = WEAK, Bug = WEAK, Rock = RESIST, Dragon = RESIST, Steel = WEAK},
