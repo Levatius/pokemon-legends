@@ -5,29 +5,29 @@ CONDITION_LABEL = {":)", ":(", "X("}
 CONDITION_COLOUR = {{100/255, 200/255, 100/255}, {250/255, 200/255, 100/255}, {150/255, 150/255, 150/255}}
 CONDITION_TOOLTIP = {"Healthy", "Injured", "Fainted"}
 
-local condition_index = 1
+local condition_state = 1
 local loading_finished = false
 
 local status_token_guids_applied = {}
 
 function onLoad()
-  condition_button_params = {
+  local condition_button_params = {
       click_function = "condition_button_toggle",
       function_owner = self,
-      label          = CONDITION_LABEL[condition_index],
+      label          = CONDITION_LABEL[condition_state],
       position       = {0.73, 0.3, -1.25},
       width          = 250,
       height         = 200,
       font_size      = 100,
-      color          = CONDITION_COLOUR[condition_index],
-      hover_color    = CONDITION_COLOUR[get_next_condition_index(alt_click)],
-      press_color    = CONDITION_COLOUR[get_next_condition_index(alt_click)],
-      font_color     = FONT_COLOUR,
-      tooltip        = CONDITION_TOOLTIP[condition_index]
+      color          = CONDITION_COLOUR[condition_state],
+      hover_color    = CONDITION_COLOUR[get_next_condition_state(alt_click)],
+      press_color    = CONDITION_COLOUR[get_next_condition_state(alt_click)],
+      font_color     = DARK_COLOUR,
+      tooltip        = CONDITION_TOOLTIP[condition_state]
     }
   self.createButton(condition_button_params)
 
-  attack_button_params = {
+  local attack_button_params = {
     click_function = "dummy_button",
     function_owner = self,
     label          = attack,
@@ -35,11 +35,11 @@ function onLoad()
     width          = 0,
     height         = 0,
     font_size      = 150,
-    font_color     = FONT_COLOUR
+    font_color     = DARK_COLOUR
   }
   self.createButton(attack_button_params)
 
-  defence_button_params = {
+  local defence_button_params = {
     click_function = "dummy_button",
     function_owner = self,
     label          = defence,
@@ -47,7 +47,7 @@ function onLoad()
     width          = 0,
     height         = 0,
     font_size      = 150,
-    font_color     = FONT_COLOUR
+    font_color     = DARK_COLOUR
   }
   self.createButton(defence_button_params)
 
@@ -57,20 +57,20 @@ end
 function dummy_button()
 end
 
-function get_next_condition_index()
-  return (condition_index % 3) + 1
+function get_next_condition_state()
+  return (condition_state % 3) + 1
 end
 
 function condition_button_toggle()
-  condition_index = get_next_condition_index()
+  condition_state = get_next_condition_state()
 
   self.editButton({
     index       = 0,
-    label       = CONDITION_LABEL[condition_index],
-    color       = CONDITION_COLOUR[condition_index],
-    hover_color = CONDITION_COLOUR[get_next_condition_index(alt_click)],
-    press_color = CONDITION_COLOUR[get_next_condition_index(alt_click)],
-    tooltip     = CONDITION_TOOLTIP[condition_index]
+    label       = CONDITION_LABEL[condition_state],
+    color       = CONDITION_COLOUR[condition_state],
+    hover_color = CONDITION_COLOUR[get_next_condition_state()],
+    press_color = CONDITION_COLOUR[get_next_condition_state()],
+    tooltip     = CONDITION_TOOLTIP[condition_state]
   })
 end
 
