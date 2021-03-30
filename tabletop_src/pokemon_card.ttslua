@@ -2,7 +2,7 @@
 #include utils
 
 CONDITION_LABEL = {":)", ":(", "X("}
-CONDITION_COLOUR = {{100/255, 200/255, 100/255}, {250/255, 200/255, 100/255}, {150/255, 150/255, 150/255}}
+CONDITION_COLOUR = {{100/255, 250/255, 100/255}, {250/255, 200/255, 100/255}, {150/255, 150/255, 150/255}}
 CONDITION_TOOLTIP = {"Healthy", "Injured", "Fainted"}
 
 local condition_state = 1
@@ -54,7 +54,16 @@ function onLoad()
   loading_finished = true
 end
 
-function dummy_button()
+function dummy_button() end
+
+function get_stat_font_colour(stat, base_stat)
+  if stat > base_stat then
+    return {50/255, 150/255, 50/255}
+  elseif stat < base_stat then
+    return {150/255, 50/255, 50/255}
+  else
+    return DARK_COLOUR
+  end
 end
 
 function get_next_condition_state()
@@ -76,8 +85,16 @@ end
 
 function update_stats_ui()
   if loading_finished then
-    self.editButton({index=1, label=attack})
-    self.editButton({index=2, label=defence})
+    self.editButton({
+      index      = 1,
+      label      = attack,
+      font_color = get_stat_font_colour(attack, base_attack)
+    })
+    self.editButton({
+      index      = 2,
+      label      = defence,
+      font_color = get_stat_font_colour(defence, base_defence)
+    })
   end
 end
 

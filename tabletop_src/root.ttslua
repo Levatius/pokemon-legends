@@ -12,6 +12,11 @@ function onObjectEnterScriptingZone(zone, enter_object)
   if contains(active_pokemon_zone_guids, zone:getGUID()) then
     for _, arena_control_panel_guid in pairs(arena_control_panel_guids) do
       local arena_control_panel = getObjectFromGUID(arena_control_panel_guid)
+
+      if arena_control_panel:getVar("our_active_pokemon_zone_guid") == zone:getGUID() then
+        arena_control_panel:call("deploy_model")
+      end
+
       Wait.frames(arena_control_panel:getVar("update_ui"), 30)
     end
   end
@@ -21,6 +26,11 @@ function onObjectLeaveScriptingZone(zone, enter_object)
   if contains(active_pokemon_zone_guids, zone:getGUID()) then
     for _, arena_control_panel_guid in pairs(arena_control_panel_guids) do
       local arena_control_panel = getObjectFromGUID(arena_control_panel_guid)
+
+      if arena_control_panel:getVar("our_active_pokemon_zone_guid") == zone:getGUID() then
+        arena_control_panel:call("undeploy_model")
+      end
+
       Wait.frames(arena_control_panel:getVar("update_ui"), 30)
     end
   end

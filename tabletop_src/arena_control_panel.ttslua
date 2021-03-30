@@ -1,92 +1,117 @@
 #include config
 #include utils
 
-TACTICS_LABEL = {"S", "!", "C"}
+TACTICS_LABEL = {"Balanced", "Reckless", "Crafty"}
 TACTICS_COLOUR = {{100/255, 250/255, 100/255}, {250/255, 100/255, 100/255}, {100/255, 100/255, 250/255}}
-TACTICS_TOOLTIP = {"Standard", "Reckless", "Crafty"}
+TACTICS_DESCRIPTION = {
+  "Good damage with\nbalanced distribution",
+  "High damage but\napplies Weakness to user",
+  "Low damage but gets\npriority over other tactics"
+}
+TACTICS_DAMAGE_RANGE = {{2, 6}, }
 
-local tactics_states = {1, 1, 1}
+local selected_move_index
+local selected_switch_index
+local tactics_state = 1
+local deployed_models = {}
 
 function onLoad()
   for i = 0, 2 do
-    local move_params = {
-      click_function = "move_button_toggle",
+    self.createButton({
+      click_function = "move_button_select_" .. i,
       function_owner = self,
       position       = {-0.65, 0.05, -2.11 + i * 0.525},
       width          = 600,
       height         = 225,
-      font_size      = 125
-    }
-    self.createButton(move_params)
-  end
-
-  for i = 0, 2 do
-    local states_index = i + 1
-    local tactics_params = {
-      click_function = "tactics_button_toggle_" .. i,
-      function_owner = self,
-      position       = {0.27, 0.05, -2.11 + i * 0.525},
-      width          = 225,
-      height         = 225,
       font_size      = 125,
-      font_color     = DARK_COLOUR,
-      label          = TACTICS_LABEL[tactics_states[states_index]],
-      color          = TACTICS_COLOUR[tactics_states[states_index]],
-      hover_color    = TACTICS_COLOUR[get_next_tactics_state(states_index)],
-      press_color    = TACTICS_COLOUR[get_next_tactics_state(states_index)],
-      tooltip        = TACTICS_TOOLTIP[tactics_states[states_index]]
-    }
-    self.createButton(tactics_params)
+      hover_color    = LIGHT_BACKING_COLOUR,
+      press_color    = LIGHT_BACKING_COLOUR
+    })
   end
 
   for i = 0, 2 do
-    local damage_params = {
-      click_function = "move_button_toggle",
+    self.createButton({
+      click_function = "dummy_button",
       function_owner = self,
-      position       = {0.92, 0.05, -2.11 + i * 0.525},
+      position       = {0.65, 0.05, -2.11 + i * 0.525},
       width          = 0,
       height         = 0,
-      font_size      = 150,
+      font_size      = 200,
       font_color     = DARK_COLOUR
-    }
-    self.createButton(damage_params)
+    })
   end
+
+  self.createButton({
+    click_function = "tactics_button_toggle",
+    function_owner = self,
+    position       = {-0.65, 0.05, -0.1},
+    width          = 600,
+    height         = 225,
+    font_size      = 125,
+    font_color     = DARK_COLOUR,
+    label          = TACTICS_LABEL[tactics_state],
+    color          = TACTICS_COLOUR[tactics_state],
+    hover_color    = TACTICS_COLOUR[get_next_tactics_state()],
+    press_color    = TACTICS_COLOUR[get_next_tactics_state()],
+    tooltip        = "Toggle Tactics"
+  })
+
+  self.createButton({
+    click_function = "dummy_button",
+    function_owner = self,
+    position       = {0.65, 0.05, -0.1},
+    width          = 0,
+    height         = 0,
+    font_size      = 55,
+    font_color     = DARK_COLOUR,
+    label          = TACTICS_DESCRIPTION[tactics_state]
+  })
 
   update_ui()
 end
 
--- TACTICS BUTTONS
-function get_next_tactics_state(states_index)
-  return (tactics_states[states_index] % 3) + 1
+function dummy_button() end
+
+-- MOVE BUTTON SELECTS
+
+function move_button_select_0() move_button_select(1) end
+function move_button_select_1() move_button_select(2) end
+function move_button_select_2() move_button_select(3) end
+
+function move_button_select(index)
+  selected_move_index = (selected_move_index != index) and index or nil
+
+  if selected_switch_index then selected_switch_index = nil end
+
+  update_ui()
 end
 
--- Needed because TTS does not tell you the index of the button pressed...
-function tactics_button_toggle_0() tactics_button_toggle(0) end
-function tactics_button_toggle_1() tactics_button_toggle(1) end
-function tactics_button_toggle_2() tactics_button_toggle(2) end
+-- TACTICS BUTTON
+function get_next_tactics_state()
+  return (tactics_state % 3) + 1
+end
 
-function tactics_button_toggle(index)
-  local states_index = index + 1
-  local button_index = 3 + index
-
-  print(tactics_states[states_index] .. " " .. get_next_tactics_state(states_index))
-
-  tactics_states[states_index] = get_next_tactics_state(states_index)
+function tactics_button_toggle()
+  tactics_state = get_next_tactics_state()
 
   self.editButton({
-    index       = button_index,
-    label       = TACTICS_LABEL[tactics_states[states_index]],
-    color       = TACTICS_COLOUR[tactics_states[states_index]],
-    hover_color = TACTICS_COLOUR[get_next_tactics_state(states_index)],
-    press_color = TACTICS_COLOUR[get_next_tactics_state(states_index)],
-    tooltip     = TACTICS_TOOLTIP[tactics_states[states_index]]
+    index       = 6,
+    label       = TACTICS_LABEL[tactics_state],
+    color       = TACTICS_COLOUR[tactics_state],
+    hover_color = TACTICS_COLOUR[get_next_tactics_state()],
+    press_color = TACTICS_COLOUR[get_next_tactics_state()]
+  })
+  self.editButton({
+    index = 7,
+    label = TACTICS_DESCRIPTION[tactics_state]
   })
 end
 
 function get_pokemon_from(zone_guid)
   zone = getObjectFromGUID(zone_guid)
   for _, contained_object in pairs(zone:getObjects()) do
-    return getObjectFromGUID(contained_object.guid)
+    local pokemon = getObjectFromGUID(contained_object.guid)
+    return pokemon.type == "Card" and pokemon or nil
   end
 end
 
@@ -103,13 +128,16 @@ function update_ui()
   local enemy_active_pokemon = get_pokemon_from(enemy_active_pokemon_zone_guid)
 
   for i = 0, 2 do
+    local button_index = i
+
     local type = (our_active_pokemon and our_active_pokemon:getVar("moves"))
       and our_active_pokemon:getVar("moves")[i + 1] or nil
 
     self.editButton({
-      index=i,
+      index=button_index,
       label=type and type or "Move " .. (i + 1),
-      color=type and TYPE_COLOURS[type] or LIGHT_BACKING_COLOUR
+      color=type and TYPE_COLOURS[type] or LIGHT_BACKING_COLOUR,
+      font_color=(button_index + 1 == selected_move_index) and WHITE_COLOUR or DARK_COLOUR
     })
   end
 
@@ -120,6 +148,8 @@ function update_ui()
   local enemy_types = enemy_active_pokemon and enemy_active_pokemon:getVar("types") or nil
 
   for i = 0, 2 do
+    local button_index = 3 + i
+
     local move_type = (our_active_pokemon and our_active_pokemon:getVar("moves"))
       and our_active_pokemon:getVar("moves")[i + 1] or nil
 
@@ -132,8 +162,56 @@ function update_ui()
     local damage = our_attack - enemy_defence + move_effectiveness + stab_bonus
 
     self.editButton({
-      index=6 + i,
+      index=button_index,
       label=damage
     })
+  end
+end
+
+function deploy_model()
+  local our_active_pokemon = get_pokemon_from(our_active_pokemon_zone_guid)
+  if not our_active_pokemon then return end
+
+  local model_zone = getObjectFromGUID(model_zone_guid)
+  local model_bag = getObjectFromGUID(model_bag_guid)
+
+  local model_guid
+  for _, contained_object in pairs(model_bag:getObjects()) do
+    if contained_object.name == our_active_pokemon:getVar("dexname") then
+      model_guid = contained_object.guid
+      break
+    end
+  end
+
+  if not model_guid then
+    print("Could not find model for " .. our_active_pokemon:getVar("dexname"))
+    return
+  end
+
+  model_bag:takeObject({
+    position          = model_zone:getPosition(),
+    rotation          = model_zone:getRotation(),
+    guid              = model_guid,
+    callback_function = function(model) table.insert(deployed_models, model) end
+  })
+end
+
+function undeploy_model()
+  -- local model_zone = getObjectFromGUID(model_zone_guid)
+  -- local model_bag = getObjectFromGUID(model_bag_guid)
+  --
+  -- for _, contained_object in pairs(model_zone:getObjects()) do
+  --   local model = getObjectFromGUID(contained_object.guid)
+  --   if model:getVar("objectclass") == "pokemon" then
+  --     model_bag:putObject(model)
+  --   end
+  -- end
+
+  local model_bag = getObjectFromGUID(model_bag_guid)
+
+  for _, model in pairs(deployed_models) do
+    model_bag:putObject(model)
+    local model_index = find_first_index(deployed_models, model)
+    table.remove(deployed_models, model_index)
   end
 end

@@ -1,5 +1,6 @@
 -- Tags
 STATUS_TOKEN_TAG = "Status Token"
+POKEMON_CARD_TAG = "Pokemon Card"
 
 -- Names
 FOCUS_TOKEN_NAME = "Focus Token"
