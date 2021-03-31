@@ -1,12 +1,32 @@
+-- GUIDs
+ARENA_ACTIVE_ZONE_GUIDS = {"f11abe", "085e19"}
+ARENA_CONTROL_PANEL_GUIDS = {"5c2c5a", "590eb7"}
+
 -- Tags
 STATUS_TOKEN_TAG = "Status Token"
 POKEMON_CARD_TAG = "Pokemon Card"
 
 -- Names
-FOCUS_TOKEN_NAME = "Focus Token"
-REINFORCE_TOKEN_NAME = "Reinforce Token"
-FEAR_TOKEN_NAME = "Fear Token"
-WEAKNESS_TOKEN_NAME = "Weakness Token"
+FOCUS_TOKEN_NAME = "Focused"
+REINFORCE_TOKEN_NAME = "Reinforced"
+FEAR_TOKEN_NAME = "Feared"
+WEAKNESS_TOKEN_NAME = "Weakened"
+SHIELD_TOKEN_NAME = "Shielded"
+
+-- Conditions
+CONDITION_LABEL = {":)", ":(", "X("}
+CONDITION_COLOUR = {{100/255, 250/255, 100/255}, {250/255, 200/255, 100/255}, {150/255, 150/255, 150/255}}
+CONDITION_TOOLTIP = {"Healthy", "Injured", "Fainted"}
+
+-- Tactics
+TACTICS_LABEL = {"Balanced", "Reckless", "Crafty"}
+TACTICS_COLOUR = {{100/255, 250/255, 100/255}, {250/255, 100/255, 100/255}, {100/255, 100/255, 250/255}}
+TACTICS_DESCRIPTION = {
+  "Modest damage but\nno fancy effects",
+  "Higher damage but\napplies Weakness to user",
+  "Lower damage but\napplies a status effect"
+}
+TACTICS_MODIFIERS = {0, 2, -2}
 
 -- Colours
 WHITE_COLOUR = {1, 1, 1}
@@ -35,7 +55,7 @@ TYPE_COLOURS = {
 
 -- Modifiers
 STAB_BONUS = 1
-STATUS_MODIFIER = 2
+STATUS_MODIFIER = 3
 WEAK = 2
 RESIST = -2
 IMMUNE = -4

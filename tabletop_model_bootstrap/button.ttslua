@@ -1,0 +1,46 @@
+MODEL_BAG_GUIDS = {"b6f5ec"} --"2c54b8", "806018", "f5e4cc"}
+ZONE_GUID = "508fa3"
+TARGET_GUID = "ec79b4"
+
+function onload()
+  self.createButton({
+    click_function = "transfer_models",
+    function_owner = self,
+    position       = {0, 0.25, 0},
+    label          = "Transfer\nModels",
+    width          = 500,
+    height         = 500,
+    font_size      = 100
+  })
+end
+
+function transfer_models()
+  local zone = getObjectFromGUID(ZONE_GUID)
+  for _, model_bag_guid in ipairs(MODEL_BAG_GUIDS) do
+    local model_bag = getObjectFromGUID(model_bag_guid)
+    function example_coroutine()
+      for _, contained_object in ipairs(model_bag:getObjects()) do
+        model_bag:takeObject({
+          position = zone:getPosition(),
+          guid = contained_object.guid,
+          callback_function = callback
+        })
+        wait(0.5)
+      end
+      return 1
+    end
+    startLuaCoroutine(self, "example_coroutine")
+  end
+end
+
+function callback(model)
+  local target = getObjectFromGUID(TARGET_GUID)
+  model.interactable = false
+  model:setCustomObject({type=1})
+  target:putObject(model)
+end
+
+function wait(time)
+    local start = os.time()
+    repeat coroutine.yield(0) until os.time() > start + time
+end

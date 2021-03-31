@@ -1,6 +1,6 @@
 function find_first_index(t, value)
-  for i, v in pairs(t) do
-    if v == value then
+  for i, value_ in pairs(t) do
+    if value_ == value then
       return i
     end
   end
@@ -9,4 +9,14 @@ end
 function contains(t, value)
   local first_index = find_first_index(t, value)
   return first_index != nil
+end
+
+function find_objects_with_tag(zone, tag)
+  local objects_with_tag = {}
+  for _, object in pairs(zone:getObjects()) do
+    if object:hasTag(tag) then
+      table.insert(objects_with_tag, object)
+    end
+  end
+  return objects_with_tag
 end

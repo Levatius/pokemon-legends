@@ -1,15 +1,6 @@
 #include config
 #include utils
 
-TACTICS_LABEL = {"Balanced", "Reckless", "Crafty"}
-TACTICS_COLOUR = {{100/255, 250/255, 100/255}, {250/255, 100/255, 100/255}, {100/255, 100/255, 250/255}}
-TACTICS_DESCRIPTION = {
-  "Good damage with\nbalanced distribution",
-  "High damage but\napplies Weakness to user",
-  "Low damage but gets\npriority over other tactics"
-}
-TACTICS_DAMAGE_RANGE = {{2, 6}, }
-
 local selected_move_index
 local selected_switch_index
 local tactics_state = 1
@@ -105,13 +96,16 @@ function tactics_button_toggle()
     index = 7,
     label = TACTICS_DESCRIPTION[tactics_state]
   })
+
+  update_ui()
 end
 
 function get_pokemon_from(zone_guid)
-  zone = getObjectFromGUID(zone_guid)
-  for _, contained_object in pairs(zone:getObjects()) do
-    local pokemon = getObjectFromGUID(contained_object.guid)
-    return pokemon.type == "Card" and pokemon or nil
+  local zone = getObjectFromGUID(zone_guid)
+  for _, object in pairs(zone:getObjects()) do
+    if object:hasTag(POKEMON_CARD_TAG) and object.type == "Card" then
+      return object
+    end
   end
 end
 
@@ -124,8 +118,8 @@ function get_effectiveness_between(move_type, enemy_types)
 end
 
 function update_ui()
-  local our_active_pokemon = get_pokemon_from(our_active_pokemon_zone_guid)
-  local enemy_active_pokemon = get_pokemon_from(enemy_active_pokemon_zone_guid)
+  local our_active_pokemon = get_pokemon_from(our_active_zone_guid)
+  local enemy_active_pokemon = get_pokemon_from(their_active_zone_guid)
 
   for i = 0, 2 do
     local button_index = i
@@ -159,7 +153,9 @@ function update_ui()
     local stab_bonus = (move_type and our_types and contains(our_types, move_type))
       and STAB_BONUS or 0
 
-    local damage = our_attack - enemy_defence + move_effectiveness + stab_bonus
+    local tactics_modifier = TACTICS_MODIFIERS[tactics_state]
+
+    local damage = our_attack - enemy_defence + move_effectiveness + stab_bonus + tactics_modifier
 
     self.editButton({
       index=button_index,
@@ -168,8 +164,13 @@ function update_ui()
   end
 end
 
+function deploy_model_callback(model)
+  table.insert(deployed_models, model)
+  model:call("attack3_func")
+end
+
 function deploy_model()
-  local our_active_pokemon = get_pokemon_from(our_active_pokemon_zone_guid)
+  local our_active_pokemon = get_pokemon_from(our_active_zone_guid)
   if not our_active_pokemon then return end
 
   local model_zone = getObjectFromGUID(model_zone_guid)
@@ -183,30 +184,16 @@ function deploy_model()
     end
   end
 
-  if not model_guid then
-    print("Could not find model for " .. our_active_pokemon:getVar("dexname"))
-    return
-  end
-
+  if not model_guid then return end
   model_bag:takeObject({
     position          = model_zone:getPosition(),
     rotation          = model_zone:getRotation(),
     guid              = model_guid,
-    callback_function = function(model) table.insert(deployed_models, model) end
+    callback_function = function(model) deploy_model_callback(model) end
   })
 end
 
 function undeploy_model()
-  -- local model_zone = getObjectFromGUID(model_zone_guid)
-  -- local model_bag = getObjectFromGUID(model_bag_guid)
-  --
-  -- for _, contained_object in pairs(model_zone:getObjects()) do
-  --   local model = getObjectFromGUID(contained_object.guid)
-  --   if model:getVar("objectclass") == "pokemon" then
-  --     model_bag:putObject(model)
-  --   end
-  -- end
-
   local model_bag = getObjectFromGUID(model_bag_guid)
 
   for _, model in pairs(deployed_models) do
