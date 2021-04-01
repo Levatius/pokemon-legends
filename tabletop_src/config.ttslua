@@ -1,10 +1,14 @@
+PLAYER_COLOURS = {"White", "Red", "Orange", "Yellow", "Green", "Blue", "Purple", "Pink"}
+
 -- GUIDs
 ARENA_ACTIVE_ZONE_GUIDS = {"f11abe", "085e19"}
 ARENA_CONTROL_PANEL_GUIDS = {"5c2c5a", "590eb7"}
+ARENA_BATTLE_TOKEN_GUIDS = {"71a40b", "b80c5c"}
 
 -- Tags
 STATUS_TOKEN_TAG = "Status Token"
 POKEMON_CARD_TAG = "Pokemon Card"
+BATTLE_TOKEN_TAG = "Battle Token"
 
 -- Names
 FOCUS_TOKEN_NAME = "Focused"

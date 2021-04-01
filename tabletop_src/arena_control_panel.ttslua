@@ -165,7 +165,6 @@ function update_ui()
 end
 
 function deploy_model_callback(model)
-  table.insert(deployed_models, model)
   model:call("attack3_func")
 end
 
@@ -191,14 +190,18 @@ function deploy_model()
     guid              = model_guid,
     callback_function = function(model) deploy_model_callback(model) end
   })
+  table.insert(deployed_models, model_guid)
 end
 
 function undeploy_model()
   local model_bag = getObjectFromGUID(model_bag_guid)
 
-  for _, model in pairs(deployed_models) do
-    model_bag:putObject(model)
-    local model_index = find_first_index(deployed_models, model)
-    table.remove(deployed_models, model_index)
+  for _, model_guid in pairs(deployed_models) do
+    local model = getObjectFromGUID(model_guid)
+    if model then
+      model_bag:putObject(model)
+      local model_index = find_first_index(deployed_models, model_guid)
+      table.remove(deployed_models, model_index)
+    end
   end
 end

@@ -6,44 +6,84 @@ function onload()
 end
 
 function onObjectEnterScriptingZone(zone, enter_object)
-  -- Arena Active Zone Enter
   if contains(ARENA_ACTIVE_ZONE_GUIDS, zone:getGUID()) then
-    if enter_object:hasTag(POKEMON_CARD_TAG) and enter_object.type == "Card" then
-      for _, arena_control_panel_guid in pairs(ARENA_CONTROL_PANEL_GUIDS) do
-        local arena_control_panel = getObjectFromGUID(arena_control_panel_guid)
-
-        if arena_control_panel:getVar("our_active_zone_guid") == zone:getGUID() then
-          arena_control_panel:call("deploy_model")
-        end
-
-        Wait.frames(arena_control_panel:getVar("update_ui"), 30)
-      end
-    end
-
-    local pokemon_cards = find_objects_with_tag(zone, POKEMON_CARD_TAG)
-    for _, pokemon_card in pairs(pokemon_cards) do
-      if pokemon_card.type == "Card" then
-        pokemon_card:call("update_stats", zone)
-      end
-    end
+    enter_active_zone(zone, enter_object)
+  elseif contains(ARENA_BATTLE_TOKEN_GUIDS, zone:getGUID()) then
+    enter_battle_token_zone(zone, enter_object)
   end
 end
 
 function onObjectLeaveScriptingZone(zone, leave_object)
-  -- Arena Active Zone Leave
   if contains(ARENA_ACTIVE_ZONE_GUIDS, zone:getGUID()) then
-    if leave_object:hasTag(POKEMON_CARD_TAG) and leave_object.type == "Card" then
-      for _, arena_control_panel_guid in pairs(ARENA_CONTROL_PANEL_GUIDS) do
-        local arena_control_panel = getObjectFromGUID(arena_control_panel_guid)
+    leave_active_zone(zone, leave_object)
+  elseif contains(ARENA_BATTLE_TOKEN_GUIDS, zone:getGUID()) then
+    leave_battle_token_zone(zone, leave_object)
+  end
+end
 
-        if arena_control_panel:getVar("our_active_zone_guid") == zone:getGUID() then
-          arena_control_panel:call("undeploy_model")
-        end
 
-        Wait.frames(arena_control_panel:getVar("update_ui"), 30)
-      end
 
-      leave_object:call("update_stats")
+function get_control_panel_for_zone(zone)
+  for _, control_panel_guid in pairs(ARENA_CONTROL_PANEL_GUIDS) do
+    local control_panel = getObjectFromGUID(control_panel_guid)
+
+    if control_panel:getVar("our_active_zone_guid") == zone:getGUID() then
+      return control_panel
+    elseif control_panel:getVar("battle_token_zone_guid") == zone:getGUID() then
+      return control_panel
     end
   end
+end
+
+function update_control_panels()
+  for _, control_panel_guid in pairs(ARENA_CONTROL_PANEL_GUIDS) do
+    local control_panel = getObjectFromGUID(control_panel_guid)
+    Wait.frames(control_panel:getVar("update_ui"), 30)
+  end
+end
+
+function update_pokemon_card_in_active_zone(active_zone)
+  local pokemon_cards = find_objects_with_tag(active_zone, POKEMON_CARD_TAG)
+  for _, pokemon_card in pairs(pokemon_cards) do
+    if pokemon_card.type == "Card" then
+      pokemon_card:call("update_stats", active_zone)
+    end
+  end
+end
+
+
+
+function enter_active_zone(active_zone, enter_object)
+  local control_panel = get_control_panel_for_zone(active_zone)
+
+  if enter_object:hasTag(POKEMON_CARD_TAG) and enter_object.type == "Card" then
+    control_panel:call("deploy_model")
+    enter_object:highlightOn(WHITE_COLOUR)
+    enter_object:call("update_stats", active_zone)
+
+  elseif enter_object:hasTag(STATUS_TOKEN_TAG) then
+    update_pokemon_card_in_active_zone(active_zone)
+  end
+
+  update_control_panels()
+end
+
+function leave_active_zone(active_zone, leave_object)
+  local control_panel = get_control_panel_for_zone(active_zone)
+
+  if leave_object:hasTag(POKEMON_CARD_TAG) and leave_object.type == "Card" then
+    control_panel:call("undeploy_model")
+    leave_object:highlightOff()
+    leave_object:call("update_stats")
+  end
+
+  update_control_panels()
+end
+
+
+
+function enter_battle_token_zone(battle_token_zone, enter_object)
+end
+
+function leave_battle_token_zone(battle_token_zone, leave_object)
 end

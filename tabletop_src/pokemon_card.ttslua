@@ -10,7 +10,7 @@ function onLoad()
     function_owner = self,
     position       = {0.73, 0.3, -1.25},
     width          = 250,
-    height         = 200,
+    height         = 250,
     font_size      = 100,
     font_color     = DARK_COLOUR
   })
