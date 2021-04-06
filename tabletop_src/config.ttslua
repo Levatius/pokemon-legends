@@ -2,6 +2,7 @@ PLAYER_COLOURS = {"White", "Red", "Orange", "Yellow", "Green", "Blue", "Purple",
 
 -- GUIDs
 ARENA_ACTIVE_ZONE_GUIDS = {"f11abe", "085e19"}
+ARENA_BATTLE_ZONE_GUIDS = {"3dca9c", "eb5b67"}
 ARENA_CONTROL_PANEL_GUIDS = {"5c2c5a", "590eb7"}
 ARENA_BATTLE_TOKEN_GUIDS = {"71a40b", "b80c5c"}
 

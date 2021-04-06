@@ -43,8 +43,7 @@ function onLoad()
     label          = TACTICS_LABEL[tactics_state],
     color          = TACTICS_COLOUR[tactics_state],
     hover_color    = TACTICS_COLOUR[get_next_tactics_state()],
-    press_color    = TACTICS_COLOUR[get_next_tactics_state()],
-    tooltip        = "Toggle Tactics"
+    press_color    = TACTICS_COLOUR[get_next_tactics_state()]
   })
 
   self.createButton({
@@ -61,16 +60,35 @@ function onLoad()
   update_ui()
 end
 
+function hide(player_colour)
+  local players_to_set_invisible_to = {}
+  for _, player in pairs(PLAYER_COLOURS) do
+    if player ~= player_colour then
+      table.insert(players_to_set_invisible_to, player)
+    end
+  end
+  self:setHiddenFrom(players_to_set_invisible_to)
+  self:highlightOn(player_colour)
+  self:setDescription("Only visible to " .. player_colour)
+end
+
+function unhide()
+  self:setHiddenFrom()
+  self:highlightOff()
+end
+
 function dummy_button() end
 
 -- MOVE BUTTON SELECTS
 
-function move_button_select_0() move_button_select(1) end
-function move_button_select_1() move_button_select(2) end
-function move_button_select_2() move_button_select(3) end
+function move_button_select_0(_, player_colour) move_button_select(1, player_colour) end
+function move_button_select_1(_, player_colour) move_button_select(2, player_colour) end
+function move_button_select_2(_, player_colour) move_button_select(3, player_colour) end
 
-function move_button_select(index)
+function move_button_select(index, player_colour)
   selected_move_index = (selected_move_index != index) and index or nil
+
+  if selected_move_index then hide(player_colour) else unhide() end
 
   if selected_switch_index then selected_switch_index = nil end
 
@@ -117,6 +135,17 @@ function get_effectiveness_between(move_type, enemy_types)
   return effectiveness
 end
 
+function get_max_dice_value_from(zone_guid)
+  local zone = getObjectFromGUID(zone_guid)
+  local max_value = 0
+  for _, object in pairs(zone:getObjects()) do
+    if object.type == "Dice" then
+      max_value = (object:getValue() > max_value) and object:getValue() or max_value
+    end
+  end
+  return max_value
+end
+
 function update_ui()
   local our_active_pokemon = get_pokemon_from(our_active_zone_guid)
   local enemy_active_pokemon = get_pokemon_from(their_active_zone_guid)
@@ -128,10 +157,10 @@ function update_ui()
       and our_active_pokemon:getVar("moves")[i + 1] or nil
 
     self.editButton({
-      index=button_index,
-      label=type and type or "Move " .. (i + 1),
-      color=type and TYPE_COLOURS[type] or LIGHT_BACKING_COLOUR,
-      font_color=(button_index + 1 == selected_move_index) and WHITE_COLOUR or DARK_COLOUR
+      index      = button_index,
+      label      = type and type or "Move " .. (i + 1),
+      color      = type and TYPE_COLOURS[type] or LIGHT_BACKING_COLOUR,
+      font_color = (button_index + 1 == selected_move_index) and WHITE_COLOUR or DARK_COLOUR
     })
   end
 
@@ -140,6 +169,10 @@ function update_ui()
 
   local our_types = our_active_pokemon and our_active_pokemon:getVar("types") or nil
   local enemy_types = enemy_active_pokemon and enemy_active_pokemon:getVar("types") or nil
+
+  local our_max_dice_value = get_max_dice_value_from(our_battle_zone_guid)
+  local their_max_dice_value = get_max_dice_value_from(their_battle_zone_guid)
+  local dice_bonus = (our_max_dice_value > their_max_dice_value) and (our_max_dice_value - their_max_dice_value) or 0
 
   for i = 0, 2 do
     local button_index = 3 + i
@@ -158,8 +191,8 @@ function update_ui()
     local damage = our_attack - enemy_defence + move_effectiveness + stab_bonus + tactics_modifier
 
     self.editButton({
-      index=button_index,
-      label=damage
+      index = button_index,
+      label = (dice_bonus > 0) and damage .. "+" .. dice_bonus or damage
     })
   end
 end
@@ -172,7 +205,7 @@ function deploy_model()
   local our_active_pokemon = get_pokemon_from(our_active_zone_guid)
   if not our_active_pokemon then return end
 
-  local model_zone = getObjectFromGUID(model_zone_guid)
+  local battle_zone = getObjectFromGUID(our_battle_zone_guid)
   local model_bag = getObjectFromGUID(model_bag_guid)
 
   local model_guid
@@ -185,8 +218,8 @@ function deploy_model()
 
   if not model_guid then return end
   model_bag:takeObject({
-    position          = model_zone:getPosition(),
-    rotation          = model_zone:getRotation(),
+    position          = battle_zone:getPosition(),
+    rotation          = battle_zone:getRotation(),
     guid              = model_guid,
     callback_function = function(model) deploy_model_callback(model) end
   })

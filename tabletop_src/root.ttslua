@@ -8,6 +8,8 @@ end
 function onObjectEnterScriptingZone(zone, enter_object)
   if contains(ARENA_ACTIVE_ZONE_GUIDS, zone:getGUID()) then
     enter_active_zone(zone, enter_object)
+  elseif contains(ARENA_BATTLE_ZONE_GUIDS, zone:getGUID()) then
+    enter_battle_zone(zone, enter_object)
   elseif contains(ARENA_BATTLE_TOKEN_GUIDS, zone:getGUID()) then
     enter_battle_token_zone(zone, enter_object)
   end
@@ -16,6 +18,8 @@ end
 function onObjectLeaveScriptingZone(zone, leave_object)
   if contains(ARENA_ACTIVE_ZONE_GUIDS, zone:getGUID()) then
     leave_active_zone(zone, leave_object)
+  elseif contains(ARENA_BATTLE_ZONE_GUIDS, zone:getGUID()) then
+    leave_battle_zone(zone, leave_object)
   elseif contains(ARENA_BATTLE_TOKEN_GUIDS, zone:getGUID()) then
     leave_battle_token_zone(zone, leave_object)
   end
@@ -78,6 +82,16 @@ function leave_active_zone(active_zone, leave_object)
   end
 
   update_control_panels()
+end
+
+
+
+function enter_battle_zone(battle_zone, enter_object)
+  if enter_object.type == "Dice" then update_control_panels() end
+end
+
+function leave_battle_zone(battle_zone, leave_object)
+  if leave_object.type == "Dice" then update_control_panels() end
 end
 
 

@@ -1,0 +1,20 @@
+#include config
+
+function onLoad()
+  self.createButton({
+    click_function = "reset_control_panel",
+    function_owner = self,
+    position       = {0, 0.6, 0},
+    width          = 500,
+    height         = 500,
+    font_size      = 125,
+    font_color     = DARK_COLOUR,
+    color          = LIGHT_BACKING_COLOUR,
+    label          = "Reset\nPanel"
+  })
+end
+
+function reset_control_panel()
+  local control_panel = getObjectFromGUID(control_panel_guid)
+  control_panel:reload()
+end
