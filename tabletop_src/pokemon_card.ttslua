@@ -1,6 +1,8 @@
 #include config
 #include utils
 
+local attack = base_attack
+local defence = base_defence
 local condition_state = 1
 local loading_finished = false
 
@@ -10,7 +12,7 @@ function onLoad()
     function_owner = self,
     position       = {0.73, 0.3, -1.25},
     width          = 250,
-    height         = 250,
+    height         = 200,
     font_size      = 100,
     font_color     = DARK_COLOUR
   })
