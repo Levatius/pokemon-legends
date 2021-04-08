@@ -9,6 +9,7 @@ ARENA_BATTLE_TOKEN_GUIDS = {"71a40b", "b80c5c"}
 -- Tags
 STATUS_TOKEN_TAG = "Status Token"
 POKEMON_CARD_TAG = "Pokemon Card"
+POKEMON_MODEL_TAG = "Pokemon Model"
 BATTLE_TOKEN_TAG = "Battle Token"
 
 -- Names

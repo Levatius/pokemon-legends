@@ -1,7 +1,60 @@
 {
   "Name": "Card",
+  "Transform": {
+    "posX": 0,
+    "posY": 1,
+    "posZ": 0,
+    "rotX": 0,
+    "rotY": 180,
+    "rotZ": 0,
+    "scaleX": 1.0,
+    "scaleY": 1.0,
+    "scaleZ": 1.0
+  },
+  "Grid": false,
   "Nickname": "",
   "Description": "",
+  "ColorDiffuse": {"r": 0.588235294, "g": 0.294117647, "b": 0.196078431},
   "Tags": ["Pokemon Card"],
-  "LuaScript": ""
+  "LuaScript": "",
+  "CustomDeck": {
+    "1": {
+      "FaceURL": "",
+      "BackURL": "",
+      "NumWidth": 10,
+      "NumHeight": 7,
+      "BackIsHidden": true
+    }
+  },
+  "States": {
+    "2": {
+      "Name": "Card",
+      "Transform": {
+        "posX": 0,
+        "posY": 1,
+        "posZ": 0,
+        "rotX": 0,
+        "rotY": 180,
+        "rotZ": 0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "scaleZ": 1.0
+      },
+      "Grid": false,
+      "Nickname": "",
+      "Description": "",
+      "ColorDiffuse": {"r": 0.145098039, "g": 0.145098039, "b": 0.196078431},
+      "Tags": ["Pokemon Card"],
+      "LuaScript": "",
+      "CustomDeck": {
+        "2": {
+          "FaceURL": "",
+          "BackURL": "",
+          "NumWidth": 10,
+          "NumHeight": 7,
+          "BackIsHidden": true
+        }
+      }
+    }
+  }
 }

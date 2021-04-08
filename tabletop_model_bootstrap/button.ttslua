@@ -1,44 +1,106 @@
-MODEL_BAG_GUIDS = {"b6f5ec"} --"2c54b8", "806018", "f5e4cc"}
+NORMAL_MODEL_BAG_GUIDS = {"b6f5ec", "2c54b8", "806018", "f5e4cc"}
+SHINY_MODEL_BAG_GUIDS = {"55a0b6", "e3be24", "2be0a4", "9280d9"}
 ZONE_GUID = "508fa3"
-TARGET_GUID = "ec79b4"
+NORMAL_TARGET_GUID = "2a7ed2"
+SHINY_TARGET_GUID = "5f38f4"
+FINAL_ZONE_GUID = "5446c7"
+FINAL_TARGET_GUID = "a9a0db"
 
 function onload()
   self.createButton({
     click_function = "transfer_models",
     function_owner = self,
-    position       = {0, 0.25, 0},
+    position       = {0, 0.25, -0.25},
     label          = "Transfer\nModels",
     width          = 500,
-    height         = 500,
+    height         = 250,
+    font_size      = 100
+  })
+  self.createButton({
+    click_function = "cache_models",
+    function_owner = self,
+    position       = {0, 0.25, 0.25},
+    label          = "Cache\nModels",
+    width          = 500,
+    height         = 250,
     font_size      = 100
   })
 end
 
-function transfer_models()
+
+
+function transfer_callback(model, target_guid, description)
+  local target = getObjectFromGUID(target_guid)
+  model:setCustomObject({type=1})
+  model:addTag("Pokemon Model")
+  model:setLuaScript()
+  model:setGMNotes()
+  model:setDescription(description)
+  target:putObject(model)
+end
+
+function transfer(model_bag_guids, target_guid, description)
   local zone = getObjectFromGUID(ZONE_GUID)
-  for _, model_bag_guid in ipairs(MODEL_BAG_GUIDS) do
+  for _, model_bag_guid in ipairs(model_bag_guids) do
     local model_bag = getObjectFromGUID(model_bag_guid)
-    function example_coroutine()
-      for _, contained_object in ipairs(model_bag:getObjects()) do
-        model_bag:takeObject({
-          position = zone:getPosition(),
-          guid = contained_object.guid,
-          callback_function = callback
-        })
-        wait(0.5)
-      end
-      return 1
+    for _, contained_object in ipairs(model_bag:getObjects()) do
+      model_bag:takeObject({
+        position = zone:getPosition(),
+        guid = contained_object.guid,
+        callback_function = function(model) transfer_callback(model, target_guid, description) end
+      })
+      wait(0.05)
     end
-    startLuaCoroutine(self, "example_coroutine")
   end
 end
 
-function callback(model)
-  local target = getObjectFromGUID(TARGET_GUID)
-  model.interactable = false
-  model:setCustomObject({type=1})
+function transfer_models()
+  function normal_run()
+    transfer(NORMAL_MODEL_BAG_GUIDS, NORMAL_TARGET_GUID, "Normal")
+    return 1
+  end
+  startLuaCoroutine(self, "normal_run")
+  function shiny_run()
+    transfer(SHINY_MODEL_BAG_GUIDS, SHINY_TARGET_GUID, "Shiny")
+    return 1
+  end
+  startLuaCoroutine(self, "shiny_run")
+end
+
+
+
+function cache_callback(model, final_target_guid)
+  local target = getObjectFromGUID(final_target_guid)
   target:putObject(model)
 end
+
+function cache(target_guid)
+  local zone = getObjectFromGUID(FINAL_ZONE_GUID)
+  local model_bag = getObjectFromGUID(target_guid)
+  for _, contained_object in ipairs(model_bag:getObjects()) do
+    model_bag:takeObject({
+      position = zone:getPosition(),
+      guid = contained_object.guid,
+      callback_function = function(model) cache_callback(model, FINAL_TARGET_GUID) end
+    })
+    wait(0.05)
+  end
+end
+
+function cache_models()
+  function normal_run()
+    cache(NORMAL_TARGET_GUID)
+    return 1
+  end
+  startLuaCoroutine(self, "normal_run")
+  function shiny_run()
+    cache(SHINY_TARGET_GUID)
+    return 1
+  end
+  startLuaCoroutine(self, "shiny_run")
+end
+
+
 
 function wait(time)
     local start = os.time()

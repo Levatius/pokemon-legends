@@ -15,8 +15,16 @@
       },
       "Grid": false,
       "DeckIDs": [],
+      "ColorDiffuse": {"r": 0.588235294, "g": 0.294117647, "b": 0.196078431},
       "CustomDeck": {
         "1": {
+          "FaceURL": "",
+          "BackURL": "",
+          "NumWidth": 10,
+          "NumHeight": 7,
+          "BackIsHidden": true
+        },
+        "2": {
           "FaceURL": "",
           "BackURL": "",
           "NumWidth": 10,

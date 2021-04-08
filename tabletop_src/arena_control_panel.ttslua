@@ -7,6 +7,9 @@ local tactics_state = 1
 local deployed_models = {}
 
 function onLoad()
+  local model_bag = getObjectFromGUID(model_bag_guid)
+  model_bag.interactable = false
+
   for i = 0, 2 do
     self.createButton({
       click_function = "move_button_select_" .. i,
@@ -69,7 +72,6 @@ function hide(player_colour)
   end
   self:setHiddenFrom(players_to_set_invisible_to)
   self:highlightOn(player_colour)
-  self:setDescription("Only visible to " .. player_colour)
 end
 
 function unhide()
@@ -146,6 +148,41 @@ function get_max_dice_value_from(zone_guid)
   return max_value
 end
 
+function get_status_modifier()
+  local our_active_zone = getObjectFromGUID(our_active_zone_guid)
+  local our_status_tokens = find_objects_with_tag(our_active_zone, STATUS_TOKEN_TAG)
+
+  local their_active_zone = getObjectFromGUID(their_active_zone_guid)
+  local their_status_tokens = find_objects_with_tag(their_active_zone, STATUS_TOKEN_TAG)
+
+  local status_modifier = 0
+  for _, status_token in pairs(our_status_tokens) do
+    if not status_token.is_face_down then
+      if status_token:getName() == FOCUS_TOKEN_NAME then
+        status_modifier = status_modifier + STATUS_MODIFIER
+      elseif status_token:getName() == FEAR_TOKEN_NAME then
+        status_modifier = status_modifier - STATUS_MODIFIER
+      end
+    end
+  end
+  for _, status_token in pairs(their_status_tokens) do
+    if not status_token.is_face_down then
+      if status_token:getName() == REINFORCE_TOKEN_NAME then
+        status_modifier = status_modifier - STATUS_MODIFIER
+      elseif status_token:getName() == WEAKNESS_TOKEN_NAME then
+        status_modifier = status_modifier + STATUS_MODIFIER
+      end
+    end
+  end
+  return status_modifier
+end
+
+function get_dice_modifier()
+  local our_max_dice_value = get_max_dice_value_from(our_battle_zone_guid)
+  local their_max_dice_value = get_max_dice_value_from(their_battle_zone_guid)
+  return (our_max_dice_value > their_max_dice_value) and (our_max_dice_value - their_max_dice_value) or 0
+end
+
 function update_ui()
   local our_active_pokemon = get_pokemon_from(our_active_zone_guid)
   local enemy_active_pokemon = get_pokemon_from(their_active_zone_guid)
@@ -170,9 +207,12 @@ function update_ui()
   local our_types = our_active_pokemon and our_active_pokemon:getVar("types") or nil
   local enemy_types = enemy_active_pokemon and enemy_active_pokemon:getVar("types") or nil
 
-  local our_max_dice_value = get_max_dice_value_from(our_battle_zone_guid)
-  local their_max_dice_value = get_max_dice_value_from(their_battle_zone_guid)
-  local dice_bonus = (our_max_dice_value > their_max_dice_value) and (our_max_dice_value - their_max_dice_value) or 0
+  local tactics_modifier = TACTICS_MODIFIERS[tactics_state]
+  local status_modifier = get_status_modifier()
+  local dice_modifier = get_dice_modifier()
+
+  local bonus_damage = tactics_modifier + status_modifier + dice_modifier
+  local bonus_damage_symbol = bonus_damage >= 0 and "+" or ""
 
   for i = 0, 2 do
     local button_index = 3 + i
@@ -186,19 +226,17 @@ function update_ui()
     local stab_bonus = (move_type and our_types and contains(our_types, move_type))
       and STAB_BONUS or 0
 
-    local tactics_modifier = TACTICS_MODIFIERS[tactics_state]
-
-    local damage = our_attack - enemy_defence + move_effectiveness + stab_bonus + tactics_modifier
+    local attack_damage = our_attack - enemy_defence + move_effectiveness + stab_bonus
 
     self.editButton({
       index = button_index,
-      label = (dice_bonus > 0) and damage .. "+" .. dice_bonus or damage
+      label = attack_damage .. bonus_damage_symbol .. bonus_damage
     })
   end
 end
 
 function deploy_model_callback(model)
-  model:call("attack3_func")
+  model.AssetBundle:playTriggerEffect(2)
 end
 
 function deploy_model()
@@ -210,31 +248,28 @@ function deploy_model()
 
   local model_guid
   for _, contained_object in pairs(model_bag:getObjects()) do
-    if contained_object.name == our_active_pokemon:getVar("dexname") then
+    if contained_object.name == our_active_pokemon:getVar("dexname") and contained_object.description == "Normal" then
       model_guid = contained_object.guid
       break
     end
   end
 
   if not model_guid then return end
-  model_bag:takeObject({
+  local model = model_bag:takeObject({
     position          = battle_zone:getPosition(),
     rotation          = battle_zone:getRotation(),
     guid              = model_guid,
-    callback_function = function(model) deploy_model_callback(model) end
+    callback_function = function(model) Wait.frames(function() deploy_model_callback(model) end, 60) end
   })
-  table.insert(deployed_models, model_guid)
+  model.interactable = false
 end
 
 function undeploy_model()
   local model_bag = getObjectFromGUID(model_bag_guid)
+  local our_battle_zone = getObjectFromGUID(our_battle_zone_guid)
+  local models = find_objects_with_tag(our_battle_zone, POKEMON_MODEL_TAG)
 
-  for _, model_guid in pairs(deployed_models) do
-    local model = getObjectFromGUID(model_guid)
-    if model then
-      model_bag:putObject(model)
-      local model_index = find_first_index(deployed_models, model_guid)
-      table.remove(deployed_models, model_index)
-    end
+  for _, model in pairs(models) do
+    model_bag:putObject(model)
   end
 end

@@ -42,16 +42,7 @@ end
 function update_control_panels()
   for _, control_panel_guid in pairs(ARENA_CONTROL_PANEL_GUIDS) do
     local control_panel = getObjectFromGUID(control_panel_guid)
-    Wait.frames(control_panel:getVar("update_ui"), 30)
-  end
-end
-
-function update_pokemon_card_in_active_zone(active_zone)
-  local pokemon_cards = find_objects_with_tag(active_zone, POKEMON_CARD_TAG)
-  for _, pokemon_card in pairs(pokemon_cards) do
-    if pokemon_card.type == "Card" then
-      pokemon_card:call("update_stats", active_zone)
-    end
+    control_panel:call("update_ui")
   end
 end
 
@@ -63,10 +54,6 @@ function enter_active_zone(active_zone, enter_object)
   if enter_object:hasTag(POKEMON_CARD_TAG) and enter_object.type == "Card" then
     control_panel:call("deploy_model")
     enter_object:highlightOn(WHITE_COLOUR)
-    enter_object:call("update_stats", active_zone)
-
-  elseif enter_object:hasTag(STATUS_TOKEN_TAG) then
-    update_pokemon_card_in_active_zone(active_zone)
   end
 
   update_control_panels()
@@ -78,7 +65,6 @@ function leave_active_zone(active_zone, leave_object)
   if leave_object:hasTag(POKEMON_CARD_TAG) and leave_object.type == "Card" then
     control_panel:call("undeploy_model")
     leave_object:highlightOff()
-    leave_object:call("update_stats")
   end
 
   update_control_panels()
@@ -100,4 +86,12 @@ function enter_battle_token_zone(battle_token_zone, enter_object)
 end
 
 function leave_battle_token_zone(battle_token_zone, leave_object)
+end
+
+
+function tryObjectEnterContainer(container, entering_object)
+  if container:hasTag(POKEMON_MODEL_TAG) then
+    return entering_object:hasTag(POKEMON_MODEL_TAG)
+  end
+  return true
 end
