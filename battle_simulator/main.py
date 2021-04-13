@@ -1,12 +1,13 @@
-from itertools import combinations, permutations
+import random
+from itertools import combinations
 from pathlib import Path
 
 import pandas as pd
-# import seaborn as sns
 
 from pokemon import Pokemon
 
 ROOT_DIR = Path(__file__).parent.parent
+OHKO_THRESHOLD = 7
 
 
 def initalise_pokemons():
@@ -17,44 +18,82 @@ def initalise_pokemons():
         pokemon = Pokemon(
             name=row.pokedex_name,
             types=[type_ for type_ in [row.type_1, row.type_2] if not pd.isnull(type_)],
-            offence=row.offence,
+            moves=[move for move in [row.move_1, row.move_2, row.move_3] if not pd.isnull(move)],
+            attack=row.attack,
             defence=row.defence
         )
         pokemons.append(pokemon)
     return pokemons
 
 
-def battle(pokemon, enemy_pokemon):
+class AttackDice:
+    @classmethod
+    def roll(cls):
+        return random.randint(1, 6)
+
+
+def get_dice_bonus(our_dice_roll, their_dice_roll):
+    our_dice_bonus = our_dice_roll - their_dice_roll if our_dice_roll > their_dice_roll else 0
+    return our_dice_bonus
+
+
+def get_damage_effect(total_damage):
+    if total_damage > OHKO_THRESHOLD:
+        return 2
+    elif total_damage > 0:
+        return 1
+    return 0
+
+
+def battle(our_pokemon, their_pokemon):
     # The battle can at most take 10 turns
     for i in range(10):
-        turn_order = sorted([pokemon, enemy_pokemon], key=lambda k: k.offence, reverse=True)
-        for pokemon_1, pokemon_2 in permutations(turn_order, 2):
-            pokemon_1.attack(pokemon_2)
-            if pokemon_2.has_fainted():
-                print(f'{pokemon_1.name} has defeated {pokemon_2.name}')
-                pokemon_1.wins += 1
-                pokemon_2.lost_to.append(pokemon_1.name)
-                break
+        our_attack_damage = our_pokemon.get_attack_damage_to(their_pokemon)
+        their_attack_damage = their_pokemon.get_attack_damage_to(our_pokemon)
 
-        if pokemon.has_fainted() or enemy_pokemon.has_fainted():
+        our_dice_roll = AttackDice.roll()
+        their_dice_roll = AttackDice.roll()
+
+        our_dice_bonus = get_dice_bonus(our_dice_roll, their_dice_roll)
+        their_dice_bonus = get_dice_bonus(their_dice_roll, our_dice_roll)
+
+        our_damage_effect = get_damage_effect(our_attack_damage + our_dice_bonus)
+        their_damage_effect = get_damage_effect(their_attack_damage + their_dice_bonus)
+
+        our_pokemon.take_damage_effect(their_damage_effect)
+        their_pokemon.take_damage_effect(our_damage_effect)
+
+        if their_pokemon.has_fainted() and not our_pokemon.has_fainted():
+            # print(f'{our_pokemon.name} has defeated {their_pokemon.name} in {i} turns')
+            our_pokemon.points += 1
             break
+        elif our_pokemon.has_fainted() and not their_pokemon.has_fainted():
+            # print(f'{their_pokemon.name} has defeated {our_pokemon.name} in {i} turns')
+            their_pokemon.points += 1
+            break
+        elif our_pokemon.has_fainted() or their_pokemon.has_fainted():
+            # print(f'{our_pokemon.name} and {their_pokemon.name} have fainted after {i} turns')
+            break
+    else:
+        print(f'{our_pokemon.name} and {their_pokemon.name} ended in a tie')
 
-    pokemon.restore()
-    enemy_pokemon.restore()
+    our_pokemon.restore()
+    their_pokemon.restore()
 
 
 def simulate_all_battle_combinations(pokemons):
     for pokemon_1, pokemon_2 in combinations(pokemons, 2):
-        battle(pokemon_1, pokemon_2)
+        for _ in range(5):
+            battle(pokemon_1, pokemon_2)
 
 
 def run():
     pokemons = initalise_pokemons()
     simulate_all_battle_combinations(pokemons)
 
-    results = sorted(pokemons, key=lambda k: k.wins, reverse=True)
-    for pokemon in results[:20]:
-        print(f'{pokemon.name}: {pokemon.wins} wins, lost to {pokemon.lost_to}')
+    results = sorted(pokemons, key=lambda k: k.points, reverse=True)
+    for pokemon in results[:100]:
+        print(f'{pokemon.name}: {pokemon.points} points')
 
 
 if __name__ == '__main__':

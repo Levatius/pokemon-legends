@@ -8,8 +8,8 @@ function onLoad()
     width          = 500,
     height         = 500,
     font_size      = 125,
-    font_color     = DARK_COLOUR,
-    color          = LIGHT_BACKING_COLOUR,
+    font_color     = WHITE_COLOUR,
+    color          = WOOD_COLOUR,
     label          = "Reset\nPanel"
   })
 end

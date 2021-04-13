@@ -53,7 +53,6 @@ function enter_active_zone(active_zone, enter_object)
 
   if enter_object:hasTag(POKEMON_CARD_TAG) and enter_object.type == "Card" then
     control_panel:call("deploy_model")
-    enter_object:highlightOn(WHITE_COLOUR)
   end
 
   update_control_panels()
@@ -64,7 +63,6 @@ function leave_active_zone(active_zone, leave_object)
 
   if leave_object:hasTag(POKEMON_CARD_TAG) and leave_object.type == "Card" then
     control_panel:call("undeploy_model")
-    leave_object:highlightOff()
   end
 
   update_control_panels()

@@ -4,7 +4,6 @@
 local selected_move_index
 local selected_switch_index
 local tactics_state = 1
-local deployed_models = {}
 
 function onLoad()
   local model_bag = getObjectFromGUID(model_bag_guid)
@@ -14,7 +13,7 @@ function onLoad()
     self.createButton({
       click_function = "move_button_select_" .. i,
       function_owner = self,
-      position       = {-0.65, 0.05, -2.11 + i * 0.525},
+      position       = {-0.65, 0.05, -1.75 + i * 0.525},
       width          = 600,
       height         = 225,
       font_size      = 125,
@@ -27,7 +26,7 @@ function onLoad()
     self.createButton({
       click_function = "dummy_button",
       function_owner = self,
-      position       = {0.65, 0.05, -2.11 + i * 0.525},
+      position       = {0.65, 0.05, -1.75 + i * 0.525},
       width          = 0,
       height         = 0,
       font_size      = 200,
@@ -38,7 +37,7 @@ function onLoad()
   self.createButton({
     click_function = "tactics_button_toggle",
     function_owner = self,
-    position       = {-0.65, 0.05, -0.1},
+    position       = {-0.65, 0.05, -0.175},
     width          = 600,
     height         = 225,
     font_size      = 125,
@@ -52,12 +51,34 @@ function onLoad()
   self.createButton({
     click_function = "dummy_button",
     function_owner = self,
-    position       = {0.65, 0.05, -0.1},
+    position       = {0.65, 0.05, -0.175},
     width          = 0,
     height         = 0,
     font_size      = 55,
     font_color     = DARK_COLOUR,
     label          = TACTICS_DESCRIPTION[tactics_state]
+  })
+
+  for i = 0, 2 do
+    self.createButton({
+      click_function = "dummy_button",
+      function_owner = self,
+      position       = {-0.875 + i * 0.875, 0.05, 0.45},
+      width          = 0,
+      height         = 0,
+      font_size      = 200,
+      font_color     = DARK_COLOUR
+    })
+  end
+
+  self.createButton({
+    click_function = "dummy_button",
+    function_owner = self,
+    position       = {0, 0.05, 1.15},
+    width          = 0,
+    height         = 0,
+    font_size      = 125,
+    font_color     = DARK_COLOUR
   })
 
   update_ui()
@@ -137,6 +158,24 @@ function get_effectiveness_between(move_type, enemy_types)
   return effectiveness
 end
 
+function get_attack_damage(move_index, our_active_pokemon, enemy_active_pokemon)
+  local our_attack = our_active_pokemon and our_active_pokemon:getVar("attack") or 0
+  local enemy_defence = enemy_active_pokemon and enemy_active_pokemon:getVar("defence") or 0
+  local our_types = our_active_pokemon and our_active_pokemon:getVar("types") or nil
+  local enemy_types = enemy_active_pokemon and enemy_active_pokemon:getVar("types") or nil
+
+  local move_type = (our_active_pokemon and our_active_pokemon:getVar("moves"))
+    and our_active_pokemon:getVar("moves")[move_index] or nil
+
+  local move_effectiveness = (move_type and enemy_types)
+    and get_effectiveness_between(move_type, enemy_types) or 0
+
+  local stab_bonus = (move_type and our_types and contains(our_types, move_type))
+    and STAB_BONUS or 0
+
+  return our_attack - enemy_defence + move_effectiveness + stab_bonus
+end
+
 function get_max_dice_value_from(zone_guid)
   local zone = getObjectFromGUID(zone_guid)
   local max_value = 0
@@ -177,10 +216,21 @@ function get_status_modifier()
   return status_modifier
 end
 
-function get_dice_modifier()
+function get_bonus_modifier()
   local our_max_dice_value = get_max_dice_value_from(our_battle_zone_guid)
   local their_max_dice_value = get_max_dice_value_from(their_battle_zone_guid)
   return (our_max_dice_value > their_max_dice_value) and (our_max_dice_value - their_max_dice_value) or 0
+end
+
+function modifier_to_label(modifier)
+  local symbol = modifier >= 0 and "+" or ""
+  return symbol .. modifier
+end
+
+function damage_to_label(damage)
+  if damage > OHKO_THRESHOLD then return "Critical!"
+  elseif damage > 0 then return "Effective" end
+  return "No Damage"
 end
 
 function update_ui()
@@ -189,50 +239,42 @@ function update_ui()
 
   for i = 0, 2 do
     local button_index = i
+    local move_index = i + 1
 
     local type = (our_active_pokemon and our_active_pokemon:getVar("moves"))
-      and our_active_pokemon:getVar("moves")[i + 1] or nil
+      and our_active_pokemon:getVar("moves")[move_index] or nil
 
     self.editButton({
       index      = button_index,
-      label      = type and type or "Move " .. (i + 1),
+      label      = type and type or "Move " .. move_index,
       color      = type and TYPE_COLOURS[type] or LIGHT_BACKING_COLOUR,
-      font_color = (button_index + 1 == selected_move_index) and WHITE_COLOUR or DARK_COLOUR
+      font_color = (move_index == selected_move_index) and WHITE_COLOUR or DARK_COLOUR
     })
   end
-
-  local our_attack = our_active_pokemon and our_active_pokemon:getVar("attack") or 0
-  local enemy_defence = enemy_active_pokemon and enemy_active_pokemon:getVar("defence") or 0
-
-  local our_types = our_active_pokemon and our_active_pokemon:getVar("types") or nil
-  local enemy_types = enemy_active_pokemon and enemy_active_pokemon:getVar("types") or nil
-
-  local tactics_modifier = TACTICS_MODIFIERS[tactics_state]
-  local status_modifier = get_status_modifier()
-  local dice_modifier = get_dice_modifier()
-
-  local bonus_damage = tactics_modifier + status_modifier + dice_modifier
-  local bonus_damage_symbol = bonus_damage >= 0 and "+" or ""
 
   for i = 0, 2 do
     local button_index = 3 + i
+    local move_index = i + 1
 
-    local move_type = (our_active_pokemon and our_active_pokemon:getVar("moves"))
-      and our_active_pokemon:getVar("moves")[i + 1] or nil
-
-    local move_effectiveness = (move_type and enemy_types)
-      and get_effectiveness_between(move_type, enemy_types) or 0
-
-    local stab_bonus = (move_type and our_types and contains(our_types, move_type))
-      and STAB_BONUS or 0
-
-    local attack_damage = our_attack - enemy_defence + move_effectiveness + stab_bonus
-
-    self.editButton({
-      index = button_index,
-      label = attack_damage .. bonus_damage_symbol .. bonus_damage
-    })
+    local attack_damage = get_attack_damage(move_index, our_active_pokemon, enemy_active_pokemon)
+    self.editButton({index=button_index, label=attack_damage})
   end
+
+  local tactics_modifier = TACTICS_MODIFIERS[tactics_state]
+  local status_modifier = get_status_modifier()
+  local bonus_modifier = get_bonus_modifier()
+
+  self.editButton({index=8, label=modifier_to_label(tactics_modifier)})
+  self.editButton({index=9, label=modifier_to_label(status_modifier)})
+  self.editButton({index=10, label=modifier_to_label(bonus_modifier)})
+
+  local damage_label = "Select Move"
+  if selected_move_index then
+    local selected_attack_damage = get_attack_damage(selected_move_index, our_active_pokemon, enemy_active_pokemon)
+    local total_damage = selected_attack_damage + tactics_modifier + status_modifier + bonus_modifier
+    damage_label = damage_to_label(total_damage)
+  end
+  self.editButton({index=11, label=damage_label})
 end
 
 function deploy_model_callback(model)
@@ -248,7 +290,7 @@ function deploy_model()
 
   local model_guid
   for _, contained_object in pairs(model_bag:getObjects()) do
-    if contained_object.name == our_active_pokemon:getVar("dexname") and contained_object.description == "Normal" then
+    if contained_object.name == our_active_pokemon:getVar("dexname") and contained_object.description == our_active_pokemon:getVar("form") then
       model_guid = contained_object.guid
       break
     end

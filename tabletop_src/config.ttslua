@@ -32,12 +32,13 @@ TACTICS_DESCRIPTION = {
   "Higher damage but\napplies Weakness to user",
   "Lower damage but\napplies a status effect"
 }
-TACTICS_MODIFIERS = {0, 2, -2}
+TACTICS_MODIFIERS = {0, 1, -3}
 
 -- Colours
 WHITE_COLOUR = {1, 1, 1}
 LIGHT_BACKING_COLOUR = {225/255, 220/255, 215/255}
 DARK_COLOUR = {37/255, 37/255, 50/255}
+WOOD_COLOUR = {150/255, 75/255, 50/255}
 TYPE_COLOURS = {
   Normal = {144/255, 153/255, 161/255},
   Fire = {217/255, 119/255, 70/255},
@@ -58,6 +59,9 @@ TYPE_COLOURS = {
   Steel = {90/255, 142/255, 161/255},
   Fairy = {236/255, 143/255, 230/255}
 }
+
+-- Thesholds
+OHKO_THRESHOLD = 7
 
 -- Modifiers
 STAB_BONUS = 1

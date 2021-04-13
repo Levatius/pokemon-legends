@@ -69,6 +69,18 @@ def add_type(img, type_1, type_2=None):
         img.paste(type_2_img, xy(1.25, 4.25), type_2_img)
     return img
 
+def add_moves(img, stats):
+    moves = [move for move in (stats.move_1, stats.move_2, stats.move_3) if not pd.isnull(move)]
+    moves_img = Image.open(ASSETS_DIR / f'moves_{len(moves)}_icon.png').convert('RGBA').resize(xy(7, 3))
+    # moves_img = Image.new('RGBA', xy(2 * len(moves), 2))
+
+    for i, move in enumerate(moves):
+        move_img = Image.open(ASSETS_DIR / 'types' / f'{move}.png').convert('RGBA').resize(xy(2, 2))
+        moves_img.paste(move_img, xy(2 * i + (3 - len(moves) + 0.5), 0.5), move_img)
+
+    img.paste(moves_img, xy(4.5, 24.5), moves_img)
+    return img
+
 
 def add_name(img, name, description=None):
     d = ImageDraw.Draw(img)
@@ -85,14 +97,6 @@ def get_variant(pokedex_number, description=None, art_form=False):
     elif pokedex_number == 412 and art_form:
         variant = '-p'
     return variant
-
-
-# def add_sprite(img, pokedex_number, description=None):
-#     variant = get_variant(pokedex_number, description)
-#     response = requests.get(f'{REGULAR_SPRITE_URL}/{pokedex_number:03}{variant}.png')
-#     sprite_img = Image.open(BytesIO(response.content)).convert('RGBA').resize(xy(13, 13))
-#     img.paste(sprite_img, xy(1, 7), sprite_img)
-#     return img
 
 
 def get_art_size(tier):
@@ -143,6 +147,7 @@ def generate_cards(overwrite=False, shiny=False):
 
         img = compose_base(shiny, habitat_biome=stats.habitat_biome, habitat_climate=stats.habitat_climate)
         img = add_type(img, type_1=stats.type_1, type_2=stats.type_2)
+        img = add_moves(img, stats)
         img = add_name(img, name=stats.pokedex_name, description=stats.description)
         img = add_art(img, pokedex_number=stats.pokedex_number, tier=stats.tier, description=stats.description)
         img = add_tier(img, tier=stats.tier)
@@ -213,8 +218,9 @@ def get_lua_script(stats, shiny):
         'types': '{' + ', '.join(
             [f'"{type_.capitalize()}"' for type_ in (stats.type_1, stats.type_2) if not pd.isnull(type_)]) + '}',
         'moves': '{' + ', '.join(
-            [f'"{type_.capitalize()}"' for type_ in (stats.type_1, stats.type_2) if not pd.isnull(type_)]) + '}',
-        'form': f"{get_shiny_name(shiny).capitalize()}"
+            [f'"{move.capitalize()}"' for move in (stats.move_1, stats.move_2, stats.move_3) if
+             not pd.isnull(move)]) + '}',
+        'form': f'"{get_shiny_name(shiny).capitalize()}"'
     }
     lua_script_lines = [f'{variable} = {value}' for variable, value in local_variables.items()]
     return '\n'.join(lua_script_lines)
@@ -231,8 +237,10 @@ def get_card_json(i, j, stats):
         subcard_json['Description'] = f'The {stats.classification}'
         subcard_json['Tags'].extend([stats.habitat_biome, stats.habitat_climate, get_tier_tag(stats.tier)])
         subcard_json['LuaScript'] = get_lua_script(stats, shiny)
-        subcard_json['CustomDeck']['1' if not shiny else '2']['FaceURL'] = NORMAL_DECK_FACE_CLOUD_URLS[j] if not shiny else SHINY_DECK_FACE_CLOUD_URLS[j]
-        subcard_json['CustomDeck']['1' if not shiny else '2']['BackURL'] = NORMAL_CARD_BACK_CLOUD_URL if not shiny else SHINY_CARD_BACK_CLOUD_URL
+        subcard_json['CustomDeck']['1' if not shiny else '2']['FaceURL'] = NORMAL_DECK_FACE_CLOUD_URLS[
+            j] if not shiny else SHINY_DECK_FACE_CLOUD_URLS[j]
+        subcard_json['CustomDeck']['1' if not shiny else '2'][
+            'BackURL'] = NORMAL_CARD_BACK_CLOUD_URL if not shiny else SHINY_CARD_BACK_CLOUD_URL
         shiny = True
 
     return card_json
@@ -265,8 +273,8 @@ def generate_deck_objects():
 
 
 if __name__ == '__main__':
-    # generate_cards(overwrite=False)
-    # generate_decks()
-    # generate_cards(overwrite=False, shiny=True)
-    # generate_decks(shiny=True)
+    generate_cards(overwrite=True)
+    generate_decks()
+    generate_cards(overwrite=True, shiny=True)
+    generate_decks(shiny=True)
     generate_deck_objects()
