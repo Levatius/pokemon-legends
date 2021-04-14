@@ -14,8 +14,6 @@ function onLoad()
       click_function = "move_button_select_" .. i,
       function_owner = self,
       position       = {-0.65, 0.05, -1.75 + i * 0.525},
-      width          = 600,
-      height         = 225,
       font_size      = 125,
       hover_color    = LIGHT_BACKING_COLOUR,
       press_color    = LIGHT_BACKING_COLOUR
@@ -41,11 +39,7 @@ function onLoad()
     width          = 600,
     height         = 225,
     font_size      = 125,
-    font_color     = DARK_COLOUR,
-    label          = TACTICS_LABEL[tactics_state],
-    color          = TACTICS_COLOUR[tactics_state],
-    hover_color    = TACTICS_COLOUR[get_next_tactics_state()],
-    press_color    = TACTICS_COLOUR[get_next_tactics_state()]
+    font_color     = DARK_COLOUR
   })
 
   self.createButton({
@@ -54,16 +48,15 @@ function onLoad()
     position       = {0.65, 0.05, -0.175},
     width          = 0,
     height         = 0,
-    font_size      = 55,
-    font_color     = DARK_COLOUR,
-    label          = TACTICS_DESCRIPTION[tactics_state]
+    font_size      = 125,
+    font_color     = DARK_COLOUR
   })
 
-  for i = 0, 2 do
+  for i = 0, 1 do
     self.createButton({
       click_function = "dummy_button",
       function_owner = self,
-      position       = {-0.875 + i * 0.875, 0.05, 0.45},
+      position       = {-0.65 + i * 1.3, 0.05, 0.45},
       width          = 0,
       height         = 0,
       font_size      = 200,
@@ -125,19 +118,6 @@ end
 
 function tactics_button_toggle()
   tactics_state = get_next_tactics_state()
-
-  self.editButton({
-    index       = 6,
-    label       = TACTICS_LABEL[tactics_state],
-    color       = TACTICS_COLOUR[tactics_state],
-    hover_color = TACTICS_COLOUR[get_next_tactics_state()],
-    press_color = TACTICS_COLOUR[get_next_tactics_state()]
-  })
-  self.editButton({
-    index = 7,
-    label = TACTICS_DESCRIPTION[tactics_state]
-  })
-
   update_ui()
 end
 
@@ -158,15 +138,18 @@ function get_effectiveness_between(move_type, enemy_types)
   return effectiveness
 end
 
+function get_move(move_index, our_active_pokemon)
+  return (our_active_pokemon and our_active_pokemon:getVar("moves"))
+    and our_active_pokemon:getVar("moves")[move_index] or nil
+end
+
 function get_attack_damage(move_index, our_active_pokemon, enemy_active_pokemon)
   local our_attack = our_active_pokemon and our_active_pokemon:getVar("attack") or 0
   local enemy_defence = enemy_active_pokemon and enemy_active_pokemon:getVar("defence") or 0
   local our_types = our_active_pokemon and our_active_pokemon:getVar("types") or nil
   local enemy_types = enemy_active_pokemon and enemy_active_pokemon:getVar("types") or nil
 
-  local move_type = (our_active_pokemon and our_active_pokemon:getVar("moves"))
-    and our_active_pokemon:getVar("moves")[move_index] or nil
-
+  local move_type = get_move(move_index, our_active_pokemon)
   local move_effectiveness = (move_type and enemy_types)
     and get_effectiveness_between(move_type, enemy_types) or 0
 
@@ -206,9 +189,9 @@ function get_status_modifier()
   end
   for _, status_token in pairs(their_status_tokens) do
     if not status_token.is_face_down then
-      if status_token:getName() == REINFORCE_TOKEN_NAME then
+      if status_token:getName() == BRACE_TOKEN_NAME then
         status_modifier = status_modifier - STATUS_MODIFIER
-      elseif status_token:getName() == WEAKNESS_TOKEN_NAME then
+      elseif status_token:getName() == WEAKEN_TOKEN_NAME then
         status_modifier = status_modifier + STATUS_MODIFIER
       end
     end
@@ -228,7 +211,7 @@ function modifier_to_label(modifier)
 end
 
 function damage_to_label(damage)
-  if damage > OHKO_THRESHOLD then return "Critical!"
+  if damage >= OHKO_THRESHOLD then return "Critical!"
   elseif damage > 0 then return "Effective" end
   return "No Damage"
 end
@@ -237,44 +220,80 @@ function update_ui()
   local our_active_pokemon = get_pokemon_from(our_active_zone_guid)
   local enemy_active_pokemon = get_pokemon_from(their_active_zone_guid)
 
+  -- Move Buttons
   for i = 0, 2 do
     local button_index = i
     local move_index = i + 1
-
-    local type = (our_active_pokemon and our_active_pokemon:getVar("moves"))
-      and our_active_pokemon:getVar("moves")[move_index] or nil
+    local move = get_move(move_index, our_active_pokemon)
 
     self.editButton({
       index      = button_index,
-      label      = type and type or "Move " .. move_index,
-      color      = type and TYPE_COLOURS[type] or LIGHT_BACKING_COLOUR,
+      label      = move and move or "",
+      width      = move and 600 or 0,
+      height     = move and 225 or 0,
+      color      = move and TYPE_COLOURS[move] or LIGHT_BACKING_COLOUR,
       font_color = (move_index == selected_move_index) and WHITE_COLOUR or DARK_COLOUR
     })
-  end
-
-  for i = 0, 2 do
-    local button_index = 3 + i
-    local move_index = i + 1
-
-    local attack_damage = get_attack_damage(move_index, our_active_pokemon, enemy_active_pokemon)
-    self.editButton({index=button_index, label=attack_damage})
   end
 
   local tactics_modifier = TACTICS_MODIFIERS[tactics_state]
   local status_modifier = get_status_modifier()
   local bonus_modifier = get_bonus_modifier()
 
+  -- Move Damages
+  for i = 0, 2 do
+    local button_index = 3 + i
+    local move_index = i + 1
+    local move = get_move(move_index, our_active_pokemon)
+
+    local attack_damage = get_attack_damage(move_index, our_active_pokemon, enemy_active_pokemon) + tactics_modifier + status_modifier
+
+    self.editButton({
+      index = button_index,
+      label = move and attack_damage or ""
+    })
+  end
+
+  -- Tactics Button
+  self.editButton({
+    index       = 6,
+    label       = TACTICS_LABEL[tactics_state],
+    color       = TACTICS_COLOUR[tactics_state],
+    hover_color = TACTICS_COLOUR[get_next_tactics_state()],
+    press_color = TACTICS_COLOUR[get_next_tactics_state()]
+  })
+
+  -- Tactics Effect
+  local tactics_effect = "N/A"
+  if selected_move_index then
+    if tactics_state == 2 then
+      tactics_effect = "-" .. WEAKEN_STATUS
+    elseif tactics_state == 3 then
+      local move = get_move(selected_move_index, our_active_pokemon)
+      if move then
+        tactics_effect = "+" .. STATUS_NAMES[move]
+      end
+    end
+  else
+    if tactics_state == 2 then
+      tactics_effect = "-" .. WEAKEN_STATUS
+    end
+  end
+  self.editButton({
+    index = 7,
+    label = tactics_effect
+  })
+
   self.editButton({index=8, label=modifier_to_label(tactics_modifier)})
   self.editButton({index=9, label=modifier_to_label(status_modifier)})
-  self.editButton({index=10, label=modifier_to_label(bonus_modifier)})
 
   local damage_label = "Select Move"
   if selected_move_index then
     local selected_attack_damage = get_attack_damage(selected_move_index, our_active_pokemon, enemy_active_pokemon)
-    local total_damage = selected_attack_damage + tactics_modifier + status_modifier + bonus_modifier
+    local total_damage = selected_attack_damage + tactics_modifier + status_modifier
     damage_label = damage_to_label(total_damage)
   end
-  self.editButton({index=11, label=damage_label})
+  self.editButton({index=10, label=damage_label})
 end
 
 function deploy_model_callback(model)

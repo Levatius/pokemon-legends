@@ -14,10 +14,38 @@ BATTLE_TOKEN_TAG = "Battle Token"
 
 -- Names
 FOCUS_TOKEN_NAME = "Focused"
-REINFORCE_TOKEN_NAME = "Reinforced"
+BRACE_TOKEN_NAME = "Braced"
 FEAR_TOKEN_NAME = "Feared"
-WEAKNESS_TOKEN_NAME = "Weakened"
+WEAKEN_TOKEN_NAME = "Weakened"
 SHIELD_TOKEN_NAME = "Shielded"
+
+FOCUS_STATUS = "Focus"
+BRACE_STATUS = "Brace"
+FEAR_STATUS = "Fear"
+WEAKEN_STATUS = "Weaken"
+SHIELD_STATUS = "Shield"
+SWITCH_STATUS = "Switch"
+
+STATUS_NAMES = {
+  Normal = SHIELD_STATUS,
+  Fire = FEAR_STATUS,
+  Water = SWITCH_STATUS,
+  Electric = SWITCH_STATUS,
+  Grass = SHIELD_STATUS,
+  Ice = WEAKEN_STATUS,
+  Fighting = FOCUS_STATUS,
+  Poison = WEAKEN_STATUS,
+  Ground = BRACE_STATUS,
+  Flying = BRACE_STATUS,
+  Psychic = FOCUS_STATUS,
+  Bug = SWITCH_STATUS,
+  Rock = WEAKEN_STATUS,
+  Ghost = FEAR_STATUS,
+  Dragon = FOCUS_STATUS,
+  Dark = FEAR_STATUS,
+  Steel = BRACE_STATUS,
+  Fairy = SHIELD_STATUS
+}
 
 -- Conditions
 CONDITION_LABEL = {":)", ":(", "X("}
@@ -41,7 +69,7 @@ DARK_COLOUR = {37/255, 37/255, 50/255}
 WOOD_COLOUR = {150/255, 75/255, 50/255}
 TYPE_COLOURS = {
   Normal = {144/255, 153/255, 161/255},
-  Fire = {217/255, 119/255, 70/255},
+  Fire = {255/255, 156/255, 84/255},
   Water = {77/255, 144/255, 213/255},
   Electric = {243/255, 210/255, 59/255},
   Grass = {99/255, 187/255, 91/255},

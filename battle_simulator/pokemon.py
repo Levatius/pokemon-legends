@@ -20,6 +20,7 @@ class Pokemon:
 
         self.tier = (attack + defence) // 2
         self.points = 0
+        self.dne = 0
 
     @property
     def attack(self):
