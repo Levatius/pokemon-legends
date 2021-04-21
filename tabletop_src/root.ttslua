@@ -27,19 +27,27 @@ end
 
 
 
-function get_control_panel_for_zone(zone)
+function get_control_panel_for_object(object)
   for _, control_panel_guid in pairs(ARENA_CONTROL_PANEL_GUIDS) do
     local control_panel = getObjectFromGUID(control_panel_guid)
 
-    if control_panel:getVar("our_active_zone_guid") == zone:getGUID() then
+    if control_panel:getVar("our_active_zone_guid") == object:getGUID() then
       return control_panel
-    elseif control_panel:getVar("battle_token_zone_guid") == zone:getGUID() then
+    elseif control_panel:getVar("battle_token_zone_guid") == object:getGUID() then
+      return control_panel
+    end
+  end
+
+  for _, control_panel_guid in pairs(PLAYER_CONTROL_PANEL_GUIDS) do
+    local control_panel = getObjectFromGUID(control_panel_guid)
+
+    if control_panel:getVar("pouch_guid") == object:getGUID() then
       return control_panel
     end
   end
 end
 
-function update_control_panels()
+function update_arena_control_panels()
   for _, control_panel_guid in pairs(ARENA_CONTROL_PANEL_GUIDS) do
     local control_panel = getObjectFromGUID(control_panel_guid)
     control_panel:call("update_ui")
@@ -49,33 +57,34 @@ end
 
 
 function enter_active_zone(active_zone, enter_object)
-  local control_panel = get_control_panel_for_zone(active_zone)
+  local control_panel = get_control_panel_for_object(active_zone)
 
   if enter_object:hasTag(POKEMON_CARD_TAG) and enter_object.type == "Card" then
     control_panel:call("deploy_model")
   end
 
-  update_control_panels()
+  update_arena_control_panels()
 end
 
 function leave_active_zone(active_zone, leave_object)
-  local control_panel = get_control_panel_for_zone(active_zone)
+  local control_panel = get_control_panel_for_object(active_zone)
 
   if leave_object:hasTag(POKEMON_CARD_TAG) and leave_object.type == "Card" then
+    print(control_panel, leave_object)
     control_panel:call("undeploy_model")
   end
 
-  update_control_panels()
+  update_arena_control_panels()
 end
 
 
 
 function enter_battle_zone(battle_zone, enter_object)
-  if enter_object.type == "Dice" then update_control_panels() end
+  if enter_object.type == "Dice" then update_arena_control_panels() end
 end
 
 function leave_battle_zone(battle_zone, leave_object)
-  if leave_object.type == "Dice" then update_control_panels() end
+  if leave_object.type == "Dice" then update_arena_control_panels() end
 end
 
 
@@ -87,9 +96,122 @@ function leave_battle_token_zone(battle_token_zone, leave_object)
 end
 
 
-function tryObjectEnterContainer(container, entering_object)
+function tryObjectEnterContainer(container, enter_object)
   if container:hasTag(POKEMON_MODEL_TAG) then
-    return entering_object:hasTag(POKEMON_MODEL_TAG)
+    return enter_object:hasTag(POKEMON_MODEL_TAG)
   end
   return true
+end
+
+function onObjectEnterContainer(container, enter_object)
+  if container:getName() == POUCH_NAME then
+    local control_panel = get_control_panel_for_object(container)
+    control_panel:call("update_ui")
+  end
+end
+
+function onObjectLeaveContainer(container, leave_object)
+  if container:getName() == POUCH_NAME then
+    local control_panel = get_control_panel_for_object(container)
+    control_panel:call("update_ui")
+  end
+end
+
+function onObjectEnterZone(zone, object)
+  if zone:hasTag(POKEMON_CARD_TAG) and object:hasTag(POKEMON_CARD_TAG) and not object.is_face_down then
+    object:registerCollisions()
+  end
+end
+
+function onObjectRotate(object)
+  if object:hasTag(POKEMON_CARD_TAG) and not object.is_face_down then
+    object:unregisterCollisions()
+    local attachments = object:removeAttachments()
+    for _, attachment in pairs(attachments) do
+      if attachment:hasTag(DAMAGE_TOKEN_TAG) then
+        attachment:destruct()
+      end
+    end
+  end
+end
+
+function _count_journey_points_attached(pokemon_card)
+  local journey_points = 0
+  for _, attachment_info in pairs(pokemon_card:getAttachments()) do
+    if contains(attachment_info.tags, JOURNEY_POINT_TOKEN_TAG) then
+      journey_points = journey_points + 1
+    end
+  end
+  return journey_points
+end
+
+function onObjectCollisionEnter(hit_object, collision_info)
+  local collision_object = collision_info.collision_object
+  if hit_object:hasTag(POKEMON_CARD_TAG) and hit_object.type == "Card" then
+    -- Useful variables
+    local pokemon_card = hit_object
+    local evolve_into = pokemon_card:getVar("evolve_into")
+    local evolve_cost = pokemon_card:getVar("evolve_cost")
+    local evolve_apricorn = pokemon_card:getVar("evolve_apricorn")
+
+    if collision_object:hasTag(DAMAGE_TOKEN_TAG) then
+      pokemon_card:addAttachment(collision_object)
+
+    elseif collision_object:hasTag(JOURNEY_POINT_TOKEN_TAG) then
+      -- Exit if we do not evolve
+      if not evolve_into then
+        print("This Pokémon does not evolve")
+        return
+      end
+      -- Exit if we already have already satisfied the evolve cost
+      local journey_points = _count_journey_points_attached(pokemon_card)
+      if journey_points >= evolve_cost then
+        print("Evolve cost already met: " .. journey_points .. "/" .. evolve_cost)
+        return
+      end
+
+      pokemon_card:addAttachment(collision_object)
+
+      -- Check if we now satisfy the evolve cost
+      journey_points = _count_journey_points_attached(pokemon_card)
+      if not (journey_points >= evolve_cost) then return end
+
+      -- Single evolution
+      if #evolve_into == 1 then
+        print("Evolving into " .. evolve_into[1])
+        pokemon_card:destroyAttachments()
+      -- Multiple evolutions
+      else
+        print("Ready to evolve, now use one of the following apricorns:")
+        for i, evolve_option in pairs(evolve_into) do
+          -- "  - Red Apricorn: Pokémon 1"
+          print("  - " .. evolve_apricorn[i] .. ": " .. evolve_option)
+        end
+      end
+    elseif collision_object:hasTag(APRICORN_TOKEN_TAG) then
+      -- Exit if we do not have any alternate evolutions
+      if not evolve_into or not (#evolve_into > 1) then
+        print("This Pokémon has no alternate evolutions")
+        return
+      end
+      -- Exit if we have not satisfied the evolve cost
+      local journey_points = _count_journey_points_attached(pokemon_card)
+      if not (journey_points >= evolve_cost) then
+        print("Evolve cost not met: " .. journey_points .. "/" .. evolve_cost)
+        return
+      end
+
+      local apricorn_index = find_first_index(evolve_apricorn, collision_object:getName())
+
+      -- Exit if apricorn not in
+      if not apricorn_index then
+        print("Apricorn incompatible with Pokémon")
+        return
+      end
+
+      print("Evolving into " .. evolve_into[apricorn_index])
+      pokemon_card:destroyAttachments()
+      collision_object:destruct()
+    end
+  end
 end

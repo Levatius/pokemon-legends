@@ -21,18 +21,19 @@ LARGE_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=1
 MEDIUM_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=64)
 SMALL_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=32)
 DARK_COLOUR = (37, 37, 50)
+WHITE_COLOUR = (255, 255, 255)
 
-NORMAL_CARD_BACK_CLOUD_URL = 'http://cloud-3.steamusercontent.com/ugc/1805355726852280537/DE6D896DBB79A48536CF06DF3D87042FC2EAF92E/'
+NORMAL_CARD_BACK_CLOUD_URL = 'http://cloud-3.steamusercontent.com/ugc/1755817088934009706/72672D0AD43330B3F2FB5128B583DDA2A0D9D7CE/'
 NORMAL_DECK_FACE_CLOUD_URLS = [
-    'http://cloud-3.steamusercontent.com/ugc/1805355726848796619/D8DAA36D39E2953F1385AF433A2B50E957E4492E/',
-    'http://cloud-3.steamusercontent.com/ugc/1805355726848797309/DC06F5F74AED63A3B2F93E9B57C651D5668E7E67/',
-    'http://cloud-3.steamusercontent.com/ugc/1805355726848799378/A1F3D09DE66E55BC2F6592006B836C94EA11C885/'
+    'http://cloud-3.steamusercontent.com/ugc/1755817088934003567/1155AE852139749D54660B7DB505C755F35909D1/',
+    'http://cloud-3.steamusercontent.com/ugc/1755817088934003709/9C1F837FBB7E96026879216BA425D7B4ECF01B95/',
+    'http://cloud-3.steamusercontent.com/ugc/1755817088934003848/B844B298C05E1249E2A72891DFE8F70A6472B23B/'
 ]
-SHINY_CARD_BACK_CLOUD_URL = 'http://cloud-3.steamusercontent.com/ugc/1805355726852279751/41E3CB188BD5830484ACC477F5855BDA9E88A759/'
+SHINY_CARD_BACK_CLOUD_URL = 'http://cloud-3.steamusercontent.com/ugc/1755817088934009776/CF6C9FE0321B36BD49BEA860EEB834E38C1E4A04/'
 SHINY_DECK_FACE_CLOUD_URLS = [
-    'http://cloud-3.steamusercontent.com/ugc/1805355726852282557/0289B4FF700974A9FD46284E7C975D60FB9000B4/',
-    'http://cloud-3.steamusercontent.com/ugc/1805355726852285417/BD456D2C93F8F3568C2D6F5D1C2342FA5E3480AD/',
-    'http://cloud-3.steamusercontent.com/ugc/1805355726852287024/356B36FC86A930D75222254FEB1CE4FEC17CA9D4/'
+    'http://cloud-3.steamusercontent.com/ugc/1755817088934004852/4C58E68CAB8FAA6430F16CE8E2FC4A07B7585F34/',
+    'http://cloud-3.steamusercontent.com/ugc/1755817088934004989/E0C41476BC57E899D0488051CE884076A1AF6B79/',
+    'http://cloud-3.steamusercontent.com/ugc/1755817088934005116/1DE6124A916082FBCC430E3AB64B9B850B53B842/'
 ]
 
 
@@ -83,6 +84,12 @@ def add_moves_base(img, stats):
     return img
 
 
+def add_evolve_base(img):
+    evolve_base_img = Image.open(ASSETS_DIR / f'evolve_icon.png').convert('RGBA').resize(xy(3, 3))
+    img.paste(evolve_base_img, xy(12.5, 6.5), evolve_base_img)
+    return img
+
+
 def add_moves(img, stats):
     moves = [move for move in (stats.move_1, stats.move_2, stats.move_3) if not pd.isnull(move)]
     base_img = Image.new('RGBA', xy(7, 3))
@@ -92,6 +99,12 @@ def add_moves(img, stats):
         base_img.paste(move_img, xy(2 * i + (3 - len(moves) + 0.5), 0.5), move_img)
 
     img.paste(base_img, xy(4.5, 24.5), base_img)
+    return img
+
+
+def add_evolve_stats(img, stats):
+    d = ImageDraw.Draw(img)
+    d.text(xy(14, 8), str(int(stats.evolve_cost)), fill=WHITE_COLOUR, font=MEDIUM_TEXT_FONT, anchor='mm')
     return img
 
 
@@ -165,21 +178,19 @@ def generate_cards(overwrite=False, shiny=False):
             continue
 
         base_img = compose_base(stats, shiny)
-
         img = Image.new('RGBA', xy(16, 28))
         img = add_frame(img)
         img = add_moves_base(img, stats)
+        img = add_evolve_base(img) if not pd.isnull(stats.evolve_into) else img
         img = add_art(img, stats)
         img = add_tier_base(img)
-
-        if shiny:
-            img = add_foil(img)
-
+        img = add_foil(img) if shiny else img
         img = add_types(img, stats)
         img = add_moves(img, stats)
+        img = add_evolve_stats(img, stats) if not pd.isnull(stats.evolve_into) else img
         img = add_tier(img, stats)
         img = add_name(img, stats)
-        img = add_stats(img, attack=stats.attack + 1 if shiny else 0, defence=stats.defence + 1 if shiny else 0)
+        img = add_stats(img, attack=stats.attack + (1 if shiny else 0), defence=stats.defence + (1 if shiny else 0))
 
         base_img.paste(img, xy(0, 0), img)
         base_img.save(output_path)
@@ -226,6 +237,8 @@ def get_deck_json(j=0):
 
 
 def get_tier_tag(tier):
+    if isinstance(tier, str):
+        return None
     if tier >= 9:
         return 'Tier Uber'
     elif tier >= 7:
@@ -235,18 +248,34 @@ def get_tier_tag(tier):
     return 'Tier Low'
 
 
+def get_lua_table_from_fields(fields):
+    values_list = [f'"{value.capitalize()}"' for value in fields if not pd.isnull(value)]
+    values_str = ','.join(values_list)
+    return '{' + values_str + '}'
+
+
+def get_lua_table_from_field(field):
+    if not pd.isnull(field):
+        values_list = [f'"{value}"' for value in field.split(',')]
+        values_str = ','.join(values_list)
+        return '{' + values_str + '}'
+    return 'nil'
+
+
 def get_lua_script(stats, shiny):
     local_variables = {
+        'pokedex_name': f'"{stats.pokedex_name}"',
+        'internal_name': f'"{stats.internal_name}"',
         'attack': stats.attack + (1 if shiny else 0),
         'defence': stats.defence + (1 if shiny else 0),
-        'dexname': f'"{stats.pokedex_name}"',
         'tier': stats.tier,
-        'types': '{' + ', '.join(
-            [f'"{type_.capitalize()}"' for type_ in (stats.type_1, stats.type_2) if not pd.isnull(type_)]) + '}',
-        'moves': '{' + ', '.join(
-            [f'"{move.capitalize()}"' for move in (stats.move_1, stats.move_2, stats.move_3) if
-             not pd.isnull(move)]) + '}',
-        'form': f'"{get_shiny_name(shiny).capitalize()}"'
+        'types': get_lua_table_from_fields((stats.type_1, stats.type_2)),
+        'moves': get_lua_table_from_fields((stats.move_1, stats.move_2, stats.move_3)),
+        'form': f'"{get_shiny_name(shiny).capitalize()}"',
+        'evolve_into': get_lua_table_from_field(stats.evolve_into),
+        'evolve_apricorn': get_lua_table_from_field(stats.evolve_apricorn),
+        'evolve_cost': stats.evolve_cost if not pd.isnull(stats.evolve_into) else 'nil',
+        'evolve_lake_requirement': stats.evolve_lake_requirement if not pd.isnull(stats.evolve_into) else 'nil'
     }
     lua_script_lines = [f'{variable} = {value}' for variable, value in local_variables.items()]
     return '\n'.join(lua_script_lines)
@@ -259,9 +288,9 @@ def get_card_json(i, j, stats):
     shiny = False
     for subcard_json in (card_json, card_json['States']['2']):
         subcard_json['CardID'] = 100 + i % 70 if not shiny else 200 + i % 70
-        subcard_json['Nickname'] = stats.pokedex_name + (' ★' if shiny else '')
+        subcard_json['Nickname'] = stats.internal_name + (' ★' if shiny else '')
         subcard_json['Description'] = f'The {stats.classification}'
-        subcard_json['Tags'].extend([stats.habitat_biome, stats.habitat_climate, get_tier_tag(stats.tier)])
+        subcard_json['Tags'].extend([tag for tag in [stats.habitat_biome, stats.habitat_climate, get_tier_tag(stats.tier)] if not pd.isnull(tag)])
         subcard_json['LuaScript'] = get_lua_script(stats, shiny)
         subcard_json['CustomDeck']['1' if not shiny else '2']['FaceURL'] = NORMAL_DECK_FACE_CLOUD_URLS[
             j] if not shiny else SHINY_DECK_FACE_CLOUD_URLS[j]
@@ -299,8 +328,8 @@ def generate_deck_objects():
 
 
 if __name__ == '__main__':
-    # generate_cards(overwrite=True)
-    # generate_decks()
-    generate_cards(overwrite=True, shiny=True)
-    generate_decks(shiny=True)
-    # generate_deck_objects()
+    #generate_cards(overwrite=True)
+    #generate_decks()
+    #generate_cards(overwrite=True, shiny=True)
+    #generate_decks(shiny=True)
+    generate_deck_objects()

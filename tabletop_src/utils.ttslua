@@ -1,3 +1,5 @@
+function dummy_button() end
+
 function find_first_index(t, value)
   for i, value_ in pairs(t) do
     if value_ == value then

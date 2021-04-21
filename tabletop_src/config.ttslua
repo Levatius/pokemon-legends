@@ -5,14 +5,22 @@ ARENA_ACTIVE_ZONE_GUIDS = {"f11abe", "085e19"}
 ARENA_BATTLE_ZONE_GUIDS = {"3dca9c", "eb5b67"}
 ARENA_CONTROL_PANEL_GUIDS = {"5c2c5a", "590eb7"}
 ARENA_BATTLE_TOKEN_GUIDS = {"71a40b", "b80c5c"}
+PLAYER_CONTROL_PANEL_GUIDS = {"ebae00"}
+APRICORN_BAG_GUIDS = {"c2d9cc", "5ae126", "76d021", "1d667c", "926a58", "c7bdb9", "43f641"}
 
 -- Tags
 STATUS_TOKEN_TAG = "Status Token"
 POKEMON_CARD_TAG = "Pokemon Card"
 POKEMON_MODEL_TAG = "Pokemon Model"
 BATTLE_TOKEN_TAG = "Battle Token"
+JOURNEY_POINT_TOKEN_TAG = "Journey Point Token"
+APRICORN_TOKEN_TAG = "Apricorn Token"
+DAMAGE_TOKEN_TAG = "Damage Token"
 
 -- Names
+POUCH_NAME = "Pouch"
+PLAYER_PARTY_POKEMON_ZONE = "Player Party Pokemon Zone"
+
 FOCUS_TOKEN_NAME = "Focused"
 BRACE_TOKEN_NAME = "Braced"
 FEAR_TOKEN_NAME = "Feared"
@@ -124,3 +132,6 @@ TYPE_CHART = {
   Steel = {Fire = RESIST, Water = RESIST, Grass = RESIST, Ice = WEAK, Rock = WEAK, Steel = RESIST, Fairy = WEAK},
   Fairy = {Fire = RESIST, Fighting = WEAK, Poison = RESIST, Dragon = WEAK, Dark = WEAK, Steel = RESIST}
 }
+
+-- URLs
+CRY_BASE_URL = "https://play.pokemonshowdown.com/audio/cries/"

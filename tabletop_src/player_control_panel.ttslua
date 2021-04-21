@@ -1,0 +1,96 @@
+#include config
+#include utils
+
+local battle_token_zone = getObjectFromGUID(battle_token_zone_guid)
+local party_pokemon_zone = getObjectFromGUID(party_pokemon_zone_guid)
+local pouch = getObjectFromGUID(pouch_guid)
+
+local apricorn_names = {"Red", "Blue", "White", "Black", "Yellow", "Pink", "Green"}
+
+function onLoad()
+  apricorn_button_params = {
+    function_owner = self,
+    width          = 200,
+    height         = 200,
+    color          = {0, 0, 0, 1/255}
+  }
+  apricorn_text_params = {
+    click_function = "dummy_button",
+    function_owner = self,
+    width          = 0,
+    height         = 0,
+    font_size      = 125,
+    font_color     = WHITE_COLOUR
+  }
+
+  for i = 0, 6 do
+    local click_function = "apricorn_button_" .. i
+    apricorn_button_params.click_function = click_function
+    self.createButton(apricorn_button_params)
+  end
+  for i = 7, 13 do
+    self.createButton(apricorn_text_params)
+  end
+
+  for i = 0, 1 do
+    self.editButton({index=7 * i + 0, position={2.325, 0.05, -0.45}})
+    self.editButton({index=7 * i + 1, position={2.775, 0.05, -0.45}})
+    self.editButton({index=7 * i + 2, position={2.100, 0.05, 0}})
+    self.editButton({index=7 * i + 3, position={2.550, 0.05, 0}})
+    self.editButton({index=7 * i + 4, position={3.000, 0.05, 0}})
+    self.editButton({index=7 * i + 5, position={2.325, 0.05, 0.45}})
+    self.editButton({index=7 * i + 6, position={2.775, 0.05, 0.45}})
+  end
+
+  update_ui()
+end
+
+function apricorn_button_0(_, _, alt_click) apricorn_button(1, alt_click) end
+function apricorn_button_1(_, _, alt_click) apricorn_button(2, alt_click) end
+function apricorn_button_2(_, _, alt_click) apricorn_button(3, alt_click) end
+function apricorn_button_3(_, _, alt_click) apricorn_button(4, alt_click) end
+function apricorn_button_4(_, _, alt_click) apricorn_button(5, alt_click) end
+function apricorn_button_5(_, _, alt_click) apricorn_button(6, alt_click) end
+function apricorn_button_6(_, _, alt_click) apricorn_button(7, alt_click) end
+
+function apricorn_button(index, alt_click)
+  local apricorn_bag = getObjectFromGUID(APRICORN_BAG_GUIDS[index])
+  if not alt_click then
+    local apricorn = apricorn_bag:takeObject({rotation=pouch:getRotation()})
+    pouch:putObject(apricorn)
+  else
+    local apricorn_name = apricorn_names[index] .. " Apricorn"
+    local apricorn_index = get_object_index_with_name_in_pouch(apricorn_name)
+    if apricorn_index then
+      local apricorn = pouch:takeObject({index=apricorn_index, rotation=pouch:getRotation()})
+      apricorn_bag:putObject(apricorn)
+    end
+  end
+end
+
+function get_object_index_with_name_in_pouch(name)
+  for _, pouch_object in pairs(pouch:getObjects()) do
+    if pouch_object.name == name then
+      return pouch_object.index
+    end
+  end
+end
+
+function count_objects_with_name_in_pouch(name)
+  local count = 0
+  for _, pouch_object in pairs(pouch:getObjects()) do
+    if pouch_object.name == name then
+      count = count + 1
+    end
+  end
+  return count
+end
+
+function update_ui()
+  for i = 0, 6 do
+    local button_index = 7 + i
+    local apricorn_name = apricorn_names[i + 1] .. " Apricorn"
+    local apricorn_count = count_objects_with_name_in_pouch(apricorn_name)
+    self.editButton({index=button_index, label=apricorn_count})
+  end
+end
