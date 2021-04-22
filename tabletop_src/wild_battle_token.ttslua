@@ -1,0 +1,60 @@
+#include config
+
+
+function onPickUp(player_colour)
+  player_owner = player_colour
+  self:highlightOn(player_owner)
+
+  local player_token_guid = PLAYER_TOKEN_GUIDS[player_owner]
+  local player_token = getObjectFromGUID(player_token_guid)
+  if not player_token then
+    print(player_owner .. " player token not found")
+    return
+  end
+
+  local player_lake_zone_guid = PLAYER_LAKE_ZONE_GUIDS[player_owner]
+  local player_lake_zone = getObjectFromGUID(player_lake_zone_guid)
+  if not player_lake_zone then
+    print(player_owner .. " player lake zone not found")
+    return
+  end
+  local lake_crystals = 0
+  for _, lake_crystal in pairs(player_lake_zone:getObjects()) do
+    lake_crystals = lake_crystals + 1
+  end
+
+  local hit_list = Physics:cast({
+    origin=player_token:getPosition(),
+    direction={0,-1,0},
+    max_distance=0.5
+  })
+  self:setTags({})
+  for _, hit_info in pairs(hit_list) do
+    local hit_object = hit_info.hit_object
+    if hit_object:hasAnyTag() and not hit_object:hasTag(BATTLE_TOKEN_TAG) and not hit_object:hasTag(APRICORN_TREE_TAG) then
+      self:setTags(hit_object:getTags())
+      break
+    end
+  end
+  self:addTag(BATTLE_TOKEN_TAG)
+
+  if self:hasTag(DANGER_TAG) then
+    lake_crystals = lake_crystals + 1
+    self:removeTag(DANGER_TAG)
+  end
+
+  for i = 0, lake_crystals do
+    local tier_tag = TIER_TAGS[i + 1]
+    if tier_tag then
+      self:addTag(tier_tag)
+    end
+  end
+end
+
+function onRotate()
+  if not self.is_face_down then
+    player_owner = nil
+    self:highlightOff()
+    self:setTags({BATTLE_TOKEN_TAG})
+  end
+end

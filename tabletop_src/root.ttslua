@@ -90,6 +90,31 @@ end
 
 
 function enter_battle_token_zone(battle_token_zone, enter_object)
+  local active_zone = getObjectFromGUID(battle_token_zone:getVar("active_zone_guid"))
+  local party_zone = getObjectFromGUID(battle_token_zone:getVar("party_zone_guid"))
+  local source_zone = getObjectFromGUID(enter_object:getVar("zone_guid"))
+
+  local party_zone_objects = party_zone:getObjects()
+  if #party_zone_objects > 0 then
+    print("Zone occupied")
+    return
+  end
+
+  if enter_object:getName() == "Wild Encounter" then
+    local encounter_deck = source_zone:getObjects()[1]
+    for _, pokemon_card_info in pairs(encounter_deck:getObjects()) do
+      local tags_in_common = 0
+      for _, battle_token_tag in pairs(enter_object:getTags()) do
+        if contains(pokemon_card_info.tags, battle_token_tag) then
+          tags_in_common = tags_in_common + 1
+        end
+      end
+      if tags_in_common >= 3 then
+        print(pokemon_card_info.name)
+        break
+      end
+    end
+  end
 end
 
 function leave_battle_token_zone(battle_token_zone, leave_object)

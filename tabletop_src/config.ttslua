@@ -1,5 +1,6 @@
 PLAYER_COLOURS = {"White", "Red", "Orange", "Yellow", "Green", "Blue", "Purple", "Pink"}
 
+
 -- GUIDs
 ARENA_ACTIVE_ZONE_GUIDS = {"f11abe", "085e19"}
 ARENA_BATTLE_ZONE_GUIDS = {"3dca9c", "eb5b67"}
@@ -7,6 +8,19 @@ ARENA_CONTROL_PANEL_GUIDS = {"5c2c5a", "590eb7"}
 ARENA_BATTLE_TOKEN_GUIDS = {"71a40b", "b80c5c"}
 PLAYER_CONTROL_PANEL_GUIDS = {"ebae00"}
 APRICORN_BAG_GUIDS = {"c2d9cc", "5ae126", "76d021", "1d667c", "926a58", "c7bdb9", "43f641"}
+PLAYER_TOKEN_GUIDS = {
+  Pink = "60f94b",
+  Orange = "cf4ad8",
+  Blue = "8170b8",
+  Purple = "552307",
+  White = "fd60a7",
+  Green = "643bd6",
+  Red = "0e09ba",
+  Yellow = "428d10"
+}
+PLAYER_LAKE_ZONE_GUIDS = {
+  Pink = "0c1fd7"
+}
 
 -- Tags
 STATUS_TOKEN_TAG = "Status Token"
@@ -15,7 +29,10 @@ POKEMON_MODEL_TAG = "Pokemon Model"
 BATTLE_TOKEN_TAG = "Battle Token"
 JOURNEY_POINT_TOKEN_TAG = "Journey Point Token"
 APRICORN_TOKEN_TAG = "Apricorn Token"
+APRICORN_TREE_TAG = "Apricorn Tree"
 DAMAGE_TOKEN_TAG = "Damage Token"
+TIER_TAGS = {"Tier Low", "Tier Medium", "Tier High", "Tier Uber"}
+DANGER_TAG = "Danger"
 
 -- Names
 POUCH_NAME = "Pouch"
