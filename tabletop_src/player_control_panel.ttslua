@@ -1,20 +1,19 @@
 #include config
 #include utils
 
-local battle_token_zone = getObjectFromGUID(battle_token_zone_guid)
-local party_pokemon_zone = getObjectFromGUID(party_pokemon_zone_guid)
 local pouch = getObjectFromGUID(pouch_guid)
+local lake_crystal_zone = getObjectFromGUID(lake_crystal_zone_guid)
 
-local apricorn_names = {"Red", "Blue", "White", "Black", "Yellow", "Pink", "Green"}
+
 
 function onLoad()
-  apricorn_button_params = {
+  button_params = {
     function_owner = self,
     width          = 200,
     height         = 200,
     color          = {0, 0, 0, 1/255}
   }
-  apricorn_text_params = {
+  text_params = {
     click_function = "dummy_button",
     function_owner = self,
     width          = 0,
@@ -23,26 +22,63 @@ function onLoad()
     font_color     = WHITE_COLOUR
   }
 
-  for i = 0, 6 do
-    local click_function = "apricorn_button_" .. i
-    apricorn_button_params.click_function = click_function
-    self.createButton(apricorn_button_params)
+  -- Pantheon Texts
+  for i = 0, 2 do
+    self.createButton(text_params)
   end
-  for i = 7, 13 do
-    self.createButton(apricorn_text_params)
+  -- Journey Point Button
+  button_params.click_function = "journey_point_button"
+  self.createButton(button_params)
+  -- Journey Point Text
+  self.createButton(text_params)
+  -- Lake Crystal Text
+  self.createButton(text_params)
+  -- Apricorn Buttons
+  for i = 0, 6 do
+    button_params.click_function = "apricorn_button_" .. i
+    self.createButton(button_params)
+  end
+  -- Apricorn Texts
+  for i = 0, 6 do
+    self.createButton(text_params)
   end
 
+  -- Positions
+  self.editButton({index=0, position={-2.62, 0.05, -0.45}})
+  self.editButton({index=1, position={-2.14, 0.05, -0.45}})
+  self.editButton({index=2, position={-1.66, 0.05, -0.45}})
   for i = 0, 1 do
-    self.editButton({index=7 * i + 0, position={2.325, 0.05, -0.45}})
-    self.editButton({index=7 * i + 1, position={2.775, 0.05, -0.45}})
-    self.editButton({index=7 * i + 2, position={2.100, 0.05, 0}})
-    self.editButton({index=7 * i + 3, position={2.550, 0.05, 0}})
-    self.editButton({index=7 * i + 4, position={3.000, 0.05, 0}})
-    self.editButton({index=7 * i + 5, position={2.325, 0.05, 0.45}})
-    self.editButton({index=7 * i + 6, position={2.775, 0.05, 0.45}})
+    local index_offest = 3
+    self.editButton({index=index_offest + i, position={-2.14, 0.05, 0.45}})
+  end
+  self.editButton({index=5, position={0, 0.05, 0.3}})
+  for i = 0, 1 do
+    local index_offest = 6
+    local index_base = index_offest + (7 * i)
+    self.editButton({index=index_base + 0, position={1.90, 0.05, -0.45}})
+    self.editButton({index=index_base + 1, position={2.38, 0.05, -0.45}})
+    self.editButton({index=index_base + 2, position={1.66, 0.05, 0}})
+    self.editButton({index=index_base + 3, position={2.14, 0.05, 0}})
+    self.editButton({index=index_base + 4, position={2.62, 0.05, 0}})
+    self.editButton({index=index_base + 5, position={1.90, 0.05, 0.45}})
+    self.editButton({index=index_base + 6, position={2.38, 0.05, 0.45}})
   end
 
   update_ui()
+end
+
+function journey_point_button(_, _, alt_click)
+  local journey_point_bag = getObjectFromGUID(JOURNEY_POINT_BAG_GUID)
+  if not alt_click then
+    local journey_point = journey_point_bag:takeObject({rotation=pouch:getRotation()})
+    pouch:putObject(journey_point)
+  else
+    local journey_point_index = get_object_index_with_name_in_pouch(JOURNEY_POINT_TOKEN_NAME)
+    if journey_point_index then
+      local journey_point = pouch:takeObject({index=journey_point_index, rotation=pouch:getRotation()})
+      journey_point_bag:putObject(journey_point)
+    end
+  end
 end
 
 function apricorn_button_0(_, _, alt_click) apricorn_button(1, alt_click) end
@@ -59,7 +95,7 @@ function apricorn_button(index, alt_click)
     local apricorn = apricorn_bag:takeObject({rotation=pouch:getRotation()})
     pouch:putObject(apricorn)
   else
-    local apricorn_name = apricorn_names[index] .. " Apricorn"
+    local apricorn_name = APRICORN_NAMES[index] .. " Apricorn"
     local apricorn_index = get_object_index_with_name_in_pouch(apricorn_name)
     if apricorn_index then
       local apricorn = pouch:takeObject({index=apricorn_index, rotation=pouch:getRotation()})
@@ -86,11 +122,18 @@ function count_objects_with_name_in_pouch(name)
   return count
 end
 
+function count_lake_crystals()
+  return #lake_crystal_zone:getObjects()
+end
+
 function update_ui()
+  local journey_point_count = count_objects_with_name_in_pouch(JOURNEY_POINT_TOKEN_NAME)
+  self.editButton({index=4, label=journey_point_count})
+  self.editButton({index=5, label=count_lake_crystals()})
   for i = 0, 6 do
-    local button_index = 7 + i
-    local apricorn_name = apricorn_names[i + 1] .. " Apricorn"
+    local index_offest = 6 + 7
+    local apricorn_name = APRICORN_NAMES[i + 1] .. " Apricorn"
     local apricorn_count = count_objects_with_name_in_pouch(apricorn_name)
-    self.editButton({index=button_index, label=apricorn_count})
+    self.editButton({index=index_offest + i, label=apricorn_count})
   end
 end

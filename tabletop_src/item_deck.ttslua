@@ -1,0 +1,15 @@
+function onLoad()
+  self:addContextMenuItem("Repaint", repaint)
+end
+
+function repaint()
+  self:destroyAttachments()
+
+  for i = 0, 1 do
+    local contained_object = self:takeObject()
+
+    contained_object:setPosition(self:positionToWorld({0, 0.5 - i, 0}))
+    contained_object:setRotation(self:getRotation())
+    self:addAttachment(contained_object)
+  end
+end

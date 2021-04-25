@@ -10,6 +10,8 @@ function onLoad()
   local model_bag = getObjectFromGUID(model_bag_guid)
   model_bag.interactable = false
 
+  cry_player:setValue("")
+
   -- Move Buttons
   for i = 0, 2 do
     self.createButton({
@@ -194,11 +196,11 @@ function get_max_dice_value_from(zone_guid)
 end
 
 function get_status_modifier()
-  local our_active_zone = getObjectFromGUID(our_active_zone_guid)
-  local our_status_tokens = find_objects_with_tag(our_active_zone, STATUS_TOKEN_TAG)
+  local our_status_zone = getObjectFromGUID(our_status_zone_guid)
+  local our_status_tokens = find_objects_with_tag(our_status_zone, STATUS_TOKEN_TAG)
 
-  local their_active_zone = getObjectFromGUID(their_active_zone_guid)
-  local their_status_tokens = find_objects_with_tag(their_active_zone, STATUS_TOKEN_TAG)
+  local their_status_zone = getObjectFromGUID(their_status_zone_guid)
+  local their_status_tokens = find_objects_with_tag(their_status_zone, STATUS_TOKEN_TAG)
 
   local status_modifier = 0
   for _, status_token in pairs(our_status_tokens) do
@@ -343,8 +345,12 @@ function update_ui()
 end
 
 function deploy_model_callback(model, our_active_pokemon)
-  model.AssetBundle:playTriggerEffect(2)
-  --cry_player:setValue(CRY_BASE_URL .. string.lower(our_active_pokemon:getVar("internal_name")) .. ".ogg")
+  if model then
+    model.AssetBundle:playTriggerEffect(2)
+  end
+  local pokemon_name = our_active_pokemon:getVar("internal_name")
+  local audio_clip_name = string.gsub(string.lower(pokemon_name), "[%s+%.+]", "") .. ".mp3"
+  cry_player:setValue(CRY_BASE_URL .. audio_clip_name)
 end
 
 function deploy_model()
@@ -367,7 +373,7 @@ function deploy_model()
     position          = battle_zone:getPosition(),
     rotation          = battle_zone:getRotation(),
     guid              = model_guid,
-    callback_function = function(model) Wait.frames(function() deploy_model_callback(model, our_active_pokemon) end, 60) end
+    callback_function = function(model) deploy_model_callback(model, our_active_pokemon) end
   })
   model.interactable = false
 end

@@ -5,26 +5,23 @@ function onPickUp(player_colour)
   player_owner = player_colour
   self:highlightOn(player_owner)
 
-  local player_token_guid = PLAYER_TOKEN_GUIDS[player_owner]
-  local player_token = getObjectFromGUID(player_token_guid)
-  if not player_token then
-    print(player_owner .. " player token not found")
+  local player_trainer_token_guid = PLAYER_TRAINER_TOKEN_GUIDS[player_owner]
+  local player_trainer_token = getObjectFromGUID(player_trainer_token_guid)
+  if not player_trainer_token then
+    print(player_owner .. " player trainer token not found")
     return
   end
-
-  local player_lake_zone_guid = PLAYER_LAKE_ZONE_GUIDS[player_owner]
-  local player_lake_zone = getObjectFromGUID(player_lake_zone_guid)
-  if not player_lake_zone then
-    print(player_owner .. " player lake zone not found")
+  -- Ask the player's control panel how many lake crystals it has
+  local player_control_panel_guid = PLAYER_CONTROL_PANEL_GUIDS[player_owner]
+  local player_control_panel = getObjectFromGUID(player_control_panel_guid)
+  if not player_control_panel then
+    print(player_owner .. " player control panel not found")
     return
   end
-  local lake_crystals = 0
-  for _, lake_crystal in pairs(player_lake_zone:getObjects()) do
-    lake_crystals = lake_crystals + 1
-  end
+  local lake_crystals = player_control_panel:call("count_lake_crystals")
 
   local hit_list = Physics:cast({
-    origin=player_token:getPosition(),
+    origin=player_trainer_token:getPosition(),
     direction={0,-1,0},
     max_distance=0.5
   })
