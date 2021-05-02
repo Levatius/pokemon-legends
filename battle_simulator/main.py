@@ -11,16 +11,18 @@ ROOT_DIR = Path(__file__).parent.parent
 OHKO_THRESHOLD = 7
 
 
-def initalise_pokemons(tier_lower_bound=1):
+def initalise_pokemons(tier_lower_bound, include_legendary):
     sinnoh_cube = pd.read_excel(ROOT_DIR / 'sinnoh_cube.xlsx', sheet_name='sinnoh')
 
     pokemons = []
     for _, row in sinnoh_cube.iterrows():
         if row.tier < tier_lower_bound:
             continue
+        if not include_legendary and row.is_legendary:
+            continue
 
         pokemon = Pokemon(
-            name=row.pokedex_name,
+            name=row.internal_name,
             types=[type_ for type_ in [row.type_1, row.type_2] if not pd.isnull(type_)],
             moves=[move for move in [row.move_1, row.move_2, row.move_3] if not pd.isnull(move)],
             attack=row.attack,
@@ -95,8 +97,8 @@ def simulate_all_battle_combinations(pokemons):
     print(f'Overall: {overall_result}')
 
 
-def run():
-    pokemons = initalise_pokemons(tier_lower_bound=7)
+def run(tier_lower_bound, include_legendary):
+    pokemons = initalise_pokemons(tier_lower_bound, include_legendary)
     simulate_all_battle_combinations(pokemons)
 
     results = sorted(pokemons, key=lambda k: k.points, reverse=True)
@@ -105,4 +107,4 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    run(tier_lower_bound=7, include_legendary=False)

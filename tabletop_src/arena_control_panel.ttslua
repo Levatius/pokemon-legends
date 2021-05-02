@@ -32,7 +32,7 @@ function onLoad()
       width          = 0,
       height         = 0,
       font_size      = 200,
-      font_color     = DARK_COLOUR
+      font_color     = WHITE_COLOUR
     })
   end
   -- Tactics Button
@@ -53,7 +53,7 @@ function onLoad()
     width          = 0,
     height         = 0,
     font_size      = 90,
-    font_color     = DARK_COLOUR
+    font_color     = WHITE_COLOUR
   })
   -- Tactics/Status Modifiers
   for i = 0, 1 do
@@ -64,7 +64,7 @@ function onLoad()
       width          = 0,
       height         = 0,
       font_size      = 200,
-      font_color     = DARK_COLOUR
+      font_color     = WHITE_COLOUR
     })
   end
   -- Move Effectiveness
@@ -75,17 +75,17 @@ function onLoad()
     width          = 0,
     height         = 0,
     font_size      = 125,
-    font_color     = DARK_COLOUR
+    font_color     = WHITE_COLOUR
   })
   -- Switch Button
   self.createButton({
     click_function = "switch_button_toggle",
     function_owner = self,
-    position       = {0, 0.05, 2.125},
+    position       = {0, 0.05, 2.1},
     width          = 1000,
     height         = 225,
     font_size      = 125,
-    font_color     = DARK_COLOUR,
+    font_color     = WHITE_COLOUR,
     color          = {100/255, 150/255, 250/255},
     hover_color    = LIGHT_BACKING_COLOUR,
     press_color    = LIGHT_BACKING_COLOUR
@@ -237,8 +237,17 @@ end
 
 function damage_to_label_and_font_colour(damage)
   if damage >= OHKO_THRESHOLD then return "Critical!", {100/255, 100/255, 250/255}
-  elseif damage > 0 then return "Effective", DARK_COLOUR end
+  elseif damage > 0 then return "Effective", WHITE_COLOUR end
   return "No Damage", {250/255, 100/255, 100/255}
+end
+
+function get_font_colour(value, lower_bound, upper_bound)
+  if value > upper_bound then
+    return {100/255, 100/255, 250/255}
+  elseif value < lower_bound then
+    return {250/255, 100/255, 100/255}
+  end
+  return WHITE_COLOUR
 end
 
 function update_ui()
@@ -292,7 +301,7 @@ function update_ui()
 
   -- Tactics Effect
   local tactics_effect = "No Status Effect"
-  local tactics_font_colour = DARK_COLOUR
+  local tactics_font_colour = WHITE_COLOUR
   if selected_move_index then
     if tactics_state == 2 then
       tactics_effect = WEAKEN_STATUS .. " Self"
@@ -316,11 +325,11 @@ function update_ui()
   end
   self.editButton({index=7, label=tactics_effect, font_color=tactics_font_colour})
 
-  self.editButton({index=8, label=modifier_to_label(tactics_modifier)})
-  self.editButton({index=9, label=modifier_to_label(status_modifier)})
+  self.editButton({index=8, label=modifier_to_label(tactics_modifier), font_color=get_font_colour(tactics_modifier, 0, 0)})
+  self.editButton({index=9, label=modifier_to_label(status_modifier), font_color=get_font_colour(status_modifier, 0, 0)})
 
   local damage_label = "Select Move"
-  local damage_font_colour = DARK_COLOUR
+  local damage_font_colour = WHITE_COLOUR
   if selected_move_index then
     local selected_attack_damage = get_attack_damage(selected_move_index, our_active_pokemon, enemy_active_pokemon)
     local total_damage = selected_attack_damage + tactics_modifier + status_modifier

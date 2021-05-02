@@ -34,11 +34,12 @@ DAMAGE_TOKEN_TAG = "Damage Token"
 TIER_TAGS = {"Tier Low", "Tier Medium", "Tier High", "Tier Uber"}
 DANGER_TAG = "Danger"
 LAKE_CRYSTAL_TOKEN_TAG = "Lake Crystal"
-APRICORN_NAMES = {"Red", "Blue", "White", "Black", "Yellow", "Pink", "Green"}
+MUSIC_CARTRIDGE_TAG = "Music Cartridge"
 
 -- Names
 POUCH_NAME = "Pouch"
 JOURNEY_POINT_TOKEN_NAME = "Journey Point"
+APRICORN_NAMES = {"Red", "Blue", "White", "Black", "Yellow", "Pink", "Green"}
 
 FOCUS_TOKEN_NAME = "Focused (+3 Attack)"
 BRACE_TOKEN_NAME = "Braced (+3 Defence)"
@@ -154,3 +155,9 @@ TYPE_CHART = {
 
 -- URLs
 CRY_BASE_URL = "https://play.pokemonshowdown.com/audio/cries/"
+
+-- Music
+WILD_ENCOUNTER_MUSIC = {
+  title = "Wild Encounter",
+  url = "http://cloud-3.steamusercontent.com/ugc/1778335968028788727/32160068B6C9F2C440610E5EC3658AC4B0374AFE/"
+}

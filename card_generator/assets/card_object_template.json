@@ -7,9 +7,9 @@
     "rotX": 0,
     "rotY": 180,
     "rotZ": 0,
-    "scaleX": 1.0,
+    "scaleX": 1.5,
     "scaleY": 1.0,
-    "scaleZ": 1.0
+    "scaleZ": 1.5
   },
   "Grid": false,
   "Nickname": "",
@@ -36,9 +36,9 @@
         "rotX": 0,
         "rotY": 180,
         "rotZ": 0,
-        "scaleX": 1.0,
+        "scaleX": 1.5,
         "scaleY": 1.0,
-        "scaleZ": 1.0
+        "scaleZ": 1.5
       },
       "Grid": false,
       "Nickname": "",

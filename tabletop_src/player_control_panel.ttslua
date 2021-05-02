@@ -51,7 +51,7 @@ function onLoad()
     local index_offest = 3
     self.editButton({index=index_offest + i, position={-2.14, 0.05, 0.45}})
   end
-  self.editButton({index=5, position={0, 0.05, 0.3}})
+  self.editButton({index=5, position={0, 0.05, 0.275}})
   for i = 0, 1 do
     local index_offest = 6
     local index_base = index_offest + (7 * i)
