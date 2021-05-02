@@ -1,296 +1,77 @@
 #include config
 #include utils
+#include events/arena
+#include events/battle_token
+#include events/evolution
+#include events/music
+#include events/player
 
 function onload()
   print("Root Loaded")
 end
 
-function onObjectEnterScriptingZone(zone, enter_object)
+-- Scripting Zone Events
+function onObjectEnterScriptingZone(zone, object)
   if contains(ARENA_ACTIVE_ZONE_GUIDS, zone:getGUID()) then
-    enter_active_zone(zone, enter_object)
-  elseif contains(ARENA_BATTLE_ZONE_GUIDS, zone:getGUID()) then
-    enter_battle_zone(zone, enter_object)
+    arena_events.on_enter_active_zone(zone, object)
   elseif contains(ARENA_BATTLE_TOKEN_GUIDS, zone:getGUID()) then
-    enter_battle_token_zone(zone, enter_object)
+    battle_token_events.on_enter_zone(zone, object)
   elseif zone:hasTag(LAKE_CRYSTAL_TOKEN_TAG) then
-    for _, player_control_panel_guid in pairs(PLAYER_CONTROL_PANEL_GUIDS) do
-      player_control_panel = getObjectFromGUID(player_control_panel_guid)
-      player_control_panel:call("update_ui")
-    end
+    player_events.on_enter_lake_crystal_zone(zone, object)
   elseif zone:hasTag(MUSIC_CARTRIDGE_TAG) then
-    local playlist = enter_object:getVar("playlist")
-    if not playlist then return end
-    MusicPlayer:setPlaylist(playlist)
-    print("Playlist set to: \"" .. enter_object:getName() .. "\" by " .. enter_object:getDescription())
+    music_events.on_enter_music_cartridge_zone(zone, object)
   end
 end
 
-function onObjectLeaveScriptingZone(zone, leave_object)
+function onObjectLeaveScriptingZone(zone, object)
   if contains(ARENA_ACTIVE_ZONE_GUIDS, zone:getGUID()) then
-    leave_active_zone(zone, leave_object)
-  elseif contains(ARENA_BATTLE_ZONE_GUIDS, zone:getGUID()) then
-    leave_battle_zone(zone, leave_object)
+    arena_events.on_leave_active_zone(zone, object)
   elseif contains(ARENA_BATTLE_TOKEN_GUIDS, zone:getGUID()) then
-    leave_battle_token_zone(zone, leave_object)
+    battle_token_events.on_leave_zone(zone, object)
   elseif zone:hasTag(LAKE_CRYSTAL_TOKEN_TAG) then
-    for _, player_control_panel_guid in pairs(PLAYER_CONTROL_PANEL_GUIDS) do
-      player_control_panel = getObjectFromGUID(player_control_panel_guid)
-      player_control_panel:call("update_ui")
-    end
+    player_events.on_leave_lake_crystal_zone(zone, object)
   end
 end
 
-
-
-function get_control_panel_for_object(object)
-  for _, control_panel_guid in pairs(ARENA_CONTROL_PANEL_GUIDS) do
-    local control_panel = getObjectFromGUID(control_panel_guid)
-
-    if control_panel:getVar("our_active_zone_guid") == object:getGUID() then
-      return control_panel
-    elseif control_panel:getVar("battle_token_zone_guid") == object:getGUID() then
-      return control_panel
-    end
-  end
-
-  for _, control_panel_guid in pairs(PLAYER_CONTROL_PANEL_GUIDS) do
-    local control_panel = getObjectFromGUID(control_panel_guid)
-
-    if control_panel:getVar("pouch_guid") == object:getGUID() then
-      return control_panel
-    end
-  end
-end
-
-function update_arena_control_panels()
-  for _, control_panel_guid in pairs(ARENA_CONTROL_PANEL_GUIDS) do
-    local control_panel = getObjectFromGUID(control_panel_guid)
-    control_panel:call("update_ui")
-  end
-end
-
-
-
-function enter_active_zone(active_zone, enter_object)
-  local control_panel = get_control_panel_for_object(active_zone)
-
-  if enter_object:hasTag(POKEMON_CARD_TAG) and enter_object.type == "Card" then
-    control_panel:call("deploy_model")
-  end
-
-  update_arena_control_panels()
-end
-
-function leave_active_zone(active_zone, leave_object)
-  local control_panel = get_control_panel_for_object(active_zone)
-
-  if leave_object:hasTag(POKEMON_CARD_TAG) and leave_object.type == "Card" then
-    control_panel:call("undeploy_model")
-  end
-
-  update_arena_control_panels()
-end
-
-
-
-function enter_battle_zone(battle_zone, enter_object)
-  if enter_object.type == "Dice" then update_arena_control_panels() end
-end
-
-function leave_battle_zone(battle_zone, leave_object)
-  if leave_object.type == "Dice" then update_arena_control_panels() end
-end
-
-
-
-function enter_battle_token_zone(battle_token_zone, enter_object)
-  local active_zone = getObjectFromGUID(battle_token_zone:getVar("active_zone_guid"))
-  local party_zone = getObjectFromGUID(battle_token_zone:getVar("party_zone_guid"))
-  local source_zone = getObjectFromGUID(enter_object:getVar("source_zone_guid"))
-  local target_zone = getObjectFromGUID(enter_object:getVar("target_zone_guid"))
-
-  if #active_zone:getObjects() > 0 or #party_zone:getObjects() > 0 then
-    print("Zones on this side of the arena are occupied")
-    return
-  end
-
-  local battle_music = WILD_ENCOUNTER_MUSIC
-  local encounter_found = false
-
-  if equals_any(enter_object:getName(), {"Wild Encounter", "Known Encounter"}) then
-    local shuffle = (enter_object:getName() == "Wild Encounter")
-    local encounter_object_infos = get_object_infos_from_zone_deck(source_zone, shuffle)
-    if not encounter_object_infos then
-      print("No Pokémon found in deck")
-      return
-    end
-
-    for _, pokemon_card_info in reversedipairs(encounter_object_infos) do
-      local tags_in_common = 0
-      for _, battle_token_tag in pairs(enter_object:getTags()) do
-        if contains(pokemon_card_info.tags, battle_token_tag) then
-          tags_in_common = tags_in_common + 1
-        end
-      end
-      if tags_in_common >= 3 then
-        encounter_found = true
-        take_object_from_zone_deck(source_zone, {
-          position = active_zone:getPosition(),
-          rotation = active_zone:getRotation(),
-          index    = pokemon_card_info.index
-        })
-        break
-      end
-    end
-  end
-
-  if not encounter_found then print("No encounter found for this area") return end
-  --enter_object:call("onRotate")
-  MusicPlayer:setCurrentAudioclip(battle_music)
-  MusicPlayer:play()
-end
-
-function leave_battle_token_zone(battle_token_zone, leave_object)
-  local active_zone = getObjectFromGUID(battle_token_zone:getVar("active_zone_guid"))
-  local party_zone = getObjectFromGUID(battle_token_zone:getVar("party_zone_guid"))
-  local source_zone = getObjectFromGUID(leave_object:getVar("source_zone_guid"))
-  local target_zone = getObjectFromGUID(leave_object:getVar("target_zone_guid"))
-
-  if equals_any(leave_object:getName(), {"Wild Encounter", "Known Encounter"}) then
-    local active_card = active_zone:getObjects()[1]
-    if not active_card then return end
-    put_object_into_zone_deck(target_zone, active_card)
-  end
-
-  local playlist = MusicPlayer:getPlaylist()
-  if #playlist > 0 then
-    local track_index = math.random(1, #playlist)
-    MusicPlayer:setCurrentAudioclip(playlist[track_index])
-    MusicPlayer:play()
-  else
-    MusicPlayer:pause()
-  end
-end
-
-
-function tryObjectEnterContainer(container, enter_object)
+-- Container Events
+function tryObjectEnterContainer(container, object)
   if container:hasTag(POKEMON_MODEL_TAG) then
-    return enter_object:hasTag(POKEMON_MODEL_TAG)
+    return object:hasTag(POKEMON_MODEL_TAG)
   end
   return true
 end
 
-function onObjectEnterContainer(container, enter_object)
+function onObjectEnterContainer(container, object)
   if container:getName() == POUCH_NAME then
-    local control_panel = get_control_panel_for_object(container)
-    control_panel:call("update_ui")
+    player_events.on_enter_pouch(container)
   end
 end
 
-function onObjectLeaveContainer(container, leave_object)
+function onObjectLeaveContainer(container, object)
   if container:getName() == POUCH_NAME then
-    local control_panel = get_control_panel_for_object(container)
-    control_panel:call("update_ui")
+    player_events.on_leave_pouch(container)
   end
 end
 
-function onObjectEnterZone(zone, object)
-  if zone:hasTag(POKEMON_CARD_TAG) and object:hasTag(POKEMON_CARD_TAG) and not object.is_face_down then
-    object:registerCollisions()
-  end
-end
+-- function onObjectEnterZone(zone, object)
+--   if zone:hasTag(POKEMON_CARD_TAG) and object:hasTag(POKEMON_CARD_TAG) and not object.is_face_down then
+--     object:registerCollisions()
+--   end
+-- end
 
+-- Rotation Events
 function onObjectRotate(object)
   if object:hasTag(POKEMON_CARD_TAG) and not object.is_face_down then
-    object:unregisterCollisions()
-    local attachments = object:removeAttachments()
-    for _, attachment in pairs(attachments) do
-      if attachment:hasTag(DAMAGE_TOKEN_TAG) then
-        attachment:destruct()
-      end
-    end
+    arena_events.on_rotate_pokemon_card(pokemon_card)
   elseif object:hasTag(STATUS_TOKEN_TAG) then
-    Wait.frames(update_arena_control_panels, 60)
+    arena_events.on_rotate_status_token(object)
   end
 end
 
-function _count_journey_points_attached(pokemon_card)
-  local journey_points = 0
-  for _, attachment_info in pairs(pokemon_card:getAttachments()) do
-    if contains(attachment_info.tags, JOURNEY_POINT_TOKEN_TAG) then
-      journey_points = journey_points + 1
-    end
-  end
-  return journey_points
-end
-
+-- Collision Events
 function onObjectCollisionEnter(hit_object, collision_info)
   local collision_object = collision_info.collision_object
   if hit_object:hasTag(POKEMON_CARD_TAG) and hit_object.type == "Card" then
-    -- Useful variables
-    local pokemon_card = hit_object
-    local evolve_into = pokemon_card:getVar("evolve_into")
-    local evolve_cost = pokemon_card:getVar("evolve_cost")
-    local evolve_apricorn = pokemon_card:getVar("evolve_apricorn")
-
-    if collision_object:hasTag(DAMAGE_TOKEN_TAG) then
-      pokemon_card:addAttachment(collision_object)
-
-    elseif collision_object:hasTag(JOURNEY_POINT_TOKEN_TAG) then
-      -- Exit if we do not evolve
-      if not evolve_into then
-        print("This Pokémon does not evolve")
-        return
-      end
-      -- Exit if we already have already satisfied the evolve cost
-      local journey_points = _count_journey_points_attached(pokemon_card)
-      if journey_points >= evolve_cost then
-        print("Evolve cost already met: " .. journey_points .. "/" .. evolve_cost)
-        return
-      end
-
-      pokemon_card:addAttachment(collision_object)
-
-      -- Check if we now satisfy the evolve cost
-      journey_points = _count_journey_points_attached(pokemon_card)
-      if not (journey_points >= evolve_cost) then return end
-
-      -- Single evolution
-      if #evolve_into == 1 then
-        print("Evolving into " .. evolve_into[1])
-        pokemon_card:destroyAttachments()
-      -- Multiple evolutions
-      else
-        print("Ready to evolve, now use one of the following apricorns:")
-        for i, evolve_option in pairs(evolve_into) do
-          -- "  - Red Apricorn: Pokémon 1"
-          print("  - " .. evolve_apricorn[i] .. ": " .. evolve_option)
-        end
-      end
-    elseif collision_object:hasTag(APRICORN_TOKEN_TAG) then
-      -- Exit if we do not have any alternate evolutions
-      if not evolve_into or not (#evolve_into > 1) then
-        print("This Pokémon has no alternate evolutions")
-        return
-      end
-      -- Exit if we have not satisfied the evolve cost
-      local journey_points = _count_journey_points_attached(pokemon_card)
-      if not (journey_points >= evolve_cost) then
-        print("Evolve cost not met: " .. journey_points .. "/" .. evolve_cost)
-        return
-      end
-
-      local apricorn_index = find_first_index(evolve_apricorn, collision_object:getName())
-
-      -- Exit if apricorn not in
-      if not apricorn_index then
-        print("Apricorn incompatible with Pokémon")
-        return
-      end
-
-      print("Evolving into " .. evolve_into[apricorn_index])
-      pokemon_card:destroyAttachments()
-      collision_object:destruct()
-    end
+    evolution_events.on_collision_with_pokemon_card(hit_object, collision_object)
   end
 end

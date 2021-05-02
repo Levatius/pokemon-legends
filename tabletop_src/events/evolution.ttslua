@@ -1,0 +1,80 @@
+evolution_events = {}
+
+-- Utils
+function evolution_events._count_journey_points_attached(pokemon_card)
+  local journey_points = 0
+  for _, attachment_info in pairs(pokemon_card:getAttachments()) do
+    if contains(attachment_info.tags, JOURNEY_POINT_TOKEN_TAG) then
+      journey_points = journey_points + 1
+    end
+  end
+  return journey_points
+end
+
+-- Collision Events
+function on_collision_with_pokemon_card(pokemon_card, collision_object)
+  -- Useful variables
+  local evolve_into = pokemon_card:getVar("evolve_into")
+  local evolve_cost = pokemon_card:getVar("evolve_cost")
+  local evolve_apricorn = pokemon_card:getVar("evolve_apricorn")
+
+  if collision_object:hasTag(DAMAGE_TOKEN_TAG) then
+    pokemon_card:addAttachment(collision_object)
+
+  elseif collision_object:hasTag(JOURNEY_POINT_TOKEN_TAG) then
+    -- Exit if we do not evolve
+    if not evolve_into then
+      print("This Pokémon does not evolve")
+      return
+    end
+    -- Exit if we already have already satisfied the evolve cost
+    local journey_points = evolution_events._count_journey_points_attached(pokemon_card)
+    if journey_points >= evolve_cost then
+      print("Evolve cost already met: " .. journey_points .. "/" .. evolve_cost)
+      return
+    end
+
+    pokemon_card:addAttachment(collision_object)
+
+    -- Check if we now satisfy the evolve cost
+    journey_points = _count_journey_points_attached(pokemon_card)
+    if not (journey_points >= evolve_cost) then return end
+
+    -- Single evolution
+    if #evolve_into == 1 then
+      print("Evolving into " .. evolve_into[1])
+      pokemon_card:destroyAttachments()
+    -- Multiple evolutions
+    else
+      print("Ready to evolve, now use one of the following apricorns:")
+      for i, evolve_option in pairs(evolve_into) do
+        -- "  - Red Apricorn: Pokémon 1"
+        print("  - " .. evolve_apricorn[i] .. ": " .. evolve_option)
+      end
+    end
+  elseif collision_object:hasTag(APRICORN_TOKEN_TAG) then
+    -- Exit if we do not have any alternate evolutions
+    if not evolve_into or not (#evolve_into > 1) then
+      print("This Pokémon has no alternate evolutions")
+      return
+    end
+    -- Exit if we have not satisfied the evolve cost
+    local journey_points = evolution_events._count_journey_points_attached(pokemon_card)
+    if not (journey_points >= evolve_cost) then
+      print("Evolve cost not met: " .. journey_points .. "/" .. evolve_cost)
+      return
+    end
+
+    local apricorn_index = find_first_index(evolve_apricorn, collision_object:getName())
+
+    -- Exit if apricorn not in
+    if not apricorn_index then
+      print("Apricorn incompatible with Pokémon")
+      return
+    end
+
+    print("Evolving into " .. evolve_into[apricorn_index])
+    pokemon_card:destroyAttachments()
+    collision_object:destruct()
+  end
+end

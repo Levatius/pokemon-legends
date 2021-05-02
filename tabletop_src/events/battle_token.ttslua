@@ -1,0 +1,73 @@
+battle_token_events = {}
+
+function battle_token_events._get_zones(battle_token_zone, battle_token)
+  local active_zone = getObjectFromGUID(battle_token_zone:getVar("active_zone_guid"))
+  local party_zone = getObjectFromGUID(battle_token_zone:getVar("party_zone_guid"))
+  local source_zone = getObjectFromGUID(battle_token:getVar("source_zone_guid"))
+  local target_zone = getObjectFromGUID(battle_token:getVar("target_zone_guid"))
+
+  return active_zone, party_zone, source_zone, target_zone
+end
+
+function battle_token_events.on_enter_zone(battle_token_zone, battle_token)
+  local active_zone, party_zone, source_zone, target_zone = battle_token_events._get_zones(battle_token_zone, battle_token)
+
+  if #active_zone:getObjects() > 0 or #party_zone:getObjects() > 0 then
+    print("Zones on this side of the arena are occupied")
+    return
+  end
+
+  local battle_music = WILD_ENCOUNTER_MUSIC
+  local encounter_found = false
+
+  if equals_any(battle_token:getName(), {"Wild Encounter", "Known Encounter"}) then
+    local shuffle = (battle_token:getName() == "Wild Encounter")
+    local encounter_object_infos = get_object_infos_from_zone_deck(source_zone, shuffle)
+    if not encounter_object_infos then
+      print("No Pokémon found in deck")
+      return
+    end
+
+    for _, pokemon_card_info in reversedipairs(encounter_object_infos) do
+      local tags_in_common = 0
+      for _, battle_token_tag in pairs(battle_token:getTags()) do
+        if contains(pokemon_card_info.tags, battle_token_tag) then
+          tags_in_common = tags_in_common + 1
+        end
+      end
+      if tags_in_common >= 3 then
+        encounter_found = true
+        take_object_from_zone_deck(source_zone, {
+          position = active_zone:getPosition(),
+          rotation = active_zone:getRotation(),
+          index    = pokemon_card_info.index
+        })
+        break
+      end
+    end
+  end
+
+  if not encounter_found then print("No encounter found for this area") return end
+  --battle_token:call("onRotate")
+  MusicPlayer:setCurrentAudioclip(battle_music)
+  MusicPlayer:play()
+end
+
+function battle_token_events.on_leave_zone(battle_token_zone, battle_token)
+  local active_zone, party_zone, source_zone, target_zone = battle_token_events._get_zones(battle_token_zone, battle_token)
+
+  if equals_any(battle_token:getName(), {"Wild Encounter", "Known Encounter"}) then
+    local active_card = active_zone:getObjects()[1]
+    if not active_card then return end
+    put_object_into_zone_deck(target_zone, active_card)
+  end
+
+  local playlist = MusicPlayer:getPlaylist()
+  if #playlist > 0 then
+    local track_index = math.random(1, #playlist)
+    MusicPlayer:setCurrentAudioclip(playlist[track_index])
+    MusicPlayer:play()
+  else
+    MusicPlayer:pause()
+  end
+end

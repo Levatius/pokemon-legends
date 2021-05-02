@@ -1,0 +1,34 @@
+player_events = {}
+
+-- Utils
+function player_events._get_control_panel_for_object(object)
+  for _, control_panel_guid in pairs(PLAYER_CONTROL_PANEL_GUIDS) do
+    local control_panel = getObjectFromGUID(control_panel_guid)
+
+    if control_panel:getVar("pouch_guid") == object:getGUID() then
+      return control_panel
+    end
+  end
+end
+
+-- Scripting Zone Events
+function player_events.on_enter_lake_crystal_zone(lake_crystal_zone, lake_crystal)
+  for _, control_panel_guid in pairs(PLAYER_CONTROL_PANEL_GUIDS) do
+    local control_panel = getObjectFromGUID(control_panel_guid)
+    control_panel:call("update_ui")
+  end
+end
+
+function player_events.on_leave_lake_crystal_zone(lake_crystal_zone, lake_crystal)
+  player_events.on_enter_lake_crystal_zone(lake_crystal_zone, lake_crystal)
+end
+
+-- Container Events
+function player_events.on_enter_pouch(pouch)
+  local control_panel = player_events._get_control_panel_for_object(pouch)
+  control_panel:call("update_ui")
+end
+
+function player_events.on_leave_pouch(pouch)
+  player_events.on_enter_pouch(pouch)
+end
