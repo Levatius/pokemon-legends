@@ -45,6 +45,12 @@ function battle_token_events.on_enter_zone(battle_token_zone, battle_token)
         break
       end
     end
+  else
+    for _, pokemon_card in ipairs(source_zone:getObjects()) do
+      local position_offset = pokemon_card:getPosition() - source_zone:getPosition()
+      pokemon_card:setPositionSmooth(party_zone:getPosition() + position_offset, false, true)
+    end
+    Wait.frames(function() party_zone.LayoutZone:layout() end, 30)
   end
 
   if not encounter_found then print("No encounter found for this area") return end
@@ -60,6 +66,15 @@ function battle_token_events.on_leave_zone(battle_token_zone, battle_token)
     local active_card = active_zone:getObjects()[1]
     if not active_card then return end
     put_object_into_zone_deck(target_zone, active_card)
+  else
+    local active_pokemon_card = active_zone:getObjects()[1]
+    if active_pokemon_card then active_pokemon_card:setPositionSmooth(source_zone:getPosition(), false, true) end
+
+    for _, pokemon_card in ipairs(party_zone:getObjects()) do
+      local position_offset = pokemon_card:getPosition() - party_zone:getPosition()
+      pokemon_card:setPositionSmooth(source_zone:getPosition() + position_offset, false, true)
+    end
+    Wait.frames(function() source_zone.LayoutZone:layout() end, 30)
   end
 
   local playlist = MusicPlayer:getPlaylist()

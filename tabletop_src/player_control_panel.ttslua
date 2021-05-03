@@ -11,7 +11,7 @@ function onLoad()
     function_owner = self,
     width          = 200,
     height         = 200,
-    color          = {0, 0, 0, 1/255}
+    color          = {0, 0, 0, 0}
   }
   text_params = {
     click_function = "dummy_button",
@@ -44,24 +44,24 @@ function onLoad()
   end
 
   -- Positions
-  self.editButton({index=0, position={-2.62, 0.05, -0.45}})
-  self.editButton({index=1, position={-2.14, 0.05, -0.45}})
-  self.editButton({index=2, position={-1.66, 0.05, -0.45}})
+  self.editButton({index=0, position={-2.62, 0.2, -0.55}})
+  self.editButton({index=1, position={-2.14, 0.2, -0.55}})
+  self.editButton({index=2, position={-1.66, 0.2, -0.55}})
   for i = 0, 1 do
     local index_offest = 3
-    self.editButton({index=index_offest + i, position={-2.14, 0.05, 0.45}})
+    self.editButton({index=index_offest + i, position={-2.675, 0.2, 0.55}})
   end
-  self.editButton({index=5, position={0, 0.05, 0.275}})
+  self.editButton({index=5, position={0, 0.2, 0.35}})
   for i = 0, 1 do
     local index_offest = 6
     local index_base = index_offest + (7 * i)
-    self.editButton({index=index_base + 0, position={1.90, 0.05, -0.45}})
-    self.editButton({index=index_base + 1, position={2.38, 0.05, -0.45}})
-    self.editButton({index=index_base + 2, position={1.66, 0.05, 0}})
-    self.editButton({index=index_base + 3, position={2.14, 0.05, 0}})
-    self.editButton({index=index_base + 4, position={2.62, 0.05, 0}})
-    self.editButton({index=index_base + 5, position={1.90, 0.05, 0.45}})
-    self.editButton({index=index_base + 6, position={2.38, 0.05, 0.45}})
+    self.editButton({index=index_base + 0, position={2.375, 0.2, -0.55}})
+    self.editButton({index=index_base + 1, position={2.975, 0.2, -0.55}})
+    self.editButton({index=index_base + 2, position={2.075, 0.2, 0}})
+    self.editButton({index=index_base + 3, position={2.675, 0.2, 0}})
+    self.editButton({index=index_base + 4, position={3.275, 0.2, 0}})
+    self.editButton({index=index_base + 5, position={2.375, 0.2, 0.55}})
+    self.editButton({index=index_base + 6, position={2.975, 0.2, 0.55}})
   end
 
   update_ui()

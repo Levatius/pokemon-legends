@@ -3,13 +3,20 @@ PLAYER_COLOURS = {"White", "Red", "Orange", "Yellow", "Green", "Blue", "Purple",
 
 -- GUIDs
 ARENA_ACTIVE_ZONE_GUIDS = {"494620", "6b0103"}
-ARENA_BATTLE_ZONE_GUIDS = {"537c1f", "dbba88"}
+ARENA_FIELD_ZONE_GUIDS = {"537c1f", "dbba88"}
 ARENA_CONTROL_PANEL_GUIDS = {"af4498", "2584e8"}
 ARENA_BATTLE_TOKEN_GUIDS = {"12b4a8", "36e811"}
 APRICORN_BAG_GUIDS = {"c2d9cc", "5ae126", "76d021", "1d667c", "926a58", "c7bdb9", "43f641"}
 JOURNEY_POINT_BAG_GUID = "611d38"
 PLAYER_CONTROL_PANEL_GUIDS = {
-  Yellow = "ebae00"
+  Yellow = "16db4b",
+  Pink = "1579dd",
+  Orange = "bb9df6",
+  Blue = "719ef3",
+  Purple = "9fba0c",
+  White = "90e05c",
+  Green = "07072a",
+  Red = "62a784"
 }
 PLAYER_TRAINER_TOKEN_GUIDS = {
   Yellow = "428d10",
@@ -138,7 +145,7 @@ TYPE_CHART = {
         Steel = RESIST},
   Fighting = {Normal = WEAK, Ice = WEAK, Poison = RESIST, Flying = RESIST, Psychic = RESIST, Bug = RESIST, Rock = WEAK,
              Ghost = IMMUNE, Dark = WEAK, Steel = WEAK, Fairy = RESIST},
-  Poison = {Grass = WEAK, Poison = RESIST, Ground = RESIST, Rock = RESIST},
+  Poison = {Grass = WEAK, Poison = RESIST, Ground = RESIST, Rock = RESIST, Ghost = RESIST, Steel = IMMUNE, Fairy = WEAK},
   Ground = {Fire = WEAK, Electric = WEAK, Grass = RESIST, Poison = WEAK, Flying = IMMUNE, Bug = RESIST, Rock = WEAK,
            Steel = WEAK},
   Flying = {Electric = RESIST, Grass = WEAK, Fighting = WEAK, Bug = WEAK, Rock = RESIST, Steel = RESIST},
@@ -148,7 +155,7 @@ TYPE_CHART = {
   Rock = {Fire = WEAK, Ice = WEAK, Fighting = RESIST, Ground = RESIST, Flying = WEAK, Bug = WEAK, Steel = RESIST},
   Ghost = {Normal = IMMUNE, Psychic = WEAK, Ghost = WEAK, Dark = RESIST},
   Dragon = {Dragon = WEAK, Steel = RESIST, Fairy = IMMUNE},
-  Dark = {Fighting = RESIST, Psychic = WEAK, Dark = RESIST, Fairy = RESIST},
+  Dark = {Fighting = RESIST, Psychic = WEAK, Ghost = WEAK, Dark = RESIST, Fairy = RESIST},
   Steel = {Fire = RESIST, Water = RESIST, Grass = RESIST, Ice = WEAK, Rock = WEAK, Steel = RESIST, Fairy = WEAK},
   Fairy = {Fire = RESIST, Fighting = WEAK, Poison = RESIST, Dragon = WEAK, Dark = WEAK, Steel = RESIST}
 }
