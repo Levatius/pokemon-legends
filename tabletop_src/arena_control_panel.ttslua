@@ -8,7 +8,7 @@ local cry_player = getObjectFromGUID("54209c")
 
 function onLoad()
   local model_bag = getObjectFromGUID(model_bag_guid)
-  model_bag.interactable = false
+  --model_bag.interactable = false
 
   cry_player:setValue("")
 
@@ -184,17 +184,6 @@ function get_attack_damage(move_index, our_active_pokemon, enemy_active_pokemon)
   return our_attack - enemy_defence + move_effectiveness + stab_bonus
 end
 
-function get_max_dice_value_from(zone_guid)
-  local zone = getObjectFromGUID(zone_guid)
-  local max_value = 0
-  for _, object in pairs(zone:getObjects()) do
-    if object.type == "Dice" then
-      max_value = (object:getValue() > max_value) and object:getValue() or max_value
-    end
-  end
-  return max_value
-end
-
 function get_status_modifier()
   local our_status_zone = getObjectFromGUID(our_status_zone_guid)
   local our_status_tokens = find_objects_with_tag(our_status_zone, STATUS_TOKEN_TAG)
@@ -224,10 +213,12 @@ function get_status_modifier()
   return status_modifier
 end
 
-function get_bonus_modifier()
-  local our_max_dice_value = get_max_dice_value_from(our_battle_zone_guid)
-  local their_max_dice_value = get_max_dice_value_from(their_battle_zone_guid)
-  return (our_max_dice_value > their_max_dice_value) and (our_max_dice_value - their_max_dice_value) or 0
+function get_tactics_modifier()
+  return TACTICS_MODIFIERS[tactics_state]
+end
+
+function get_selected_attack_damage(params)
+  return get_attack_damage(selected_move_index, params[1], params[2]) + get_tactics_modifier() + get_status_modifier()
 end
 
 function modifier_to_label(modifier)
@@ -270,9 +261,8 @@ function update_ui()
     })
   end
 
-  local tactics_modifier = TACTICS_MODIFIERS[tactics_state]
+  local tactics_modifier = get_tactics_modifier()
   local status_modifier = get_status_modifier()
-  local bonus_modifier = get_bonus_modifier()
 
   -- Move Damages
   for i = 0, 2 do
@@ -354,12 +344,15 @@ function update_ui()
 end
 
 function deploy_model_callback(model, our_active_pokemon)
-  if model then
+  if not our_active_pokemon.is_face_down then
+    model.AssetBundle:playLoopingEffect(0)
     model.AssetBundle:playTriggerEffect(2)
+    local pokemon_name = our_active_pokemon:getVar("pokedex_name")
+    local audio_clip_name = string.gsub(string.lower(pokemon_name), "[%s+%.+]", "") .. ".mp3"
+    cry_player:setValue(CRY_BASE_URL .. audio_clip_name)
+  else
+    model.AssetBundle:playLoopingEffect(3)
   end
-  local pokemon_name = our_active_pokemon:getVar("internal_name")
-  local audio_clip_name = string.gsub(string.lower(pokemon_name), "[%s+%.+]", "") .. ".mp3"
-  cry_player:setValue(CRY_BASE_URL .. audio_clip_name)
 end
 
 function deploy_model()
@@ -392,6 +385,7 @@ function undeploy_model()
   local our_battle_zone = getObjectFromGUID(our_battle_zone_guid)
   local models = find_objects_with_tag(our_battle_zone, POKEMON_MODEL_TAG)
   for _, model in pairs(models) do
+    model.AssetBundle:playLoopingEffect(0)
     model_bag:putObject(model)
   end
 end

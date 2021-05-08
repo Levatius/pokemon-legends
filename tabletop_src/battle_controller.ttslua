@@ -3,6 +3,10 @@
 
 local field_zone_1 = getObjectFromGUID(ARENA_FIELD_ZONE_GUIDS[1])
 local field_zone_2 = getObjectFromGUID(ARENA_FIELD_ZONE_GUIDS[2])
+local active_zone_1 = getObjectFromGUID(ARENA_ACTIVE_ZONE_GUIDS[1])
+local active_zone_2 = getObjectFromGUID(ARENA_ACTIVE_ZONE_GUIDS[2])
+local control_panel_1 = getObjectFromGUID(ARENA_CONTROL_PANEL_GUIDS[1])
+local control_panel_2 = getObjectFromGUID(ARENA_CONTROL_PANEL_GUIDS[2])
 
 
 function onLoad()
@@ -60,8 +64,14 @@ end
 function update_ui()
   local dice_value_1 = get_max_dice_value_from(field_zone_1)
   local dice_value_2 = get_max_dice_value_from(field_zone_2)
-
   local dice_value_difference = dice_value_1 - dice_value_2
+
+  local active_pokemon_1 = active_zone_1:getObjects()[1]
+  local active_pokemon_2 = active_zone_2:getObjects()[1]
+
+  local attack_damage_1 = control_panel_1:call("get_selected_attack_damage", {active_pokemon_1, active_pokemon_2})
+  local attack_damage_2 = control_panel_2:call("get_selected_attack_damage", {active_pokemon_2, active_pokemon_1})
+  print(attack_damage_1, ", ", attack_damage_2)
 
   if dice_value_difference > 0 then
     self:setRotationSmooth({0, 180, 0}, false, false)

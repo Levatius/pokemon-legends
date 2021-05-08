@@ -11,17 +11,37 @@ function evolution_events._count_journey_points_attached(pokemon_card)
   return journey_points
 end
 
+function evolution_events._evolve_card_into(pokemon_card, evolve_into)
+  print("Evolving into " .. evolve_into)
+  local evolution_zone = getObjectFromGUID(ENCOUNTER_EVOLUTIONS_ZONE)
+  local evolution_card_infos = get_object_infos_from_zone_deck(evolution_zone)
+  for _, evolution_card_info in pairs(evolution_card_infos) do
+    if evolution_card_info.name == evolve_into then
+      local evolution_card = take_object_from_zone_deck(evolution_zone, {
+        position = pokemon_card:getPosition(),
+        rotation = pokemon_card:getRotation(),
+        guid     = evolution_card_info.guid
+      })
+      -- If original card is shiny, make evolution card shiny
+      if pokemon_card:getStateId() == 2 then
+        Wait.frames(function() evolution_card:setState(2) end, 200)
+        pokemon_card = pokemon_card:setState(1)
+      end
+      put_object_into_zone_deck(evolution_zone, pokemon_card)
+      break
+    end
+  end
+  pokemon_card:destroyAttachments()
+end
+
 -- Collision Events
-function on_collision_with_pokemon_card(pokemon_card, collision_object)
+function evolution_events.on_collision_with_pokemon_card(pokemon_card, collision_object)
   -- Useful variables
   local evolve_into = pokemon_card:getVar("evolve_into")
   local evolve_cost = pokemon_card:getVar("evolve_cost")
   local evolve_apricorn = pokemon_card:getVar("evolve_apricorn")
 
-  if collision_object:hasTag(DAMAGE_TOKEN_TAG) then
-    pokemon_card:addAttachment(collision_object)
-
-  elseif collision_object:hasTag(JOURNEY_POINT_TOKEN_TAG) then
+  if collision_object:hasTag(JOURNEY_POINT_TOKEN_TAG) then
     -- Exit if we do not evolve
     if not evolve_into then
       print("This Pokémon does not evolve")
@@ -32,18 +52,19 @@ function on_collision_with_pokemon_card(pokemon_card, collision_object)
     if journey_points >= evolve_cost then
       print("Evolve cost already met: " .. journey_points .. "/" .. evolve_cost)
       return
+    elseif journey_points == 0 and evolve_cost ~= 1 then
+      print("Evolution process stated, flip over the card if you wish to cancel and reclaim your Journey Points")
     end
 
     pokemon_card:addAttachment(collision_object)
 
     -- Check if we now satisfy the evolve cost
-    journey_points = _count_journey_points_attached(pokemon_card)
+    journey_points = evolution_events._count_journey_points_attached(pokemon_card)
     if not (journey_points >= evolve_cost) then return end
 
     -- Single evolution
     if #evolve_into == 1 then
-      print("Evolving into " .. evolve_into[1])
-      pokemon_card:destroyAttachments()
+      evolution_events._evolve_card_into(pokemon_card, evolve_into[1])
     -- Multiple evolutions
     else
       print("Ready to evolve, now use one of the following apricorns:")
@@ -73,8 +94,7 @@ function on_collision_with_pokemon_card(pokemon_card, collision_object)
       return
     end
 
-    print("Evolving into " .. evolve_into[apricorn_index])
-    pokemon_card:destroyAttachments()
+    evolution_events._evolve_card_into(pokemon_card, evolve_into[apricorn_index])
     collision_object:destruct()
   end
 end

@@ -48,42 +48,43 @@ end
 function reversedipairs(t) return reversedipairsiter, t, #t + 1 end
 
 function get_object_infos_from_zone_deck(zone, shuffle)
-  local zone_objects = zone:getObjects()
-  if not zone_objects then return end
-  -- Get first object in zone as the zone deck
-  local zone_deck = zone_objects[1]
-  if not zone_deck then return end
-
-  if zone_deck.type == "Card" then
-    return {{
-      description = zone_deck:getDescription(),
-      gm_notes = zone_deck:getGMNotes(),
-      guid = zone_deck:getGUID(),
-      index = 1,
-      lua_script = zone_deck:getLuaScript(),
-      lua_script_state = zone_deck.script_state,
-      memo = zone_deck.memo,
-      name = zone_deck:getName(),
-      tags = zone_deck:getTags()
-    }}
-  elseif zone_deck.type == "Deck" then
-    if shuffle then zone_deck:randomize() end
-    return zone_deck:getObjects()
+  local object_infos = {}
+  for _, zone_deck in pairs(zone:getObjects()) do
+    if zone_deck.type == "Card" then
+      table.insert(object_infos, {
+        description = zone_deck:getDescription(),
+        gm_notes = zone_deck:getGMNotes(),
+        guid = zone_deck:getGUID(),
+        index = 1,
+        lua_script = zone_deck:getLuaScript(),
+        lua_script_state = zone_deck.script_state,
+        memo = zone_deck.memo,
+        name = zone_deck:getName(),
+        tags = zone_deck:getTags()
+      })
+    elseif zone_deck.type == "Deck" then
+      if shuffle then zone_deck:randomize() end
+      for _, object_info in pairs(zone_deck:getObjects()) do
+        table.insert(object_infos, object_info)
+      end
     end
+  end
+  return object_infos
 end
 
 function take_object_from_zone_deck(zone, params)
-  local zone_objects = zone:getObjects()
-  if not zone_objects then return end
-  -- Get first object in zone as the zone deck
-  local zone_deck = zone_objects[1]
-  if not zone_deck then return end
-
-  if zone_deck.type == "Card" then
-    zone_deck:setPositionSmooth(params.position, false, true)
-    zone_deck:setRotationSmooth(params.rotation, false, true)
-  elseif zone_deck.type == "Deck" then
-    zone_deck:takeObject(params)
+  for _, zone_deck in pairs(zone:getObjects()) do
+    if zone_deck.type == "Card" and zone_deck:getGUID() == params.guid then
+      zone_deck:setPositionSmooth(params.position, false, true)
+      zone_deck:setRotationSmooth(params.rotation, false, true)
+      return zone_deck
+    elseif zone_deck.type == "Deck" then
+      for _, card in pairs(zone_deck:getObjects()) do
+        if card.guid == params.guid then
+          return zone_deck:takeObject(params)
+        end
+      end
+    end
   end
 end
 
@@ -98,6 +99,55 @@ function put_object_into_zone_deck(zone, object)
     object:setRotationSmooth(zone:getRotation(), false, true)
   elseif zone_deck.type == "Card" or zone_deck.type == "Deck" then
     object:setPosition(zone_deck:getPosition() + Vector(0, 5, 0))
+    object:setRotation(zone_deck:getRotation())
     zone_deck:putObject(object)
+  end
+end
+
+function get_biome_tag(tags)
+  for _, tag in pairs(tags) do
+    if contains(BIOME_TAGS, tag) then
+      return tag
+    end
+  end
+end
+
+function get_climate_tag(tags)
+  for _, tag in pairs(tags) do
+    if contains(CLIMATE_TAGS, tag) then
+      return tag
+    end
+  end
+end
+
+function get_tier_tag(tags)
+  for _, tag in pairs(tags) do
+    if contains(TIER_TAGS, tag) then
+      return tag
+    end
+  end
+end
+
+function add_tags(object, tags)
+  for _, tag in pairs(tags) do
+    object:addTag(tag)
+  end
+end
+
+function remove_tags(object, tags)
+  for _, tag in pairs(tags) do
+    object:removeTag(tag)
+  end
+end
+
+function brief_pause()
+  for i = 0, 25 do
+    coroutine.yield(0)
+  end
+end
+
+function motion_pause()
+  for i = 0, 100 do
+    coroutine.yield(0)
   end
 end

@@ -1,0 +1,51 @@
+#include config
+
+local bird = getObjectFromGUID("527326")
+local nesburgh_pos = Vector(-3.30, 2.57, -3.81)
+
+
+function onLoad()
+  bird.interactable = false
+  bird.AssetBundle:playLoopingEffect(2)
+  bird:setInvisibleTo(PLAYER_COLOURS)
+  self.createButton({
+    click_function = "fly",
+    function_owner = self,
+    position       = {0, 0.1, 0},
+    width          = 600,
+    height         = 600,
+    color          = {0, 0, 0, 0},
+    tooltip        = "Fly to " .. self:getName()
+  })
+end
+
+function fly(_, player_colour)
+  function flyCoroutine()
+    local player_trainer_token = getObjectFromGUID(PLAYER_TRAINER_TOKEN_GUIDS[player_colour])
+    --print(player_trainer_token:getName() .. " flying to " .. self:getName())
+    local initial_pos = player_trainer_token:getPosition()
+    local target_pos = self:getPosition()
+
+    -- Initial
+    bird:setInvisibleTo({})
+    bird:setPosition(nesburgh_pos)
+    bird:setRotation(Vector(0, (initial_pos - nesburgh_pos):heading("y"), 0))
+    -- Pickup
+    bird:setPositionSmooth(initial_pos, false, false)
+    while bird:isSmoothMoving() do coroutine.yield(0) end
+    -- Flight
+    bird:setRotationSmooth(Vector(0, (target_pos - initial_pos):heading("y"), 0), false, true)
+    while bird:isSmoothMoving() do coroutine.yield(0) end
+    bird:setPositionSmooth(target_pos, false, false)
+    player_trainer_token:setPositionSmooth(target_pos, false, false)
+    while bird:isSmoothMoving() do coroutine.yield(0) end
+    -- Dropoff
+    bird:setRotationSmooth(Vector(0, (nesburgh_pos - target_pos):heading("y"), 0), false, true)
+    while bird:isSmoothMoving() do coroutine.yield(0) end
+    bird:setPositionSmooth(nesburgh_pos, false, false)
+    while bird:isSmoothMoving() do coroutine.yield(0) end
+    bird:setInvisibleTo(PLAYER_COLOURS)
+    return 1
+  end
+  startLuaCoroutine(self, "flyCoroutine")
+end

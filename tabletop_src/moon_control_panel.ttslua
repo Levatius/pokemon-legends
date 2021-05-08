@@ -1,0 +1,36 @@
+#include config
+#include utils
+
+function onLoad()
+  self.createButton({
+    click_function = "regrow_apricorn_trees",
+    function_owner = self,
+    label          = "Regrow Apricorn Trees",
+    position       = {-0.85, 0.2, 0.575},
+    width          = 600,
+    height         = 200,
+    font_size      = 50,
+    color          = WHITE_COLOUR,
+    font_color     = DARK_COLOUR
+  })
+  self.createButton({
+    click_function = "respawn_event_spots",
+    function_owner = self,
+    label          = "Respawn Event Spots",
+    position       = {0.85, 0.2, 0.575},
+    width          = 600,
+    height         = 200,
+    font_size      = 50,
+    color          = DARK_COLOUR,
+    font_color     = WHITE_COLOUR
+  })
+end
+
+function regrow_apricorn_trees()
+  for _, apricorn_tree in pairs(getObjectsWithTag(APRICORN_TREE_TAG)) do
+    local new_state = apricorn_tree:getStateId() + 1
+    if new_state <= 3 then
+      apricorn_tree:setState(new_state)
+    end
+  end
+end

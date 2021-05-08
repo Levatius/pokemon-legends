@@ -1,0 +1,22 @@
+#include config
+#include utils
+
+function onLoad()
+  self.createButton({
+    click_function = "trigger",
+    function_owner = self,
+    position       = {0, 0.05, 0},
+    width          = 600,
+    height         = 600,
+    color          = {0, 0, 0, 0},
+    tooltip        = "Trigger"
+  })
+end
+
+function trigger(_, _, alt_click)
+  if alt_click then
+    self:setInvisibleTo()
+    return
+  end
+  self:setInvisibleTo(PLAYER_COLOURS)
+end
