@@ -53,7 +53,7 @@ function arena_events.on_rotate_pokemon_card(pokemon_card)
       local control_panel = arena_events._get_control_panel_for_object(zone)
       local battle_zone = getObjectFromGUID(control_panel:getVar("our_battle_zone_guid"))
       for _, object in pairs(battle_zone:getObjects()) do
-        if object:hasTag(POKEMON_MODEL_TAG) then
+        if object:hasTag(POKEMON_MODEL_TAG) and object.type ~= "Bag" then
           if not pokemon_card.is_face_down then
             object.AssetBundle:playLoopingEffect(3)
           else

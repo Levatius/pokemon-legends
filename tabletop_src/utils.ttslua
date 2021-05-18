@@ -42,10 +42,19 @@ function equals_all(value, t)
 end
 
 local function reversedipairsiter(t, i)
-    i = i - 1
-    if i ~= 0 then return i, t[i] end
+  i = i - 1
+  if i ~= 0 then return i, t[i] end
 end
 function reversedipairs(t) return reversedipairsiter, t, #t + 1 end
+
+function shuffle(t)
+  shuffled = {}
+  for i, value in ipairs(t) do
+  	local j = math.random(1, #shuffled + 1)
+  	table.insert(shuffled, j, value)
+  end
+  return shuffled
+end
 
 function get_object_infos_from_zone_deck(zone, shuffle)
   local object_infos = {}
@@ -125,6 +134,12 @@ function get_tier_tag(tags)
     if contains(TIER_TAGS, tag) then
       return tag
     end
+  end
+end
+
+function get_danger_tag(tags)
+  if contains(tags, DANGER_TAG) then
+    return DANGER_TAG
   end
 end
 

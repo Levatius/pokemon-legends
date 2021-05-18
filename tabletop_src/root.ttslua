@@ -10,10 +10,14 @@ local sort_coroutine_running = false
 
 function onload()
   print("Root Loaded")
+  math.randomseed(os.time())
   for _, object in pairs(getObjectsWithTag(POKEMON_CARD_TAG)) do
     if object.type == "Card" then
       object:registerCollisions()
     end
+  end
+  for _, object in pairs(getObjectsWithTag(POKEMON_MODEL_TAG)) do
+    --object.interactable = false
   end
 end
 

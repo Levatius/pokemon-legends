@@ -34,3 +34,62 @@ function regrow_apricorn_trees()
     end
   end
 end
+
+function respawn_event_spots()
+  local event_tokens = getObjectsWithTag(EVENT_TOKEN_TAG)
+  for _, event_token in pairs(event_tokens) do
+    local biome_tag = get_biome_tag(event_token:getTags())
+    local climate_tag = get_climate_tag(event_token:getTags())
+    if biome_tag == "Ruins" then
+      local wild_areas = shuffle(getObjectsWithAllTags({WILD_AREA_TAG, biome_tag}))
+      for _, wild_area in ipairs(wild_areas) do
+        if not wild_area:hasTag(climate_tag) then
+          event_token:setTags({EVENT_TOKEN_TAG, biome_tag, get_climate_tag(wild_area:getTags()), get_danger_tag(wild_area:getTags())})
+          event_token:setPositionSmooth(wild_area:getPosition() + Vector(0, 1, 0), false, false)
+          event_token:setInvisibleTo()
+          break
+        end
+      end
+    else
+      local hit_list = Physics:cast({
+        origin       = event_token:getPosition(),
+        direction    = {0, -1, 0},
+        max_distance = 1
+      })
+      local current_wild_area_name
+      for _, hit_info in pairs(hit_list) do
+        local hit_object = hit_info.hit_object
+        if hit_object:hasTag(WILD_AREA_TAG) then
+          current_wild_area_name = hit_object:getDescription()
+          break
+        end
+      end
+
+      local wild_areas = shuffle(getObjectsWithAllTags({WILD_AREA_TAG, biome_tag, climate_tag}))
+      for _, wild_area in ipairs(wild_areas) do
+        if wild_area:getDescription() ~= current_wild_area_name then
+          hit_list = Physics:cast({
+            origin       = wild_area:getPosition(),
+            direction    = {0, 1, 0},
+            type         = 2,
+            size         = {2, 2, 2},
+            max_distance = 1
+          })
+          local safe_to_place = true
+          for _, hit_info in pairs(hit_list) do
+            local hit_object = hit_info.hit_object
+            if hit_object:hasTag(TRAINER_TOKEN_TAG) or hit_object:hasTag(APRICORN_TREE_TAG) or hit_object:hasTag(BATTLE_TOKEN_TAG) or hit_object:hasTag(VILLAGE_TAG) then
+              safe_to_place = false
+            end
+          end
+          if safe_to_place then
+            event_token:setTags({EVENT_TOKEN_TAG, biome_tag, climate_tag, get_danger_tag(wild_area:getTags())})
+            event_token:setPositionSmooth(wild_area:getPosition() + Vector(0, 5, 0), false, false)
+            event_token:setInvisibleTo()
+            break
+          end
+        end
+      end
+    end
+  end
+end

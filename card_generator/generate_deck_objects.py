@@ -31,13 +31,16 @@ def get_tier_tag(tier):
 def get_evolution_tag(is_evolution):
     if is_evolution:
         return 'Evolution Card'
-    return None
 
 
 def get_legendary_tag(is_legendary):
     if is_legendary:
-        return 'Legendary'
-    return None
+        return 'Legendary Card'
+
+
+def get_event_only_tag(is_event_only):
+    if is_event_only:
+        return 'Event Only Card'
 
 
 def get_tags(stats, is_evolution=False):
@@ -48,7 +51,8 @@ def get_tags(stats, is_evolution=False):
             stats.habitat_climate,
             get_tier_tag(stats.tier),
             get_evolution_tag(is_evolution),
-            get_legendary_tag(stats.is_legendary)
+            get_legendary_tag(stats.is_legendary),
+            get_event_only_tag(stats.is_event_only)
         ]
         if not pd.isnull(tag)
     ]

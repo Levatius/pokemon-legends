@@ -7,11 +7,6 @@ local tactics_state = 1
 local cry_player = getObjectFromGUID("54209c")
 
 function onLoad()
-  local model_bag = getObjectFromGUID(model_bag_guid)
-  --model_bag.interactable = false
-
-  cry_player:setValue("")
-
   -- Move Buttons
   for i = 0, 2 do
     self.createButton({
@@ -350,6 +345,7 @@ function deploy_model_callback(model, our_active_pokemon)
     local pokemon_name = our_active_pokemon:getVar("pokedex_name")
     local audio_clip_name = string.gsub(string.lower(pokemon_name), "[%s+%.+]", "") .. ".mp3"
     cry_player:setValue(CRY_BASE_URL .. audio_clip_name)
+    Wait.frames(function() cry_player:setValue(CRY_BASE_URL) end, 600)
   else
     model.AssetBundle:playLoopingEffect(3)
   end
@@ -385,7 +381,9 @@ function undeploy_model()
   local our_battle_zone = getObjectFromGUID(our_battle_zone_guid)
   local models = find_objects_with_tag(our_battle_zone, POKEMON_MODEL_TAG)
   for _, model in pairs(models) do
-    model.AssetBundle:playLoopingEffect(0)
-    model_bag:putObject(model)
+    if model.type ~= "Bag" then
+      model.AssetBundle:playLoopingEffect(0)
+      model_bag:putObject(model)
+    end
   end
 end
