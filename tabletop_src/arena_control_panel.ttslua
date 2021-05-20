@@ -4,7 +4,7 @@
 local selected_move_index
 local selected_switch_index
 local tactics_state = 1
-local cry_player = getObjectFromGUID("54209c")
+local cry_player = getObjectFromGUID(CRY_PLAYER_GUID)
 
 function onLoad()
   -- Move Buttons
@@ -343,9 +343,8 @@ function deploy_model_callback(model, our_active_pokemon)
     model.AssetBundle:playLoopingEffect(0)
     model.AssetBundle:playTriggerEffect(2)
     local pokemon_name = our_active_pokemon:getVar("pokedex_name")
-    local audio_clip_name = string.gsub(string.lower(pokemon_name), "[%s+%.+]", "") .. ".mp3"
+    local audio_clip_name = string.gsub(string.lower(pokemon_name), "[%s+%.+%-+]", "") .. ".mp3"
     cry_player:setValue(CRY_BASE_URL .. audio_clip_name)
-    Wait.frames(function() cry_player:setValue(CRY_BASE_URL) end, 600)
   else
     model.AssetBundle:playLoopingEffect(3)
   end

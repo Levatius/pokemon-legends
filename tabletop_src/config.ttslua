@@ -28,6 +28,7 @@ PLAYER_TRAINER_TOKEN_GUIDS = {
   Green = "643bd6",
   Red = "0e09ba"
 }
+CRY_PLAYER_GUID = "54209c"
 ENCOUNTER_SPECIAL_ZONE = "001a84"
 ENCOUNTER_REGULAR_ZONE = "4d7853"
 ENCOUNTER_EVOLUTIONS_ZONE = "ae4239"
@@ -46,12 +47,18 @@ DAMAGE_TOKEN_TAG = "Damage Token"
 LAKE_CRYSTAL_TOKEN_TAG = "Lake Crystal"
 MUSIC_CARTRIDGE_TAG = "Music Cartridge"
 EVOLUTION_CARD_TAG = "Evolution Card"
-LEGENDARY_TAG = "Legendary"
+LEGENDARY_CARD_TAG = "Legendary Card"
+EVENT_ONLY_CARD_TAG = "Event Only Card"
 TRAINER_TOKEN_TAG = "Trainer Token"
 VILLAGE_TAG = "Village"
+MUSIC_EVENTS_TAG = "Music Events"
 
 WILD_AREA_TAG = "Wild Area"
-BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean", "Ruins", "Lake", "Spear Pillar", "Hall of Origin", "Control Panel"}
+LAKE_TAG = "Lake"
+SPEAR_PILLAR_TAG = "Spear Pillar"
+HALL_OF_ORIGIN_TAG = "Hall of Origin"
+CONTROL_PANEL_TAG = "Control Panel"
+BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean", "Ruins", SPEAR_PILLAR_TAG, HALL_OF_ORIGIN_TAG, CONTROL_PANEL_TAG}
 CLIMATE_TAGS = {"Cold", "Temperate", "Warm"}
 TIER_TAGS = {"Tier Low", "Tier Medium", "Tier High", "Tier Uber"}
 DANGER_TAG = "Danger"
@@ -174,7 +181,47 @@ TYPE_CHART = {
 CRY_BASE_URL = "https://play.pokemonshowdown.com/audio/cries/"
 
 -- Music
-WILD_ENCOUNTER_MUSIC = {
-  title = "Wild Encounter",
-  url = "http://cloud-3.steamusercontent.com/ugc/1778335968028788727/32160068B6C9F2C440610E5EC3658AC4B0374AFE/"
+STANDARD_MUSIC_EVENTS = {
+  {
+    title = "Wild Encounter",
+    url = "http://cloud-3.steamusercontent.com/ugc/1778335968028788727/32160068B6C9F2C440610E5EC3658AC4B0374AFE/"
+  },
+  {
+    title = "Legendary Encounter",
+    url = "http://cloud-3.steamusercontent.com/ugc/1787345199297169875/01EEC1DD72DB0E6A54B211EAA69C64B365095379/"
+  },
+  {
+    title = "Lake Guardians",
+    url = "http://cloud-3.steamusercontent.com/ugc/1778335968028787579/907A1DDDD6BD58157928FF77DE68A037F81F3E08/"
+  },
+  {
+    title = "Spear Pillar",
+    url = "http://cloud-3.steamusercontent.com/ugc/1778335968028788571/D7BB0B5A262B291E2FC29FB8993A185870C13F06/"
+  },
+  {
+    title = "Arceus",
+    url = "http://cloud-3.steamusercontent.com/ugc/1778335968028787438/CC10C52BCF54B1DDE70096DD2E9D55194D05D4BA/"
+  }
+}
+ANCIENT_MUSIC_EVENTS = {
+  {
+    title = "Wild Encounter",
+    url = "http://cloud-3.steamusercontent.com/ugc/1787345199297178737/55AF2BF4B757EB3AD98A87D6F49DCE3C24CBD435/"
+  },
+  {
+    title = "Legendary Encounter",
+    url = "http://cloud-3.steamusercontent.com/ugc/1787345199297178120/999EA01115A658500340E69465B7D25192BD3B00/"
+  },
+  {
+    title = "Lake Guardians",
+    url = "http://cloud-3.steamusercontent.com/ugc/1787345199297177780/846D5E8B463599186CD70E504AB70215F9E46067/"
+  },
+  {
+    title = "Spear Pillar",
+    url = "http://cloud-3.steamusercontent.com/ugc/1787345199297178632/0E947020B75F3B86A24E139E7354E154034AF221/"
+  },
+  {
+    title = "Arceus",
+    url = "http://cloud-3.steamusercontent.com/ugc/1787345199297177185/CC8D4FAD55322325612093DE0B26E49014ADD2A2/"
+  }
 }

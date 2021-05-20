@@ -17,8 +17,10 @@ function onload()
     end
   end
   for _, object in pairs(getObjectsWithTag(POKEMON_MODEL_TAG)) do
-    --object.interactable = false
+    object.interactable = false
   end
+  local cry_player = getObjectFromGUID(CRY_PLAYER_GUID)
+  cry_player:setValue(CRY_BASE_URL)
 end
 
 -- Scripting Zone Events
@@ -45,7 +47,7 @@ function onObjectEnterScriptingZone(zone, object)
             rotation = encounter_evolutuions_zone:getRotation(),
             guid     = pokemon_card_info.guid
           })
-        elseif contains(pokemon_card_info.tags, LEGENDARY_TAG) then
+        elseif contains(pokemon_card_info.tags, LEGENDARY_CARD_TAG) then
           local encounter_special_zone = getObjectFromGUID(ENCOUNTER_SPECIAL_ZONE)
           take_object_from_zone_deck(zone, {
             position = encounter_special_zone:getPosition() + Vector(0, 5, 0),
@@ -116,6 +118,8 @@ function onObjectRotate(object)
     arena_events.on_rotate_pokemon_card(object)
   elseif object:hasTag(STATUS_TOKEN_TAG) then
     arena_events.on_rotate_status_token(object)
+  elseif object:hasTag(MUSIC_EVENTS_TAG) then
+    music_events.on_rotate_music_event_token(object)
   end
 end
 

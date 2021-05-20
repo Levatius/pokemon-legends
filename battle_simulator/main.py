@@ -107,4 +107,4 @@ def run(tier_lower_bound, include_legendary):
 
 
 if __name__ == '__main__':
-    run(tier_lower_bound=7, include_legendary=True)
+    run(tier_lower_bound=7, include_legendary=False)
