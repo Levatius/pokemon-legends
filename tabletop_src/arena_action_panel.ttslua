@@ -1,0 +1,86 @@
+#include config
+#include utils
+
+local selected_move_index
+local selected_tactics_index = 1
+local selected_switch_index
+
+function onLoad()
+  button_params = {
+    function_owner = self,
+    width          = 700,
+    height         = 175,
+    font_size      = 100,
+    font_color     = DARK_COLOUR,
+    hover_color    = LIGHT_BACKING_COLOUR,
+    press_color    = LIGHT_BACKING_COLOUR
+  }
+  -- Move Buttons
+  for i = 0, 2 do
+    button_params.click_function = "move_button_select_" .. i
+    button_params.position       = {0, 0.1, -0.75 + i * 0.325}
+    self.createButton(button_params)
+  end
+  -- Tactics Button
+  button_params.click_function = "tactics_button_toggle"
+  button_params.position       = {0, 0.1, 0.325}
+  self.createButton(button_params)
+  -- Switch Button
+  button_params.click_function = "switch_button_toggle"
+  button_params.position       = {0, 0.1, 0.75}
+  button_params.color          = {100/255, 150/255, 250/255}
+  self.createButton(button_params)
+
+  update_ui()
+end
+
+-- Move Buttons
+function move_button_select_0() move_button_select(1) end
+function move_button_select_1() move_button_select(2) end
+function move_button_select_2() move_button_select(3) end
+function move_button_select(index)
+  selected_move_index = (selected_move_index == index) and nil or index
+  selected_switch_index = nil
+  update_ui()
+end
+
+-- Tactics Button
+function get_next_tactics_state()
+  return (selected_tactics_index % 3) + 1
+end
+function tactics_button_toggle()
+  selected_tactics_index = get_next_tactics_state()
+  update_ui()
+end
+
+function get_active_pokemon()
+  local active_zone = getObjectFromGUID(active_zone_guid)
+  for _, object in pairs(active_zone:getObjects()) do
+    if object.type == "Card" then return object end
+  end
+end
+
+function get_move_name(move_index)
+  local active_pokemon = get_active_pokemon()
+  if not active_pokemon or not active_pokemon:getVar("moves") then
+    return nil
+  end
+  return active_pokemon:getVar("moves")[move_index]
+end
+
+function update_ui()
+  for i = 0, 2 do
+    local button_index = i
+    local move_index = i + 1
+    local move_name = get_move_name(move_index)
+
+    self.editButton({
+      index      = button_index,
+      label      = move_name and move_name or "",
+      width      = move_name and 700 or 0,
+      height     = move_name and 175 or 0,
+      color      = move_name and TYPE_COLOURS[move_name] or LIGHT_BACKING_COLOUR,
+      font_color = (move_index == selected_move_index) and WHITE_COLOUR or DARK_COLOUR
+    })
+  end
+end

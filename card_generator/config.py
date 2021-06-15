@@ -12,10 +12,14 @@ DECK_OBJECT_TEMPLATE = ASSETS_DIR / 'deck_object_template.json'
 
 REGULAR_SPRITE_URL = 'https://www.serebii.net/blackwhite/pokemon'
 ART_FORM_URL = 'https://www.serebii.net/pokemon/art'
-HUGE_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=128)
-LARGE_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=96)
-MEDIUM_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=64)
-SMALL_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=32)
+LARGE_TITLE_FONT = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=96)
+SMALL_TITLE_FONT = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=64)
+LARGE_BODY_FONT = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=48)
+POWER_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=144)
+# HUGE_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=128)
+# LARGE_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=96)
+# MEDIUM_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=64)
+# SMALL_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=32)
 DARK_COLOUR = (37, 37, 50)
 WHITE_COLOUR = (255, 255, 255)
 

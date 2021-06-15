@@ -89,6 +89,10 @@ function onLoad()
   update_ui()
 end
 
+function has_switch_selected()
+  return selected_switch_index ~= nil
+end
+
 function hide(player_colour)
   local players_to_set_invisible_to = {}
   for _, player in pairs(PLAYER_COLOURS) do
@@ -267,6 +271,9 @@ function update_ui()
 
     local attack_damage = get_attack_damage(move_index, our_active_pokemon, enemy_active_pokemon) + tactics_modifier + status_modifier
     local _, attack_font_colour = damage_to_label_and_font_colour(attack_damage)
+    if selected_move_index and move_index ~= selected_move_index then
+      attack_font_colour = {1, 1, 1, 0.25}
+    end
 
     self.editButton({
       index      = button_index,
@@ -385,4 +392,21 @@ function undeploy_model()
       model_bag:putObject(model)
     end
   end
+end
+
+function switch_out()
+  local party_pokemon_zone = getObjectFromGUID(party_pokemon_zone_guid)
+  local party_pokemons = party_pokemon_zone:getObjects()
+  local party_pokemon = party_pokemons[selected_switch_index]
+  local our_active_pokemon_zone = getObjectFromGUID(our_active_zone_guid)
+  local our_active_pokemon = get_pokemon_from(our_active_zone_guid)
+
+  if not party_pokemon or not our_active_pokemon then return end
+
+  print("Switching out " .. our_active_pokemon:getName() .. " for " .. party_pokemon:getName())
+  our_active_pokemon:setPositionSmooth(party_pokemon:getPosition(), false, false)
+  party_pokemon:setPositionSmooth(our_active_pokemon_zone:getPosition(), false, false)
+  Wait.frames(function() party_pokemon_zone.LayoutZone:layout() end, 100)
+  selected_switch_index = nil
+  update_ui()
 end

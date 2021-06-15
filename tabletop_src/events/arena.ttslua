@@ -20,15 +20,13 @@ end
 
 -- Scripting Zone Events
 function arena_events.on_enter_active_zone(active_zone, pokemon_card)
-  local control_panel = arena_events._get_control_panel_for_object(active_zone)
-  control_panel:call("deploy_model")
-  arena_events._update_control_panels()
+  local arena_action_panel = getObjectFromGUID(zone:getVar("arena_action_panel_guid"))
+  arena_action_panel:call("update_ui")
 end
 
 function arena_events.on_leave_active_zone(active_zone, pokemon_card)
-  local control_panel = arena_events._get_control_panel_for_object(active_zone)
-  control_panel:call("undeploy_model")
-  arena_events._update_control_panels()
+  local arena_action_panel = getObjectFromGUID(zone:getVar("arena_action_panel_guid"))
+  arena_action_panel:call("update_ui")
 end
 
 function arena_events.on_enter_field_zone()
