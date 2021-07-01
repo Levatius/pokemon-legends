@@ -1,0 +1,122 @@
+#include config
+#include utils
+
+local power = 0
+local effectiveness = 0
+local selected_hide_state = -1
+local bonus_power = 0
+
+local stance_zone = getObjectFromGUID(stance_zone_guid)
+local hidden_zones = {getObjectFromGUID(hidden_zone_guids[1]), getObjectFromGUID(hidden_zone_guids[2])}
+
+function onLoad()
+  text_params = {
+    click_function = "dummy_button",
+    function_owner = self,
+    width          = 0,
+    height         = 0,
+    font_color     = WHITE_COLOUR
+  }
+  button_params = {
+    function_owner = self,
+    width          = 275,
+    height         = 200,
+    color          = WOOD_COLOUR,
+    font_color     = WHITE_COLOUR,
+    hover_color    = LIGHT_BACKING_COLOUR,
+    press_color    = LIGHT_BACKING_COLOUR
+  }
+  -- Total Power Text
+  text_params.position = {0, 0.1, -0.2}
+  text_params.font_size = 400
+  self:createButton(text_params)
+  -- Hide Button Toggle
+  button_params.click_function = "hide_button_toggle"
+  button_params.position = {-0.5, 0.1, 0.625}
+  button_params.font_size = 75
+  self:createButton(button_params)
+  -- Bonus Power Button
+  button_params.click_function = "bonus_power_button"
+  button_params.position = {0.5, 0.1, 0.625}
+  button_params.font_size = 125
+  self:createButton(button_params)
+  set_hide_zones()
+  update_panel()
+end
+
+--
+--
+--
+
+function set_hide_zones(player_colour)
+  for _, hidden_zone in pairs(hidden_zones) do
+    hidden_zone:setValue(player_colour)
+    hidden_zone_position = hidden_zone:getPosition()
+    hidden_zone:setPositionSmooth({hidden_zone_position.x, 1.5 * selected_hide_state, hidden_zone_position.z}, false, false)
+  end
+end
+
+function flip_stance()
+  for _, stance in pairs(stance_zone:getObjects()) do
+    if stance.is_face_down then
+      stance:flip()
+    end
+  end
+end
+
+function hide_button_toggle(_, player_colour)
+  selected_hide_state = selected_hide_state * -1
+  set_hide_zones(player_colour)
+  flip_stance()
+  update_panel()
+end
+
+function bonus_power_button(_, _, alt_click)
+  bonus_power = math.max(math.min(bonus_power + (alt_click and -1 or 1), 9), 0)
+  update_panel()
+end
+
+function set_power(value)
+  power = value
+  update_panel()
+end
+
+function set_effectiveness(value)
+  effectiveness = value
+  update_panel()
+end
+
+function get_stance_value()
+  for _, stance in pairs(stance_zone:getObjects()) do
+    if not stance.is_face_down then
+      return stance:getVar("value")
+    end
+  end
+  return 0
+end
+
+--
+--
+--
+
+function update_panel()
+  local stance_value = get_stance_value()
+  -- Total Power Text
+  local button_index = 0
+  self:editButton({
+    index = button_index,
+    label = power + (selected_hide_state == -1 and effectiveness or 0) + stance_value + bonus_power
+  })
+  -- Hide Button Toggle
+  local button_index = 1
+  self:editButton({
+    index = button_index,
+    label = selected_hide_state == -1 and "Hide" or "Reveal"
+  })
+  -- Bonus Power Button
+  local button_index = 2
+  self:editButton({
+    index = button_index,
+    label = signed_label(bonus_power)
+  })
+end

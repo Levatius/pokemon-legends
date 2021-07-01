@@ -60,11 +60,11 @@ function transfer_models()
     return 1
   end
   startLuaCoroutine(self, "normal_run")
-  function shiny_run()
-    transfer(SHINY_MODEL_BAG_GUIDS, SHINY_TARGET_GUID, "Shiny")
-    return 1
-  end
-  startLuaCoroutine(self, "shiny_run")
+  -- function shiny_run()
+  --   transfer(SHINY_MODEL_BAG_GUIDS, SHINY_TARGET_GUID, "Shiny")
+  --   return 1
+  -- end
+  -- startLuaCoroutine(self, "shiny_run")
 end
 
 
@@ -93,11 +93,11 @@ function cache_models()
     return 1
   end
   startLuaCoroutine(self, "normal_run")
-  function shiny_run()
-    cache(SHINY_TARGET_GUID)
-    return 1
-  end
-  startLuaCoroutine(self, "shiny_run")
+  -- function shiny_run()
+  --   cache(SHINY_TARGET_GUID)
+  --   return 1
+  -- end
+  -- startLuaCoroutine(self, "shiny_run")
 end
 
 

@@ -1,69 +1,7 @@
 arena_events = {}
 
--- Utils
-function arena_events._get_control_panel_for_object(object)
-  for _, control_panel_guid in pairs(ARENA_CONTROL_PANEL_GUIDS) do
-    local control_panel = getObjectFromGUID(control_panel_guid)
-
-    if control_panel:getVar("our_active_zone_guid") == object:getGUID() then
-      return control_panel
-    end
-  end
-end
-
-function arena_events._update_control_panels()
-  for _, control_panel_guid in pairs(ARENA_CONTROL_PANEL_GUIDS) do
-    local control_panel = getObjectFromGUID(control_panel_guid)
-    control_panel:call("update_ui")
-  end
-end
-
--- Scripting Zone Events
-function arena_events.on_enter_active_zone(active_zone, pokemon_card)
-  local arena_action_panel = getObjectFromGUID(zone:getVar("arena_action_panel_guid"))
-  arena_action_panel:call("update_ui")
-end
-
-function arena_events.on_leave_active_zone(active_zone, pokemon_card)
-  local arena_action_panel = getObjectFromGUID(zone:getVar("arena_action_panel_guid"))
-  arena_action_panel:call("update_ui")
-end
-
 function arena_events.on_enter_field_zone()
 end
 
 function arena_events.on_leave_field_zone()
-end
-
--- Rotation Events
-function arena_events.on_rotate_pokemon_card(pokemon_card)
-  if not pokemon_card.is_face_down then
-    pokemon_card:unregisterCollisions()
-    local attachments = pokemon_card:removeAttachments()
-    for _, attachment in pairs(attachments) do
-      if attachment:hasTag(DAMAGE_TOKEN_TAG) then
-        attachment:destruct()
-      end
-    end
-  end
-  for _, zone in pairs(pokemon_card:getZones()) do
-    if contains(ARENA_ACTIVE_ZONE_GUIDS, zone:getGUID()) then
-      local control_panel = arena_events._get_control_panel_for_object(zone)
-      local battle_zone = getObjectFromGUID(control_panel:getVar("our_battle_zone_guid"))
-      for _, object in pairs(battle_zone:getObjects()) do
-        if object:hasTag(POKEMON_MODEL_TAG) and object.type ~= "Bag" then
-          if not pokemon_card.is_face_down then
-            object.AssetBundle:playLoopingEffect(3)
-          else
-            object.AssetBundle:playLoopingEffect(0)
-          end
-        end
-      end
-      break
-    end
-  end
-end
-
-function arena_events.on_rotate_status_token(status_token)
-  Wait.frames(arena_events._update_control_panels, 60)
 end

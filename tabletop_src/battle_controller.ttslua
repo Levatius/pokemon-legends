@@ -30,7 +30,7 @@ function onLoad()
     label          = "+0"
   })
 
-  update_ui()
+  update_panel()
 end
 
 function roll_dice_in(field_zone)
@@ -48,7 +48,7 @@ function roll_dice()
   Wait.frames(function() self:editButton({index=1, label="."}) end, 75)
   Wait.frames(function() self:editButton({index=1, label=".."}) end, 150)
   Wait.frames(function() self:editButton({index=1, label="..."}) end, 225)
-  Wait.frames(update_ui, 300)
+  Wait.frames(update_panel, 300)
   Wait.frames(actions, 300)
 end
 
@@ -62,7 +62,7 @@ function get_max_dice_value_from(field_zone)
   return max_value
 end
 
-function update_ui()
+function update_panel()
   local dice_value_1 = get_max_dice_value_from(field_zone_1)
   local dice_value_2 = get_max_dice_value_from(field_zone_2)
   local dice_value_difference = dice_value_1 - dice_value_2

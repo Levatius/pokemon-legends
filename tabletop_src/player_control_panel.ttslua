@@ -64,7 +64,7 @@ function onLoad()
     self.editButton({index=index_base + 6, position={2.975, 0.2, 0.55}})
   end
 
-  update_ui()
+  update_panel()
 end
 
 function journey_point_button(_, _, alt_click)
@@ -126,7 +126,7 @@ function count_lake_crystals()
   return #lake_crystal_zone:getObjects()
 end
 
-function update_ui()
+function update_panel()
   local journey_point_count = count_objects_with_name_in_pouch(JOURNEY_POINT_TOKEN_NAME)
   self.editButton({index=4, label=journey_point_count})
   self.editButton({index=5, label=count_lake_crystals()})

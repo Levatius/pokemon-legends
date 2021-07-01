@@ -98,6 +98,7 @@ function take_object_from_zone_deck(zone, params)
 end
 
 function put_object_into_zone_deck(zone, object)
+  -- GOT ERROR HERE ON EXIT
   local zone_objects = zone:getObjects()
   if not zone_objects then return end
   -- Get first object in zone as the zone deck
@@ -164,5 +165,18 @@ end
 function motion_pause()
   for i = 0, 100 do
     coroutine.yield(0)
+  end
+end
+
+function signed_label(value)
+  if not value then return nil end
+  return (value >= 0) and "+" .. value or value
+end
+
+function update_panels(zone)
+  for _, update_panel_guid in pairs(zone:getVar("update_panel_guids")) do
+    local update_panel = getObjectFromGUID(update_panel_guid)
+    -- ERROR HERE ON EXIT, GUID -1
+    update_panel:call("update_panel")
   end
 end

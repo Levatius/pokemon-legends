@@ -3,37 +3,29 @@ from PIL import ImageFont
 
 COMPONENT_DIR = Path(__file__).parent
 ROOT_DIR = COMPONENT_DIR.parent
-ASSETS_DIR = COMPONENT_DIR / 'assets'
+ASSETS_DIR = COMPONENT_DIR.parent / 'assets'
 OUTPUT_DIR = COMPONENT_DIR / 'output'
 CARDS_OUTPUT_DIR = OUTPUT_DIR / 'pokemon_cards'
-DECKS_OUTPUT_DIR = OUTPUT_DIR / 'pokemon_decks'
+TOKENS_OUTPUT_DIR = OUTPUT_DIR / 'pokemon_tokens'
+CARD_DECKS_OUTPUT_DIR = OUTPUT_DIR / 'pokemon_card_decks'
+TOKEN_DECKS_OUTPUT_DIR = OUTPUT_DIR / 'pokemon_token_decks'
 CARD_OBJECT_TEMPLATE = ASSETS_DIR / 'card_object_template.json'
 DECK_OBJECT_TEMPLATE = ASSETS_DIR / 'deck_object_template.json'
 
-REGULAR_SPRITE_URL = 'https://www.serebii.net/blackwhite/pokemon'
 ART_FORM_URL = 'https://www.serebii.net/pokemon/art'
-LARGE_TITLE_FONT = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=96)
-SMALL_TITLE_FONT = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=64)
-LARGE_BODY_FONT = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=48)
-POWER_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=144)
-# HUGE_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=128)
-# LARGE_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=96)
-# MEDIUM_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=64)
-# SMALL_TEXT_FONT = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=32)
+
+ORIENTAL_160 = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=160)
+BARLOW_80 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=80)
+BARLOW_64 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=64)
+BARLOW_48 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=48)
+
 DARK_COLOUR = (37, 37, 50)
 WHITE_COLOUR = (255, 255, 255)
 
-NORMAL_CARD_BACK_CLOUD_URL = 'http://cloud-3.steamusercontent.com/ugc/1755817088934009706/72672D0AD43330B3F2FB5128B583DDA2A0D9D7CE/'
-NORMAL_DECK_FACE_CLOUD_URLS = [
-    'http://cloud-3.steamusercontent.com/ugc/1787345070256771885/F7DDBED0D4BF47F6A17E3F4FC35784F0D445A91C/',
-    'http://cloud-3.steamusercontent.com/ugc/1787345070256772083/72E7DFED1BED6566E550DA7C9CC0DA67ED9FD8C3/',
-    'http://cloud-3.steamusercontent.com/ugc/1787345070256772250/C5FA8340B6E513E1EF64FE9F6AE1E3C42D317F79/',
-    'http://cloud-3.steamusercontent.com/ugc/1787345070256772375/67C7582AF102607F017BFD3E361C2FCB340C6C7F/'
-]
-SHINY_CARD_BACK_CLOUD_URL = 'http://cloud-3.steamusercontent.com/ugc/1755817088934009776/CF6C9FE0321B36BD49BEA860EEB834E38C1E4A04/'
-SHINY_DECK_FACE_CLOUD_URLS = [
-    'http://cloud-3.steamusercontent.com/ugc/1787345070256774731/DF3D4242C3F76879CF5AAD8E61E373AB3CC7513A/',
-    'http://cloud-3.steamusercontent.com/ugc/1787345070256774882/A7A0B9661E1E0A2F6FDFF65C004367C627938F89/',
-    'http://cloud-3.steamusercontent.com/ugc/1787345070256775229/50105F067782EBCEA65CDD99D48490B37537C2B2/',
-    'http://cloud-3.steamusercontent.com/ugc/1787345070256775368/95F80E8479CA8555259C4B096A9B769FAA09408E/'
+CARD_BACK_CLOUD_URL = 'http://cloud-3.steamusercontent.com/ugc/1717542166339634591/14AF78B5203C3A9A3851A45D7BA0DACA3B19473D/'
+DECK_FACE_CLOUD_URLS = [
+    'http://cloud-3.steamusercontent.com/ugc/1717542166339627486/F04352D1A47B673BB72C5D3F50AEA14CC0500C9A/',
+    'http://cloud-3.steamusercontent.com/ugc/1717542166339627706/B030B1F98DB2C71871EB5FEA92A5ACD401AA44C4/',
+    'http://cloud-3.steamusercontent.com/ugc/1717542166339627897/0B833B49D90F7F6796F9420EFCCC3E802478FB24/',
+    'http://cloud-3.steamusercontent.com/ugc/1717542166339628055/BA7CC27B9CC9ABAC3343D110E7FFB4418474CA18/'
 ]

@@ -26,8 +26,8 @@ end
 -- Scripting Zone Events
 function onObjectEnterScriptingZone(zone, object)
   if object:getGUID() == -1 then return end
-  if zone:getName() == "Active Zone" then
-    arena_events.on_enter_active_zone(zone, object)
+  if zone:getName() == "Active Zone" or zone:hasTag(STANCE_TOKEN_TAG) then
+    update_panels(zone)
   elseif contains(ARENA_BATTLE_TOKEN_GUIDS, zone:getGUID()) then
     battle_token_events.on_enter_zone(zone, object)
   elseif zone:hasTag(LAKE_CRYSTAL_TOKEN_TAG) then
@@ -77,8 +77,8 @@ end
 
 function onObjectLeaveScriptingZone(zone, object)
   if object:getGUID() == -1 then return end
-  if zone:getName() == "Active Zone" then
-    arena_events.on_leave_active_zone(zone, object)
+  if zone:getName() == "Active Zone" or zone:hasTag(STANCE_TOKEN_TAG) then
+    update_panels(zone)
   elseif contains(ARENA_BATTLE_TOKEN_GUIDS, zone:getGUID()) then
     battle_token_events.on_leave_zone(zone, object)
   elseif zone:hasTag(LAKE_CRYSTAL_TOKEN_TAG) then
@@ -113,15 +113,15 @@ function onObjectEnterZone(zone, object)
 end
 
 -- Rotation Events
-function onObjectRotate(object)
-  if object:hasTag(POKEMON_CARD_TAG) and object.type == "Card" then
-    arena_events.on_rotate_pokemon_card(object)
-  elseif object:hasTag(STATUS_TOKEN_TAG) then
-    arena_events.on_rotate_status_token(object)
-  elseif object:hasTag(MUSIC_EVENTS_TAG) then
-    music_events.on_rotate_music_event_token(object)
-  end
-end
+-- function onObjectRotate(object)
+--   if object:hasTag(POKEMON_CARD_TAG) and object.type == "Card" then
+--     arena_events.on_rotate_pokemon_card(object)
+--   elseif object:hasTag(STATUS_TOKEN_TAG) then
+--     arena_events.on_rotate_status_token(object)
+--   elseif object:hasTag(MUSIC_EVENTS_TAG) then
+--     music_events.on_rotate_music_event_token(object)
+--   end
+-- end
 
 -- Collision Events
 function onObjectCollisionEnter(hit_object, collision_info)
