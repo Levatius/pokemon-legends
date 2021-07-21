@@ -2,7 +2,6 @@
 #include utils
 
 local effectiveness_list
-local selected_move_index
 
 function onLoad()
   text_params = {
@@ -15,7 +14,7 @@ function onLoad()
   }
   -- Move Texts
   for i = 0, 2 do
-    text_params.position = {0, 0.1, -0.6 + i * 0.35}
+    text_params.position = {0, 0.1, -0.7 + i * 0.35}
     self:createButton(text_params)
   end
   update_panel()
@@ -30,11 +29,6 @@ function set_effectiveness_list(value)
   update_panel()
 end
 
-function set_selected_move_index(value)
-  selected_move_index = value
-  update_panel()
-end
-
 --
 --
 --
@@ -46,8 +40,7 @@ function update_panel()
     local move_index = i + 1
     self:editButton({
       index = button_index,
-      label = effectiveness_list and signed_label(effectiveness_list[move_index]) or "",
-      font_color = (move_index == selected_move_index) and WHITE_COLOUR or GREY_COLOUR
+      label = effectiveness_list and signed_label(effectiveness_list[move_index]) or ""
     })
   end
 end

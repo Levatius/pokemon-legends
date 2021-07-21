@@ -16,5 +16,5 @@ def read_cube(cube_name='sinnoh_cube', sheet_name='sinnoh'):
     return df
 
 
-def get_shiny_name(shiny):
-    return 'shiny' if shiny else 'normal'
+def is_trainer_deck_boundary(previous_trainer, stats):
+    return pd.isnull(previous_trainer) and not pd.isnull(stats.trainer)

@@ -23,13 +23,13 @@ function onLoad()
   -- Move Buttons
   for i = 0, 2 do
     button_params.click_function = "move_button_select_" .. i
-    button_params.position       = {0, 0.1, -0.6 + i * 0.35}
+    button_params.position       = {0, 0.1, -0.7 + i * 0.35}
     button_params.tooltip        = "Select Attack"
     self:createButton(button_params)
   end
   -- Switch Button
   button_params.click_function = "switch_button_toggle"
-  button_params.position       = {0, 0.1, 0.7}
+  button_params.position       = {0, 0.1, 0.65}
   button_params.color          = {100/255, 200/255, 250/255}
   button_params.tooltip        = "Toggle Pokémon"
   self:createButton(button_params)
@@ -48,8 +48,6 @@ function move_button_select_2(_, _, alt_click) move_button_select(3, alt_click) 
 function move_button_select(index, alt_click)
   selected_move_index = not alt_click and index or nil
   selected_switch_index = nil
-
-  action_output_panel:call("set_selected_move_index", selected_move_index)
   update_panel()
 end
 -- Switch Button
@@ -63,8 +61,6 @@ end
 function switch_button_toggle(_, _, alt_click)
   selected_switch_index = not alt_click and get_next_switch_state() or nil
   selected_move_index = nil
-
-  action_output_panel:call("set_selected_move_index", selected_move_index)
   update_panel()
 end
 
@@ -100,17 +96,22 @@ function get_types(pokemon)
   return pokemon:getVar("types")
 end
 
-function get_effectiveness(move_type, types)
+function get_effectiveness(move_type, our_types, their_types)
   if not move_type then
     return nil
   end
 
-  if not types then
+  if not their_types then
     return 0
   end
 
   local effectiveness = 0
-  for _, type in pairs(types) do
+
+  if contains(our_types, move_type) then
+    effectiveness = effectiveness + 1
+  end
+
+  for _, type in pairs(their_types) do
     effectiveness = effectiveness + (TYPE_CHART[move_type][type] and TYPE_CHART[move_type][type] or 0)
   end
   return effectiveness
@@ -185,11 +186,12 @@ function update_move_buttons(button_index_offset, our_pokemon, their_pokemon)
   local our_power = get_power(our_pokemon)
   local selected_effectiveness = 0
 
+  local our_types = get_types(our_pokemon)
   local their_types = get_types(their_pokemon)
   for i = 0, 2 do
     local move_index = i + 1
     local move_type = get_move_type(our_pokemon, move_index)
-    local effectiveness = get_effectiveness(move_type, their_types)
+    local effectiveness = get_effectiveness(move_type, our_types, their_types)
 
     self:editButton({
       index      = button_index_offset + i,

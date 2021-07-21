@@ -1,0 +1,125 @@
+#include config
+#include utils
+
+local bag = getObjectFromGUID(bag_guid)
+
+function onLoad()
+  button_params = {
+    function_owner = self,
+    width          = 200,
+    height         = 200,
+    color          = {0, 0, 0, 0}
+  }
+  text_params = {
+    click_function = "dummy_button",
+    function_owner = self,
+    width          = 0,
+    height         = 0,
+    font_size      = 125,
+    font_color     = WHITE_COLOUR
+  }
+  -- Resource Buttons
+  for i = 0, 7 do
+    button_params.click_function = "resource_button_" .. i
+    self:createButton(button_params)
+  end
+  -- Resource Texts
+  for i = 0, 7 do
+    self:createButton(text_params)
+  end
+  for i = 0, 1 do
+    local index_base = 8 * i
+    self.editButton({index=index_base + 0, position={-1.15, 0.2, -0.66}})
+    self.editButton({index=index_base + 1, position={-1.15, 0.2, -0.22}})
+    self.editButton({index=index_base + 2, position={-1.15, 0.2, 0.22}})
+    self.editButton({index=index_base + 3, position={-1.15, 0.2, 0.66}})
+    self.editButton({index=index_base + 4, position={-0.72, 0.2, -0.66}})
+    self.editButton({index=index_base + 5, position={-0.72, 0.2, -0.22}})
+    self.editButton({index=index_base + 6, position={-0.72, 0.2, 0.22}})
+    self.editButton({index=index_base + 7, position={-0.72, 0.2, 0.66}})
+  end
+
+  update_panel()
+end
+
+--
+--
+--
+
+function resource_button_0(_, _, alt_click) apricorn_button(1, alt_click) end
+function resource_button_1(_, _, alt_click) apricorn_button(2, alt_click) end
+function resource_button_2(_, _, alt_click) apricorn_button(3, alt_click) end
+function resource_button_3(_, _, alt_click) apricorn_button(4, alt_click) end
+function resource_button_4(_, _, alt_click) apricorn_button(5, alt_click) end
+function resource_button_5(_, _, alt_click) apricorn_button(6, alt_click) end
+function resource_button_6(_, _, alt_click) apricorn_button(7, alt_click) end
+function resource_button_7(_, _, alt_click) journey_point_button(alt_click) end
+
+function apricorn_button(index, alt_click)
+  local apricorn_bag = getObjectFromGUID(APRICORN_BAG_GUIDS[index])
+  if not alt_click then
+    local apricorn = apricorn_bag:takeObject({rotation=bag:getRotation()})
+    bag:putObject(apricorn)
+  else
+    local apricorn_name = APRICORN_NAMES[index] .. " Apricorn"
+    local apricorn_index = get_object_index_with_name_in_bag(apricorn_name)
+    if apricorn_index then
+      local apricorn = bag:takeObject({index=apricorn_index, rotation=bag:getRotation()})
+      apricorn_bag:putObject(apricorn)
+    end
+  end
+end
+
+function journey_point_button(alt_click)
+  local journey_point_bag = getObjectFromGUID(JOURNEY_POINT_BAG_GUID)
+  if not alt_click then
+    local journey_point = journey_point_bag:takeObject({rotation=bag:getRotation()})
+    bag:putObject(journey_point)
+  else
+    local journey_point_index = get_object_index_with_name_in_bag(JOURNEY_POINT_TOKEN_NAME)
+    if journey_point_index then
+      local journey_point = bag:takeObject({index=journey_point_index, rotation=bag:getRotation()})
+      journey_point_bag:putObject(journey_point)
+    end
+  end
+end
+
+function get_object_index_with_name_in_bag(name)
+  for _, bag_object in pairs(bag:getObjects()) do
+    if bag_object.name == name then
+      return bag_object.index
+    end
+  end
+end
+
+function count_objects_with_name_in_bag(name)
+  local count = 0
+  for _, bag_object in pairs(bag:getObjects()) do
+    if bag_object.name == name then
+      count = count + 1
+    end
+  end
+  return count
+end
+
+--
+--
+--
+
+function update_panel()
+  for i = 0, 6 do
+    local button_index_offest = 8
+    local apricorn_name = APRICORN_NAMES[i + 1] .. " Apricorn"
+    local apricorn_count = count_objects_with_name_in_bag(apricorn_name)
+    self.editButton({
+      index = button_index_offest + i,
+      label = apricorn_count
+    })
+  end
+  local button_index_offest = 8 + 7
+  local journey_point_count = count_objects_with_name_in_bag(JOURNEY_POINT_TOKEN_NAME)
+  self.editButton({
+    index = button_index_offest,
+    label = journey_point_count
+  })
+end

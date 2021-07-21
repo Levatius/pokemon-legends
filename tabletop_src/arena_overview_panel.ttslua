@@ -105,7 +105,7 @@ function update_panel()
   local button_index = 0
   self:editButton({
     index = button_index,
-    label = power + (selected_hide_state == -1 and effectiveness or 0) + stance_value + bonus_power
+    label = tostring(power + (selected_hide_state == -1 and effectiveness or 0) + stance_value + bonus_power) .. "⚔️"
   })
   -- Hide Button Toggle
   local button_index = 1

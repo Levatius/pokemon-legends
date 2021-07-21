@@ -11,24 +11,12 @@ function player_events._get_control_panel_for_object(object)
   end
 end
 
--- Scripting Zone Events
-function player_events.on_enter_lake_crystal_zone(lake_crystal_zone, lake_crystal)
-  for _, control_panel_guid in pairs(PLAYER_CONTROL_PANEL_GUIDS) do
-    local control_panel = getObjectFromGUID(control_panel_guid)
-    control_panel:call("update_panel")
-  end
-end
-
-function player_events.on_leave_lake_crystal_zone(lake_crystal_zone, lake_crystal)
-  player_events.on_enter_lake_crystal_zone(lake_crystal_zone, lake_crystal)
-end
-
 -- Container Events
-function player_events.on_enter_pouch(pouch)
+function player_events.on_enter_bag(pouch)
   local control_panel = player_events._get_control_panel_for_object(pouch)
   control_panel:call("update_panel")
 end
 
-function player_events.on_leave_pouch(pouch)
-  player_events.on_enter_pouch(pouch)
+function player_events.on_leave_bag(pouch)
+  player_events.on_enter_bag(pouch)
 end

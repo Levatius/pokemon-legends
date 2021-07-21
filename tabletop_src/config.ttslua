@@ -6,7 +6,7 @@ ARENA_ACTIVE_ZONE_GUIDS = {"494620", "6b0103"}
 ARENA_FIELD_ZONE_GUIDS = {"537c1f", "dbba88"}
 ARENA_CONTROL_PANEL_GUIDS = {"af4498", "2584e8"}
 ARENA_BATTLE_TOKEN_GUIDS = {"12b4a8", "36e811"}
-APRICORN_BAG_GUIDS = {"c2d9cc", "5ae126", "76d021", "1d667c", "926a58", "c7bdb9", "43f641"}
+APRICORN_BAG_GUIDS = {"c2d9cc", "926a58", "43f641", "1d667c", "5ae126", "c7bdb9", "76d021"}
 JOURNEY_POINT_BAG_GUID = "611d38"
 PLAYER_CONTROL_PANEL_GUIDS = {
   Yellow = "16db4b",
@@ -29,47 +29,47 @@ PLAYER_TRAINER_TOKEN_GUIDS = {
   Red = "0e09ba"
 }
 CRY_PLAYER_GUID = "54209c"
-ENCOUNTER_SPECIAL_ZONE = "001a84"
-ENCOUNTER_REGULAR_ZONE = "4d7853"
-ENCOUNTER_EVOLUTIONS_ZONE = "ae4239"
-ENCOUNTER_SORT_ZONE = "d216bb"
+ENCOUNTER_REGULAR_ZONE_GUID = "4d7853"
+ENCOUNTER_EVOLUTION_ZONE_GUID = "ae4239"
+ENCOUNTER_LEGENDARY_ZONE_GUID = "001a84"
+ENCOUNTER_PWO_ZONE_GUID = "6070e8"
+ENCOUNTER_SORT_ZONE_GUID = "d216bb"
 
 -- Tags
+EVOLUTION_CARD_TAG = "Evolution Card"
+LEGENDARY_CARD_TAG = "Legendary Encounter Card"
+PWO_CARD_TAG = "Perfect World Order Card"
+
 STATUS_TOKEN_TAG = "Status Token"
 POKEMON_CARD_TAG = "Pokemon Card"
 POKEMON_MODEL_TAG = "Pokemon Model"
 BATTLE_TOKEN_TAG = "Battle Token"
+ENCOUNTER_TOKEN_TAG = "Encounter Token"
 JOURNEY_POINT_TOKEN_TAG = "Journey Point Token"
 APRICORN_TOKEN_TAG = "Apricorn Token"
 EVENT_TOKEN_TAG = "Event Token"
 APRICORN_TREE_TAG = "Apricorn Tree"
 DAMAGE_TOKEN_TAG = "Damage Token"
-LAKE_CRYSTAL_TOKEN_TAG = "Lake Crystal"
 MUSIC_CARTRIDGE_TAG = "Music Cartridge"
-EVOLUTION_CARD_TAG = "Evolution Card"
-LEGENDARY_CARD_TAG = "Legendary Card"
-EVENT_ONLY_CARD_TAG = "Event Only Card"
+
 TRAINER_TOKEN_TAG = "Trainer Token"
 VILLAGE_TAG = "Village"
 MUSIC_EVENTS_TAG = "Music Events"
 STANCE_TOKEN_TAG = "Stance Token"
 
 WILD_AREA_TAG = "Wild Area"
-LAKE_TAG = "Lake"
-SPEAR_PILLAR_TAG = "Spear Pillar"
-HALL_OF_ORIGIN_TAG = "Hall of Origin"
-CONTROL_PANEL_TAG = "Control Panel"
-BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean", "Ruins", SPEAR_PILLAR_TAG, HALL_OF_ORIGIN_TAG, CONTROL_PANEL_TAG}
+BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean", "Ruins"}
 CLIMATE_TAGS = {"Cold", "Temperate", "Warm"}
 TIER_TAGS = {"Tier Low", "Tier Medium", "Tier High", "Tier Uber"}
 DANGER_TAG = "Danger"
 HALF_PARTY_TAG = "Half Party"
 FULL_PARTY_TAG = "Full Party"
+BAG_PANEL_TAG = "Bag Panel"
 
 -- Names
 POUCH_NAME = "Pouch"
 JOURNEY_POINT_TOKEN_NAME = "Journey Point"
-APRICORN_NAMES = {"Red", "Blue", "White", "Black", "Yellow", "Pink", "Green"}
+APRICORN_NAMES = {"Red", "Yellow", "Green", "Black", "Blue", "Pink", "White"}
 
 FOCUS_TOKEN_NAME = "Focused (+3 Attack)"
 BRACE_TOKEN_NAME = "Braced (+3 Defence)"

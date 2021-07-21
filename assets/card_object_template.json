@@ -12,11 +12,11 @@
     "scaleZ": 1.5
   },
   "Grid": false,
-  "Nickname": "",
-  "Description": "",
-  "ColorDiffuse": {"r": 0.588235294, "g": 0.294117647, "b": 0.196078431},
-  "Tags": ["Pokemon Card"],
-  "LuaScript": "",
+  "Nickname": null,
+  "Description": null,
+  "ColorDiffuse": null,
+  "Tags": null,
+  "LuaScript": null,
   "CustomDeck": {
     "1": {
       "FaceURL": "",
@@ -25,5 +25,22 @@
       "NumHeight": 7,
       "BackIsHidden": true
     }
-  }
+  },
+  "AttachedSnapPoints": [
+    {
+      "Position": {
+        "x": 0.60,
+        "y": -0.20,
+        "z": 0.05
+      },
+      "Rotation": {
+        "x": 0,
+        "y": 0,
+        "z": 0
+      },
+      "Tags": [
+        "Item Attachment"
+      ]
+    }
+  ]
 }

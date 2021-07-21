@@ -5,8 +5,7 @@
 #include events/evolution
 #include events/music
 #include events/player
-
-local sort_coroutine_running = false
+#include events/pokemon_collection
 
 function onload()
   print("Root Loaded")
@@ -28,50 +27,12 @@ function onObjectEnterScriptingZone(zone, object)
   if object:getGUID() == -1 then return end
   if zone:getName() == "Active Zone" or zone:hasTag(STANCE_TOKEN_TAG) then
     update_panels(zone)
-  elseif contains(ARENA_BATTLE_TOKEN_GUIDS, zone:getGUID()) then
+  elseif zone:hasTag(BATTLE_TOKEN_TAG) then
     battle_token_events.on_enter_zone(zone, object)
-  elseif zone:hasTag(LAKE_CRYSTAL_TOKEN_TAG) then
-    player_events.on_enter_lake_crystal_zone(zone, object)
   elseif zone:hasTag(MUSIC_CARTRIDGE_TAG) then
     music_events.on_enter_music_cartridge_zone(zone, object)
-  elseif zone:getGUID() == ENCOUNTER_SORT_ZONE then
-    function sortCoroutine()
-      sort_coroutine_running = true
-      local pokemon_card_infos = get_object_infos_from_zone_deck(zone)
-
-      for _, pokemon_card_info in reversedipairs(pokemon_card_infos) do
-        if contains(pokemon_card_info.tags, EVOLUTION_CARD_TAG) then
-          local encounter_evolutuions_zone = getObjectFromGUID(ENCOUNTER_EVOLUTIONS_ZONE)
-          take_object_from_zone_deck(zone, {
-            position = encounter_evolutuions_zone:getPosition() + Vector(0, 5, 0),
-            rotation = encounter_evolutuions_zone:getRotation(),
-            guid     = pokemon_card_info.guid
-          })
-        elseif contains(pokemon_card_info.tags, LEGENDARY_CARD_TAG) then
-          local encounter_special_zone = getObjectFromGUID(ENCOUNTER_SPECIAL_ZONE)
-          take_object_from_zone_deck(zone, {
-            position = encounter_special_zone:getPosition() + Vector(0, 5, 0),
-            rotation = encounter_special_zone:getRotation(),
-            guid     = pokemon_card_info.guid
-          })
-        else
-          local biome_tag = get_biome_tag(pokemon_card_info.tags)
-          local climate_tag = get_climate_tag(pokemon_card_info.tags)
-          local x_offset = 2.9 * (find_first_index(BIOME_TAGS, biome_tag) - 3)
-          local z_offset = -4.8 * (find_first_index(CLIMATE_TAGS, climate_tag) - 2)
-          local encounter_regular_zone = getObjectFromGUID(ENCOUNTER_REGULAR_ZONE)
-          take_object_from_zone_deck(zone, {
-            position = encounter_regular_zone:getPosition() + Vector(x_offset, 5, z_offset),
-            rotation = encounter_regular_zone:getRotation(),
-            guid     = pokemon_card_info.guid
-          })
-        end
-        brief_pause()
-      end
-      sort_coroutine_running = false
-      return 1
-    end
-    if not sort_coroutine_running then startLuaCoroutine(self, "sortCoroutine") end
+  elseif zone:getGUID() == ENCOUNTER_SORT_ZONE_GUID then
+    pokemon_collection.on_enter_sort_zone(zone, object)
   end
 end
 
@@ -79,10 +40,8 @@ function onObjectLeaveScriptingZone(zone, object)
   if object:getGUID() == -1 then return end
   if zone:getName() == "Active Zone" or zone:hasTag(STANCE_TOKEN_TAG) then
     update_panels(zone)
-  elseif contains(ARENA_BATTLE_TOKEN_GUIDS, zone:getGUID()) then
+  elseif zone:hasTag(BATTLE_TOKEN_TAG) then
     battle_token_events.on_leave_zone(zone, object)
-  elseif zone:hasTag(LAKE_CRYSTAL_TOKEN_TAG) then
-    player_events.on_leave_lake_crystal_zone(zone, object)
   end
 end
 
@@ -90,19 +49,25 @@ end
 function tryObjectEnterContainer(container, object)
   if container:hasTag(POKEMON_MODEL_TAG) then
     return object:hasTag(POKEMON_MODEL_TAG)
+  elseif container:hasTag(APRICORN_TOKEN_TAG) and container:hasTag(JOURNEY_POINT_TOKEN_TAG) then
+    return object:hasTag(APRICORN_TOKEN_TAG) or object:hasTag(JOURNEY_POINT_TOKEN_TAG)
   end
   return true
 end
 
 function onObjectEnterContainer(container, object)
-  if container:getName() == POUCH_NAME then
-    player_events.on_enter_pouch(container)
+  if container:hasTag(APRICORN_TOKEN_TAG) and container:hasTag(JOURNEY_POINT_TOKEN_TAG) then
+    for _, bag_panel in pairs(getObjectsWithTag(BAG_PANEL_TAG)) do
+      bag_panel:call("update_panel")
+    end
   end
 end
 
 function onObjectLeaveContainer(container, object)
-  if container:getName() == POUCH_NAME then
-    player_events.on_leave_pouch(container)
+  if container:hasTag(APRICORN_TOKEN_TAG) and container:hasTag(JOURNEY_POINT_TOKEN_TAG) then
+    for _, bag_panel in pairs(getObjectsWithTag(BAG_PANEL_TAG)) do
+      bag_panel:call("update_panel")
+    end
   end
 end
 

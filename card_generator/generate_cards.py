@@ -115,7 +115,10 @@ def add_pokemon_art(img, stats):
     return img
 
 
-def add_bases(img):
+def add_bases(img, stats):
+    if pd.isnull(stats.trainer):
+        held_item_base_img = Image.open(ASSETS_DIR / 'held_item_base.png').convert('RGBA').resize(xy(3.5, 3.5))
+        img.paste(held_item_base_img, xy(1.75, 12.75), held_item_base_img)
     power_base_img = Image.open(ASSETS_DIR / 'power_base.png').convert('RGBA').resize(xy(3.5, 3.5))
     img.paste(power_base_img, xy(10.75, 12.75), power_base_img)
     ability_base_img = Image.open(ASSETS_DIR / 'ability_base.png').convert('RGBA').resize(xy(14.5, 7.5))
@@ -200,7 +203,7 @@ def run(overwrite=False):
 
         img = add_trainer(img, stats)
         img = add_pokemon_art(img, stats)
-        img = add_bases(img)
+        img = add_bases(img, stats)
         img = add_types_and_moves(img, stats)
         img = add_legendary_icon(img, stats)
         img = add_location(img, stats)
