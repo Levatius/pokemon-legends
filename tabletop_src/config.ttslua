@@ -40,7 +40,6 @@ EVOLUTION_CARD_TAG = "Evolution Card"
 LEGENDARY_CARD_TAG = "Legendary Encounter Card"
 PWO_CARD_TAG = "Perfect World Order Card"
 
-STATUS_TOKEN_TAG = "Status Token"
 POKEMON_CARD_TAG = "Pokemon Card"
 POKEMON_MODEL_TAG = "Pokemon Model"
 BATTLE_TOKEN_TAG = "Battle Token"
@@ -56,6 +55,7 @@ TRAINER_TOKEN_TAG = "Trainer Token"
 VILLAGE_TAG = "Village"
 MUSIC_EVENTS_TAG = "Music Events"
 STANCE_TOKEN_TAG = "Stance Token"
+AURA_POWER_TOKEN_TAG = "Aura Power Token"
 
 WILD_AREA_TAG = "Wild Area"
 BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean", "Ruins"}

@@ -25,7 +25,7 @@ end
 -- Scripting Zone Events
 function onObjectEnterScriptingZone(zone, object)
   if object:getGUID() == -1 then return end
-  if zone:getName() == "Active Zone" or zone:hasTag(STANCE_TOKEN_TAG) then
+  if zone:getName() == "Active Zone" or zone:hasTag(STANCE_TOKEN_TAG) or zone:hasTag(AURA_POWER_TOKEN_TAG) then
     update_panels(zone)
   elseif zone:hasTag(BATTLE_TOKEN_TAG) then
     battle_token_events.on_enter_zone(zone, object)
@@ -38,7 +38,7 @@ end
 
 function onObjectLeaveScriptingZone(zone, object)
   if object:getGUID() == -1 then return end
-  if zone:getName() == "Active Zone" or zone:hasTag(STANCE_TOKEN_TAG) then
+  if zone:getName() == "Active Zone" or zone:hasTag(STANCE_TOKEN_TAG) or zone:hasTag(AURA_POWER_TOKEN_TAG) then
     update_panels(zone)
   elseif zone:hasTag(BATTLE_TOKEN_TAG) then
     battle_token_events.on_leave_zone(zone, object)

@@ -15,6 +15,7 @@ DECK_OBJECT_TEMPLATE = ASSETS_DIR / 'deck_object_template.json'
 ART_FORM_URL = 'https://www.serebii.net/pokemon/art'
 
 ORIENTAL_160 = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=160)
+BARLOW_96 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=96)
 BARLOW_80 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=80)
 BARLOW_64 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=64)
 BARLOW_48 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=48)

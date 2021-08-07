@@ -2,13 +2,13 @@
 #include utils
 
 local selected_move_index
-local selected_tactics_index = 1
 local selected_switch_index
 
 local action_output_panel = getObjectFromGUID(action_output_panel_guid)
 local overview_panel = getObjectFromGUID(overview_panel_guid)
 local model_bag = getObjectFromGUID(model_bag_guid)
 local field_zone = getObjectFromGUID(field_zone_guid)
+local cry_player = getObjectFromGUID(CRY_PLAYER_GUID)
 
 function onLoad()
   button_params = {
@@ -24,16 +24,15 @@ function onLoad()
   for i = 0, 2 do
     button_params.click_function = "move_button_select_" .. i
     button_params.position       = {0, 0.1, -0.7 + i * 0.35}
-    button_params.tooltip        = "Select Attack"
+    button_params.tooltip        = "Select Move"
     self:createButton(button_params)
   end
   -- Switch Button
   button_params.click_function = "switch_button_toggle"
   button_params.position       = {0, 0.1, 0.65}
   button_params.color          = {100/255, 200/255, 250/255}
-  button_params.tooltip        = "Toggle Pokémon"
+  button_params.tooltip        = "Select Pokémon"
   self:createButton(button_params)
-
   update_panel()
 end
 
@@ -101,18 +100,16 @@ function get_effectiveness(move_type, our_types, their_types)
     return nil
   end
 
-  if not their_types then
-    return 0
-  end
-
   local effectiveness = 0
 
-  if contains(our_types, move_type) then
+  if our_types and contains(our_types, move_type) then
     effectiveness = effectiveness + 1
   end
 
-  for _, type in pairs(their_types) do
-    effectiveness = effectiveness + (TYPE_CHART[move_type][type] and TYPE_CHART[move_type][type] or 0)
+  if their_types then
+    for _, type in pairs(their_types) do
+      effectiveness = effectiveness + (TYPE_CHART[move_type][type] and TYPE_CHART[move_type][type] or 0)
+    end
   end
   return effectiveness
 end
@@ -143,9 +140,11 @@ function handle_models(our_pokemon)
   if our_pokemon and #models == 0 then
     local model_guid = find_model_guid(our_pokemon)
     if model_guid then
-      deploy_model(model_guid)
+      deploy_model(model_guid, our_pokemon)
     end
   elseif not our_pokemon and #models > 0 then
+    selected_move_index = nil
+    selected_switch_index = nil
     undeploy_models(models)
   end
 end
@@ -158,17 +157,25 @@ function find_model_guid(our_pokemon)
   end
 end
 
-function deploy_model(model_guid)
+function deploy_model(model_guid, our_pokemon)
   local model = model_bag:takeObject({
     position          = field_zone:getPosition(),
     rotation          = field_zone:getRotation(),
     guid              = model_guid,
-    callback_function = function(model) deploy_model_callback(model) end
+    callback_function = function(model) deploy_model_callback(model, our_pokemon) end
   })
   model.interactable = false
 end
 
-function deploy_model_callback(model)
+function deploy_model_callback(model, our_pokemon)
+  model.AssetBundle:playTriggerEffect(2)
+  --play_cry(our_pokemon)
+end
+
+function play_cry(our_pokemon)
+  local pokemon_name = our_pokemon:getVar("pokedex_name")
+  local audio_clip_name = string.gsub(string.lower(pokemon_name), "[%s+%.+%-+]", "") .. ".mp3"
+  cry_player:setValue(CRY_BASE_URL .. audio_clip_name)
 end
 
 function undeploy_models(models)

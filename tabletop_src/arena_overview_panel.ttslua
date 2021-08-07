@@ -3,6 +3,7 @@
 
 local power = 0
 local effectiveness = 0
+local aura_power = 0
 local selected_hide_state = -1
 local bonus_power = 0
 
@@ -39,6 +40,7 @@ function onLoad()
   button_params.click_function = "bonus_power_button"
   button_params.position = {0.5, 0.1, 0.625}
   button_params.font_size = 125
+  button_params.tooltip = "Bonus Power"
   self:createButton(button_params)
   set_hide_zones()
   update_panel()
@@ -86,13 +88,19 @@ function set_effectiveness(value)
   update_panel()
 end
 
+function set_aura_power(value)
+  aura_power = value
+  update_panel()
+end
+
 function get_stance_value()
+  local stance_value = 0
   for _, stance in pairs(stance_zone:getObjects()) do
     if not stance.is_face_down then
-      return stance:getVar("value")
+      stance_value = stance_value + stance:getVar("value")
     end
   end
-  return 0
+  return stance_value
 end
 
 --
@@ -105,7 +113,7 @@ function update_panel()
   local button_index = 0
   self:editButton({
     index = button_index,
-    label = tostring(power + (selected_hide_state == -1 and effectiveness or 0) + stance_value + bonus_power) .. "⚔️"
+    label = power + (selected_hide_state == -1 and effectiveness or 0) + stance_value + bonus_power + aura_power
   })
   -- Hide Button Toggle
   local button_index = 1

@@ -1,0 +1,39 @@
+#include config
+#include utils
+
+local aura_power_zone = getObjectFromGUID(aura_power_zone_guid)
+local overview_panel = getObjectFromGUID(overview_panel_guid)
+local aura_power_list = {4, 2, 1, 0, -1, -2, -4}
+
+function onLoad()
+  text_params = {
+    click_function = "dummy_button",
+    function_owner = self,
+    width          = 0,
+    height         = 0,
+    font_size      = 100,
+    font_color     = WHITE_COLOUR
+  }
+  -- Move Texts
+  for i = 0, 7 do
+    text_params.position = {0, 0.1, -0.75 + i * 0.25}
+    text_params.label = aura_power_list[i + 1]
+    self:createButton(text_params)
+  end
+  update_panel()
+end
+
+--
+--
+--
+
+function update_panel()
+  for _, aura_power_token in pairs(aura_power_zone:getObjects()) do
+    local z_offset = (aura_power_token:getPosition().z - aura_power_zone:getPosition().z) * math.cos(math.rad(aura_power_zone:getRotation().y))
+    local z_index = math.floor((z_offset / 0.6) + 0.5)
+    local index = 4 - z_index
+    aura_power_token:setColorTint({1, 1, 1, 0})
+    aura_power_token:setColorTint({(175 - z_index * 25)/255, 100/255, (175 + z_index * 25)/255})
+    Wait.frames(function() overview_panel:call("set_aura_power", aura_power_list[index]) end, 1)
+  end
+end

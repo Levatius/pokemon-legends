@@ -168,15 +168,15 @@ def add_text(img, stats):
     types = get_types(stats)
 
     d.text(
-        xy(0.75 + len(types) * 2.5, 1.75 - (0.5 if not pd.isnull(stats.description) else 0)),
+        xy(1 + len(types) * 2.5, 1.75 - (0.5 if not pd.isnull(stats.description) else 0)),
         stats.pokedex_name,
         fill=DARK_COLOUR,
-        font=BARLOW_80,
+        font=BARLOW_96 if pd.isnull(stats.description) else BARLOW_80,
         anchor='lm'
     )
     if not pd.isnull(stats.description):
         d.text(
-            xy(0.75 + len(types) * 2.5, 2.5),
+            xy(1 + len(types) * 2.5, 2.5),
             stats.description,
             fill=DARK_COLOUR,
             font=BARLOW_48,

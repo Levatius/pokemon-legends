@@ -40,7 +40,7 @@ function update_panel()
     local move_index = i + 1
     self:editButton({
       index = button_index,
-      label = effectiveness_list and signed_label(effectiveness_list[move_index]) or ""
+      label = effectiveness_list and effectiveness_list[move_index] or ""
     })
   end
 end
