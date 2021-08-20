@@ -71,44 +71,33 @@ POUCH_NAME = "Pouch"
 JOURNEY_POINT_TOKEN_NAME = "Journey Point"
 APRICORN_NAMES = {"Red", "Yellow", "Green", "Black", "Blue", "Pink", "White"}
 
-FOCUS_TOKEN_NAME = "Focused (+3 Attack)"
-BRACE_TOKEN_NAME = "Braced (+3 Defence)"
-FEAR_TOKEN_NAME = "Feared (-3 Attack)"
-WEAKEN_TOKEN_NAME = "Weakened (-3 Defence)"
-SHIELD_TOKEN_NAME = "Shielded"
+FOCUS_EFFECT = "Focus"
+WEAKEN_EFFECT = "Weaken"
+BRACE_EFFECT = "Brace"
+TRAP_EFFECT = "Trap"
+RESTORE_EFFECT = "Restore"
+SWITCH_EFFECT = "Switch"
 
-FOCUS_STATUS = "Focus"
-BRACE_STATUS = "Brace"
-FEAR_STATUS = "Fear"
-WEAKEN_STATUS = "Weaken"
-SHIELD_STATUS = "Shield"
-SWITCH_STATUS = "Switch"
-
-STATUS_NAMES = {
-  Normal = SHIELD_STATUS,
-  Fire = FEAR_STATUS,
-  Water = SWITCH_STATUS,
-  Electric = SWITCH_STATUS,
-  Grass = SHIELD_STATUS,
-  Ice = WEAKEN_STATUS,
-  Fighting = FOCUS_STATUS,
-  Poison = WEAKEN_STATUS,
-  Ground = BRACE_STATUS,
-  Flying = BRACE_STATUS,
-  Psychic = FOCUS_STATUS,
-  Bug = SWITCH_STATUS,
-  Rock = WEAKEN_STATUS,
-  Ghost = FEAR_STATUS,
-  Dragon = FOCUS_STATUS,
-  Dark = FEAR_STATUS,
-  Steel = BRACE_STATUS,
-  Fairy = SHIELD_STATUS
+CRAFTY_NAMES = {
+  Normal = RESTORE_EFFECT,
+  Fire = TRAP_EFFECT,
+  Water = SWITCH_EFFECT,
+  Electric = SWITCH_EFFECT,
+  Grass = RESTORE_EFFECT,
+  Ice = WEAKEN_EFFECT,
+  Fighting = FOCUS_EFFECT,
+  Poison = WEAKEN_EFFECT,
+  Ground = BRACE_EFFECT,
+  Flying = BRACE_EFFECT,
+  Psychic = FOCUS_EFFECT,
+  Bug = SWITCH_EFFECT,
+  Rock = WEAKEN_EFFECT,
+  Ghost = TRAP_EFFECT,
+  Dragon = FOCUS_EFFECT,
+  Dark = TRAP_EFFECT,
+  Steel = BRACE_EFFECT,
+  Fairy = RESTORE_EFFECT
 }
-
--- Tactics
-TACTICS_LABEL = {"Balanced", "Reckless", "Crafty"}
-TACTICS_COLOUR = {{100/255, 200/255, 100/255}, {250/255, 100/255, 100/255}, {100/255, 100/255, 250/255}}
-TACTICS_MODIFIERS = {0, 1, -3}
 
 -- Colours
 WHITE_COLOUR = {1, 1, 1}
@@ -137,15 +126,33 @@ TYPE_COLOURS = {
   Fairy = {236/255, 143/255, 230/255}
 }
 
+-- MOVE_NAMES = {
+--   Normal = {Recover, Body Slam, Double Edge},
+--   Fire = {Fire Spin, Flamethrower, Fire Blast},
+--   Water = {Flip Turn, Surf, Hydro Pump},
+--   Electric = {Volt Switch, Thunderbolt, Thunder},
+--   Grass = {Synthesis, Energy Ball, Leaf Storm},
+--   Ice = {Hail, Ice Beam, Blizzard},
+--   Fighting = {Bulk Up, Brick Break, Close Combat},
+--   Poison = {Toxic Spikes, Sludge Bomb, Gunk Shot},
+--   Ground = {Dig, Earthquake, Fissure},
+--   Flying = {Fly, Air Slash, Hurricane},
+--   Psychic = {Calm Mind, Psychic, Future Sight},
+--   Bug = {U-turn, Bug Buzz, Megahorn},
+--   Rock = {Stealth Rock, Rock Slide, Stone Edge},
+--   Ghost = {Spirit Shackle, Shadow Ball, Poltergeist},
+--   Dragon = {Dragon Dance, Dragon Claw, Outrage},
+--   Dark = {}
+-- }
+
 -- Thesholds
 OHKO_THRESHOLD = 7
 
 -- Modifiers
-STAB_BONUS = 1
-STATUS_MODIFIER = 3
+STAB_BONUS = 0
 WEAK = 2
 RESIST = -2
-IMMUNE = -6
+IMMUNE = -4
 
 -- Type Chart
 TYPE_CHART = {

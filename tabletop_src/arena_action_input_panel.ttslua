@@ -103,7 +103,7 @@ function get_effectiveness(move_type, our_types, their_types)
   local effectiveness = 0
 
   if our_types and contains(our_types, move_type) then
-    effectiveness = effectiveness + 1
+    effectiveness = effectiveness + STAB_BONUS
   end
 
   if their_types then

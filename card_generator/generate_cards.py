@@ -183,9 +183,9 @@ def add_text(img, stats):
             anchor='lm'
         )
     d.text(xy(12.5, 14.5), str(stats.power), fill=DARK_COLOUR, font=ORIENTAL_160, anchor='mm')
-    d.text(xy(8, 18), str(stats.ability_name), fill=DARK_COLOUR, font=BARLOW_80, anchor='mm')
-    ability = wrap_text(str(stats.ability_description), d, BARLOW_64, max_width=13.5)
-    d.multiline_text(xy(8, 21.5), ability, fill=DARK_COLOUR, font=BARLOW_64, anchor='mm', align='center')
+    d.text(xy(8, 18), str(stats.move_name), fill=DARK_COLOUR, font=BARLOW_80, anchor='mm')
+    ability = wrap_text(str(stats.move_description), d, BARLOW_64, max_width=13.5)
+    d.multiline_text(xy(8, 21), ability, fill=DARK_COLOUR, font=BARLOW_64, anchor='mm', align='center')
     return img
 
 
