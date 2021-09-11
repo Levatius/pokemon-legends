@@ -17,10 +17,6 @@ def read_cube(cube_name='sinnoh_cube', sheet_name='sinnoh'):
     return df
 
 
-def is_trainer_deck_boundary(previous_trainer, stats):
-    return pd.isnull(previous_trainer) and not pd.isnull(stats.trainer)
-
-
 def get_img(file_path, size):
     return Image.open(file_path).convert('RGBA').resize(size)
 

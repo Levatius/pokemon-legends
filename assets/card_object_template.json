@@ -23,7 +23,9 @@
       "BackURL": "",
       "NumWidth": 10,
       "NumHeight": 7,
-      "BackIsHidden": true
+      "BackIsHidden": true,
+      "UniqueBack": true,
+      "Type": 0
     }
   },
   "AttachedSnapPoints": [

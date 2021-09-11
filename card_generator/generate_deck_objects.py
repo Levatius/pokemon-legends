@@ -3,19 +3,17 @@ import json
 import pandas as pd
 
 from config import *
-from utils import read_cube, is_trainer_deck_boundary
+from utils import read_cube
+
+DECK_OBJECTS = '{j}_deck.json'
 
 
-def get_deck_json(j=0, is_trainer_deck=False):
+def get_deck_json(j=0):
     with open(DECK_OBJECT_TEMPLATE) as f:
         deck_json = json.load(f)
-    deck_json['ObjectStates'][0]['ColorDiffuse'] = {'r': 37 / 255, 'g': 37 / 255,
-                                                    'b': 50 / 255} if is_trainer_deck else {'r': 150 / 255,
-                                                                                            'g': 75 / 255,
-                                                                                            'b': 50 / 255}
-    deck_json['ObjectStates'][0]['CustomDeck']['1']['FaceURL'] = DECK_FACE_CLOUD_URLS[j]
-    deck_json['ObjectStates'][0]['CustomDeck']['1'][
-        'BackURL'] = PERFECT_WORLD_ORDER_CARD_BACK_CLOUD_URL if is_trainer_deck else STANDARD_CARD_BACK_CLOUD_URL
+    deck_json['ObjectStates'][0]['ColorDiffuse'] = {'r': 150 / 255, 'g': 75 / 255, 'b': 50 / 255}
+    deck_json['ObjectStates'][0]['CustomDeck']['1']['FaceURL'] = CARD_FRONTS_DECK_CLOUD_URLS[j]
+    deck_json['ObjectStates'][0]['CustomDeck']['1']['BackURL'] = CARD_BACKS_DECK_CLOUD_URLS[j]
     return deck_json
 
 
@@ -76,7 +74,7 @@ def get_lua_script(stats):
         'internal_name': f'"{stats.internal_name}"',
         'power': stats.power,
         'types': get_lua_table_from_fields((stats.type_1, stats.type_2)),
-        'moves': get_lua_table_from_fields((stats.move_1, stats.move_2, stats.move_3)),
+        'moves': get_lua_table_from_fields((stats.move_1, stats.move_2, stats.move_3, stats.move_4)),
         'evolve_into': get_lua_table_from_field(stats.evolve_into),
         'evolve_cost': int(stats.evolve_cost) if not pd.isnull(stats.evolve_into) else 'nil'
     }
@@ -93,8 +91,8 @@ def get_card_json(i, j, stats, is_evolution=False):
     card_json['Description'] = get_description(stats)
     card_json['Tags'] = get_tags(stats, is_evolution)
     card_json['LuaScript'] = get_lua_script(stats)
-    card_json['CustomDeck']['1']['FaceURL'] = DECK_FACE_CLOUD_URLS[j]
-    card_json['CustomDeck']['1']['BackURL'] = STANDARD_CARD_BACK_CLOUD_URL
+    card_json['CustomDeck']['1']['FaceURL'] = CARD_FRONTS_DECK_CLOUD_URLS[j]
+    card_json['CustomDeck']['1']['BackURL'] = CARD_BACKS_DECK_CLOUD_URLS[j]
 
     return card_json
 
@@ -105,29 +103,29 @@ def add_card_to_deck(deck_json, i, j, stats, is_evolution=False):
     deck_json['ObjectStates'][0]['ContainedObjects'].append(card_json)
 
 
-def get_deck_object_output_path(j=0):
-    return DECKS_OUTPUT_DIR / f'{j}_deck.json'
-
-
 def run():
     i, j = 0, 0
-    previous_trainer = None
 
     df = read_cube()
-    deck_json, output_path = get_deck_json(), get_deck_object_output_path()
+    deck_json = get_deck_json()
+    output_path = DECKS_OUTPUT_DIR / DECK_OBJECTS.format(j=j)
     for _, stats in df.iterrows():
-        if i == 70 or is_trainer_deck_boundary(previous_trainer, stats):
-            i = 0
-            j += 1
+        if i == 70:
             with open(output_path, 'w') as f:
                 json.dump(deck_json, f)
-            deck_json, output_path = get_deck_json(j, not pd.isnull(stats.trainer)), get_deck_object_output_path(j)
+            i = 0
+            j += 1
+            deck_json = get_deck_json(j)
+            output_path = DECKS_OUTPUT_DIR / DECK_OBJECTS.format(j=j)
 
         for k in range(stats.number_in_deck):
             add_card_to_deck(deck_json, i, j, stats, is_evolution=(k != 0))
 
         i += 1
-        previous_trainer = stats.trainer
     else:
         with open(output_path, 'w') as f:
             json.dump(deck_json, f)
+
+
+if __name__ == '__main__':
+    run()
