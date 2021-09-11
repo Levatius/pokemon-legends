@@ -6,8 +6,8 @@ local bag = getObjectFromGUID(bag_guid)
 function onLoad()
   button_params = {
     function_owner = self,
-    width          = 200,
-    height         = 200,
+    width          = 150,
+    height         = 150,
     color          = {0, 0, 0, 0}
   }
   text_params = {
@@ -15,7 +15,7 @@ function onLoad()
     function_owner = self,
     width          = 0,
     height         = 0,
-    font_size      = 125,
+    font_size      = 100,
     font_color     = WHITE_COLOUR
   }
   -- Resource Buttons
@@ -29,14 +29,14 @@ function onLoad()
   end
   for i = 0, 1 do
     local index_base = 8 * i
-    self.editButton({index=index_base + 0, position={-1.15, 0.2, -0.66}})
-    self.editButton({index=index_base + 1, position={-1.15, 0.2, -0.22}})
-    self.editButton({index=index_base + 2, position={-1.15, 0.2, 0.22}})
-    self.editButton({index=index_base + 3, position={-1.15, 0.2, 0.66}})
-    self.editButton({index=index_base + 4, position={-0.72, 0.2, -0.66}})
-    self.editButton({index=index_base + 5, position={-0.72, 0.2, -0.22}})
-    self.editButton({index=index_base + 6, position={-0.72, 0.2, 0.22}})
-    self.editButton({index=index_base + 7, position={-0.72, 0.2, 0.66}})
+    self.editButton({index=index_base + 0, position={-0.42, 0.2, 0.47}})
+    self.editButton({index=index_base + 1, position={-0.14, 0.2, 0.47}})
+    self.editButton({index=index_base + 2, position={0.14, 0.2, 0.47}})
+    self.editButton({index=index_base + 3, position={0.42, 0.2, 0.47}})
+    self.editButton({index=index_base + 4, position={-0.42, 0.2, 0.75}})
+    self.editButton({index=index_base + 5, position={-0.14, 0.2, 0.75}})
+    self.editButton({index=index_base + 6, position={0.14, 0.2, 0.75}})
+    self.editButton({index=index_base + 7, position={0.42, 0.2, 0.75}})
   end
 
   update_panel()

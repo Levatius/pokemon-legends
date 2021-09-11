@@ -2,11 +2,7 @@ PLAYER_COLOURS = {"Yellow", "Pink", "Orange", "Blue", "Purple", "White", "Green"
 
 
 -- GUIDs
-ARENA_ACTIVE_ZONE_GUIDS = {"494620", "6b0103"}
-ARENA_FIELD_ZONE_GUIDS = {"537c1f", "dbba88"}
-ARENA_CONTROL_PANEL_GUIDS = {"af4498", "2584e8"}
-ARENA_BATTLE_TOKEN_GUIDS = {"12b4a8", "36e811"}
-APRICORN_BAG_GUIDS = {"c2d9cc", "926a58", "43f641", "1d667c", "5ae126", "c7bdb9", "76d021"}
+APRICORN_BAG_GUIDS = {"c2d9cc", "5ae126", "926a58", "c7bdb9", "43f641", "76d021", "1d667c"}
 JOURNEY_POINT_BAG_GUID = "611d38"
 PLAYER_CONTROL_PANEL_GUIDS = {
   Yellow = "16db4b",
@@ -39,6 +35,7 @@ ENCOUNTER_SORT_ZONE_GUID = "d216bb"
 EVOLUTION_CARD_TAG = "Evolution Card"
 LEGENDARY_CARD_TAG = "Legendary Encounter Card"
 PWO_CARD_TAG = "Perfect World Order Card"
+DICE_TAG = "Dice"
 
 POKEMON_CARD_TAG = "Pokemon Card"
 POKEMON_MODEL_TAG = "Pokemon Model"
@@ -58,18 +55,15 @@ STANCE_TOKEN_TAG = "Stance Token"
 AURA_POWER_TOKEN_TAG = "Aura Power Token"
 
 WILD_AREA_TAG = "Wild Area"
-BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean", "Ruins"}
 CLIMATE_TAGS = {"Cold", "Temperate", "Warm"}
-TIER_TAGS = {"Tier Low", "Tier Medium", "Tier High", "Tier Uber"}
-DANGER_TAG = "Danger"
-HALF_PARTY_TAG = "Half Party"
-FULL_PARTY_TAG = "Full Party"
+BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean"}
+ENCOUNTER_TAGS = {"Weak", "Moderate", "Strong", "Legendary"}
 BAG_PANEL_TAG = "Bag Panel"
 
 -- Names
 POUCH_NAME = "Pouch"
 JOURNEY_POINT_TOKEN_NAME = "Journey Point"
-APRICORN_NAMES = {"Red", "Yellow", "Green", "Black", "Blue", "Pink", "White"}
+APRICORN_NAMES = {"Red", "Blue", "Yellow", "Pink", "Green", "White", "Black"}
 
 FOCUS_EFFECT = "Focus"
 WEAKEN_EFFECT = "Weaken"
@@ -105,6 +99,7 @@ LIGHT_BACKING_COLOUR = {225/255, 220/255, 215/255}
 GREY_COLOUR = {200/255, 195/255, 190/255}
 DARK_COLOUR = {37/255, 37/255, 50/255}
 WOOD_COLOUR = {150/255, 75/255, 50/255}
+LIGHT_WOOD_COLOUR = {200/255, 125/255, 100/255}
 TYPE_COLOURS = {
   Normal = {144/255, 153/255, 161/255},
   Fire = {255/255, 156/255, 84/255},
@@ -125,25 +120,6 @@ TYPE_COLOURS = {
   Steel = {90/255, 142/255, 161/255},
   Fairy = {236/255, 143/255, 230/255}
 }
-
--- MOVE_NAMES = {
---   Normal = {Recover, Body Slam, Double Edge},
---   Fire = {Fire Spin, Flamethrower, Fire Blast},
---   Water = {Flip Turn, Surf, Hydro Pump},
---   Electric = {Volt Switch, Thunderbolt, Thunder},
---   Grass = {Synthesis, Energy Ball, Leaf Storm},
---   Ice = {Hail, Ice Beam, Blizzard},
---   Fighting = {Bulk Up, Brick Break, Close Combat},
---   Poison = {Toxic Spikes, Sludge Bomb, Gunk Shot},
---   Ground = {Dig, Earthquake, Fissure},
---   Flying = {Fly, Air Slash, Hurricane},
---   Psychic = {Calm Mind, Psychic, Future Sight},
---   Bug = {U-turn, Bug Buzz, Megahorn},
---   Rock = {Stealth Rock, Rock Slide, Stone Edge},
---   Ghost = {Spirit Shackle, Shadow Ball, Poltergeist},
---   Dragon = {Dragon Dance, Dragon Claw, Outrage},
---   Dark = {}
--- }
 
 -- Thesholds
 OHKO_THRESHOLD = 7

@@ -10,38 +10,76 @@
 function onload()
   print("Root Loaded")
   math.randomseed(os.time())
-  for _, object in pairs(getObjectsWithTag(POKEMON_CARD_TAG)) do
-    if object.type == "Card" then
-      object:registerCollisions()
-    end
-  end
+
+  local cry_player = getObjectFromGUID(CRY_PLAYER_GUID)
+  cry_player:setValue(CRY_BASE_URL)
+
+  init_models()
+end
+
+--
+--
+--
+
+-- Model Handling
+function init_models()
+  -- Do not allow players to mess with any models
   for _, object in pairs(getObjectsWithTag(POKEMON_MODEL_TAG)) do
     object.interactable = false
   end
-  local cry_player = getObjectFromGUID(CRY_PLAYER_GUID)
-  cry_player:setValue(CRY_BASE_URL)
+  deduplicate_models()
 end
 
--- Scripting Zone Events
-function onObjectEnterScriptingZone(zone, object)
-  if object:getGUID() == -1 then return end
-  if zone:getName() == "Active Zone" or zone:hasTag(STANCE_TOKEN_TAG) or zone:hasTag(AURA_POWER_TOKEN_TAG) then
-    update_panels(zone)
-  elseif zone:hasTag(BATTLE_TOKEN_TAG) then
-    battle_token_events.on_enter_zone(zone, object)
-  elseif zone:hasTag(MUSIC_CARTRIDGE_TAG) then
-    music_events.on_enter_music_cartridge_zone(zone, object)
-  elseif zone:getGUID() == ENCOUNTER_SORT_ZONE_GUID then
-    pokemon_collection.on_enter_sort_zone(zone, object)
+function deduplicate_models()
+  -- This method should not be necessary, but good to have just in case
+  for _, object in pairs(getObjectsWithTag(POKEMON_MODEL_TAG)) do
+    if object.type == "Bag" then
+      local models_in_bag = {}
+      for _, model in pairs(object:getObjects()) do
+        if not models_in_bag[model.name] then
+          models_in_bag[model.name] = 1
+        else
+          models_in_bag[model.name] = models_in_bag[model.name] + 1
+          local model = object:takeObject({guid=model.guid})
+          model:destroyObject()
+        end
+      end
+    end
   end
 end
 
-function onObjectLeaveScriptingZone(zone, object)
+--
+--
+--
+
+function onObjectEnterZone(zone, object)
   if object:getGUID() == -1 then return end
-  if zone:getName() == "Active Zone" or zone:hasTag(STANCE_TOKEN_TAG) or zone:hasTag(AURA_POWER_TOKEN_TAG) then
-    update_panels(zone)
-  elseif zone:hasTag(BATTLE_TOKEN_TAG) then
-    battle_token_events.on_leave_zone(zone, object)
+  -- Scripting Zones
+  if zone.type == "Scripting" then
+    if zone:getName() == "Active Zone" or zone:getName() == "Search Preevolution Zone" then
+      update_panels(zone)
+    elseif zone:hasTag(MUSIC_CARTRIDGE_TAG) then
+      music_events.on_enter_music_cartridge_zone(zone, object)
+    end
+  -- Layout Zones
+  elseif zone.type == "Layout" then
+    if zone:getName() == "Search Layout Zone" then
+      update_panels(zone)
+    end
+  end
+end
+
+function onObjectLeaveZone(zone, object)
+  if object:getGUID() == -1 then return end
+  if zone.type == "Scripting" then
+    if zone:getName() == "Active Zone" or zone:getName() == "Search Preevolution Zone" then
+      update_panels(zone)
+    end
+  -- Layout Zones
+  elseif zone.type == "Layout" then
+    if zone:getName() == "Search Layout Zone" then
+      update_panels(zone)
+    end
   end
 end
 
@@ -68,12 +106,6 @@ function onObjectLeaveContainer(container, object)
     for _, bag_panel in pairs(getObjectsWithTag(BAG_PANEL_TAG)) do
       bag_panel:call("update_panel")
     end
-  end
-end
-
-function onObjectEnterZone(zone, object)
-  if zone:hasTag(POKEMON_CARD_TAG) and object:hasTag(POKEMON_CARD_TAG) and object.type == "Card" and not object.is_face_down then
-    object:registerCollisions()
   end
 end
 

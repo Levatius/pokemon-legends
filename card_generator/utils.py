@@ -1,4 +1,5 @@
 import pandas as pd
+from PIL import Image
 
 from config import *
 
@@ -18,3 +19,17 @@ def read_cube(cube_name='sinnoh_cube', sheet_name='sinnoh'):
 
 def is_trainer_deck_boundary(previous_trainer, stats):
     return pd.isnull(previous_trainer) and not pd.isnull(stats.trainer)
+
+
+def get_img(file_path, size):
+    return Image.open(file_path).convert('RGBA').resize(size)
+
+
+def wrap_text(text, draw, font, max_width):
+    text_list = text.split(' ')
+    multiline_text_list = []
+    for text in text_list:
+        if not multiline_text_list or draw.textsize(f'{multiline_text_list[-1]} {text}', font)[0] >= 64 * max_width:
+            multiline_text_list.append('')
+        multiline_text_list[-1] += text + ' '
+    return '\n'.join(multiline_text_list)

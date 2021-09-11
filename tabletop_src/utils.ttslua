@@ -1,5 +1,13 @@
 function dummy_button() end
 
+function len(t)
+  l = 0
+  for _, _ in pairs(t) do
+    l = l + 1
+  end
+  return l
+end
+
 function find_first_index(t, value)
   for i, value_ in pairs(t) do
     if value_ == value then
@@ -130,9 +138,9 @@ function get_climate_tag(tags)
   end
 end
 
-function get_tier_tag(tags)
+function get_encounter_tag(tags)
   for _, tag in pairs(tags) do
-    if contains(TIER_TAGS, tag) then
+    if contains(ENCOUNTER_TAGS, tag) then
       return tag
     end
   end
@@ -177,6 +185,19 @@ function update_panels(zone)
   for _, update_panel_guid in pairs(zone:getVar("update_panel_guids")) do
     local update_panel = getObjectFromGUID(update_panel_guid)
     -- ERROR HERE ON EXIT, GUID -1
+    update_panel:call("reset_panel")
     update_panel:call("update_panel")
   end
+end
+
+function get_next_state(current_state, total_states, alt_click)
+  if not current_state then
+    return 1
+  end
+  local state_step = not alt_click and 1 or -1
+  return ((current_state - 1 + state_step) % total_states) + 1
+end
+
+function round(value)
+  return math.floor(value + 0.5)
 end

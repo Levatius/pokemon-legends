@@ -40,7 +40,7 @@ def get_card_type(stats, is_evolution):
         elif stats.power >= 1:
             return 'Weak Encounter Card'
     else:
-        return 'Perfect World Order Card'
+        return 'Galactic Trainer Card'
 
 
 def get_tags(stats, is_evolution=False):
@@ -78,7 +78,6 @@ def get_lua_script(stats):
         'types': get_lua_table_from_fields((stats.type_1, stats.type_2)),
         'moves': get_lua_table_from_fields((stats.move_1, stats.move_2, stats.move_3)),
         'evolve_into': get_lua_table_from_field(stats.evolve_into),
-        'evolve_apricorn': get_lua_table_from_field(stats.evolve_apricorn),
         'evolve_cost': int(stats.evolve_cost) if not pd.isnull(stats.evolve_into) else 'nil'
     }
     lua_script_lines = [f'{variable} = {value}' for variable, value in local_variables.items()]
@@ -107,7 +106,7 @@ def add_card_to_deck(deck_json, i, j, stats, is_evolution=False):
 
 
 def get_deck_object_output_path(j=0):
-    return CARD_DECKS_OUTPUT_DIR / f'{j}_deck.json'
+    return DECKS_OUTPUT_DIR / f'{j}_deck.json'
 
 
 def run():

@@ -1,0 +1,26 @@
+#include config
+#include utils
+
+local power_panel_1 = getObjectFromGUID(power_panel_1_guid)
+local power_panel_2 = getObjectFromGUID(power_panel_2_guid)
+
+function onLoad()
+  update_indicator()
+end
+
+function update_indicator()
+  local power_panel_1_power = power_panel_1:call("get_power")
+  local power_panel_2_power = power_panel_2:call("get_power")
+
+  if not power_panel_1_power or not power_panel_2_power then
+    return
+  end
+
+  if power_panel_1_power > power_panel_2_power then
+    self:setRotationSmooth(Vector(0, 0, 0))
+  elseif power_panel_2_power > power_panel_1_power then
+    self:setRotationSmooth(Vector(0, 180, 0))
+  else
+    self:setRotationSmooth(Vector(0, 270, 0))
+  end
+end

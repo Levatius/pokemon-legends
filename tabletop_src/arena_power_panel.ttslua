@@ -1,0 +1,164 @@
+#include config
+#include utils
+
+local active_zone = getObjectFromGUID(active_zone_guid)
+local field_zone = getObjectFromGUID(field_zone_guid)
+local model_bag = getObjectFromGUID(model_bag_guid)
+local turn_indicator = getObjectFromGUID(turn_indicator_guid)
+
+local power
+
+function onLoad()
+  text_params = {
+    click_function = "dummy_button",
+    function_owner = self,
+    width          = 0,
+    height         = 0,
+    font_size      = 400,
+    font_color     = WHITE_COLOUR
+  }
+  button_params = {
+    function_owner = self,
+    width          = 170,
+    height         = 170,
+    font_size      = 150,
+    color          = WOOD_COLOUR,
+    font_color     = WHITE_COLOUR,
+    hover_color    = LIGHT_WOOD_COLOUR,
+    press_color    = LIGHT_WOOD_COLOUR
+  }
+  -- Power Text
+  text_params.position = {0, 0.1, -0.1}
+  self:createButton(text_params)
+  -- Decrease Power Button
+  button_params.click_function = "decrease_power_button"
+  button_params.position = {-0.35, 0.1, 0.75}
+  button_params.label = "-"
+  button_params.tooltip = "Decrease Power"
+  self:createButton(button_params)
+  -- Reset Power Button
+  button_params.click_function = "reset_power_button"
+  button_params.position = {0, 0.1, 0.75}
+  button_params.label = "="
+  button_params.tooltip = "Reset Power"
+  self:createButton(button_params)
+  -- Increase Power Button
+  button_params.click_function = "increase_power_button"
+  button_params.position = {0.35, 0.1, 0.75}
+  button_params.label = "+"
+  button_params.tooltip = "Increase Power"
+  self:createButton(button_params)
+  reset_panel()
+  update_panel()
+end
+
+--
+--
+--
+
+function decrease_power_button()
+  power = power - 1
+  update_panel()
+end
+
+function reset_power_button()
+  local active_pokemon = get_active_pokemon()
+  power = update_power(active_pokemon)
+  update_panel()
+end
+
+function increase_power_button()
+  power = power + 1
+  update_panel()
+end
+
+--
+--
+--
+
+function get_active_pokemon()
+  for _, object in pairs(active_zone:getObjects()) do
+    if object.type == "Card" then return object end
+  end
+end
+
+function update_power(pokemon)
+  if not pokemon then
+    return 0
+  end
+  return pokemon:getVar("power")
+end
+
+function get_power()
+  return power
+end
+
+--
+--
+--
+
+function handle_models(pokemon)
+  local models = field_zone:getObjects()
+  if pokemon and #models == 0 then
+    local model_guid = find_model_guid(pokemon)
+    if model_guid then
+      deploy_model(model_guid, pokemon)
+    end
+  elseif not pokemon and #models > 0 then
+    undeploy_models(models)
+  end
+end
+
+function find_model_guid(pokemon)
+  for _, contained_object in pairs(model_bag:getObjects()) do
+    if contained_object.name == pokemon:getVar("internal_name") then
+      return contained_object.guid
+    end
+  end
+end
+
+function deploy_model(model_guid, pokemon)
+  local model = model_bag:takeObject({
+    position          = field_zone:getPosition(),
+    rotation          = field_zone:getRotation(),
+    guid              = model_guid,
+    callback_function = function(model) deploy_model_callback(model, pokemon) end
+  })
+  model.interactable = false
+end
+
+function deploy_model_callback(model, pokemon)
+  model.AssetBundle:playTriggerEffect(2)
+  --play_cry(pokemon)
+end
+
+function play_cry(pokemon)
+  local pokemon_name = pokemon:getVar("pokedex_name")
+  local audio_clip_name = string.gsub(string.lower(pokemon_name), "[%s+%.+%-+]", "") .. ".mp3"
+  cry_player:setValue(CRY_BASE_URL .. audio_clip_name)
+end
+
+function undeploy_models(models)
+  for _, model in pairs(models) do
+    if not model:isDestroyed() then
+      model_bag:putObject(model)
+    end
+  end
+end
+
+--
+--
+--
+
+function update_panel()
+  self:editButton({index=0, label=power})
+
+  local active_pokemon = get_active_pokemon()
+  handle_models(active_pokemon)
+
+  turn_indicator:call("update_indicator")
+end
+
+function reset_panel()
+  reset_power_button()
+end

@@ -1,0 +1,274 @@
+#include config
+#include utils
+
+local standard_zone = getObjectFromGUID(standard_zone_guid)
+local legendary_zone = getObjectFromGUID(legendary_zone_guid)
+local evolution_zone = getObjectFromGUID(evolution_zone_guid)
+local preevolution_zone = getObjectFromGUID(preevolution_zone_guid)
+local layout_zone = getObjectFromGUID(layout_zone_guid)
+
+local param_button_states = {climate = 1, biome = 1, encounter = 1}
+local param_button_tags = {
+  climate   = CLIMATE_TAGS,
+  biome     = BIOME_TAGS,
+  encounter = ENCOUNTER_TAGS
+}
+local param_button_colours = {
+  climate   = {{200/255, 200/255, 250/255}, {150/255, 200/255, 250/255}, {250/255, 200/255, 125/255}},
+  biome     = {{100/255, 150/255, 100/255}, {50/255, 100/255, 50/255}, {150/255, 125/255, 100/255}, {100/255, 175/255, 200/255}},
+  encounter = {{100/255, 200/255, 100/255}, {100/255, 150/255, 250/255}, {250/255, 100/255, 100/255}, {250/255, 200/255, 100/255}}
+}
+local return_coroutine_running = false
+local auto_search = false
+
+function onLoad()
+  button_params = {
+    function_owner = self,
+    width          = 450,
+    height         = 150,
+    font_size      = 75,
+    color          = WOOD_COLOUR,
+    font_color     = WHITE_COLOUR,
+    hover_color    = LIGHT_WOOD_COLOUR,
+    press_color    = LIGHT_WOOD_COLOUR
+  }
+  -- Param Buttons
+  local i = 0
+  for type, state in pairs(param_button_states) do
+    button_params.click_function = "param_button_toggle_" .. type
+    button_params.position = {-0.4, 0.1, -0.75 + 0.35 * i}
+    self:createButton(button_params)
+    i = i + 1
+  end
+  -- Auto Button
+  button_params.click_function = "auto_button"
+  button_params.width = 350
+  button_params.position = {-0.4, 0.1, 0.3}
+  self:createButton(button_params)
+  -- Search Button
+  button_params.click_function = "search_button"
+  button_params.width = 450
+  button_params.height = 200
+  button_params.position = {-0.4, 0.1, 0.7}
+  self:createButton(button_params)
+  update_panel()
+end
+
+--
+--
+--
+
+function param_button_toggle_climate  (_, _, alt_click) param_button_toggle("climate",   alt_click) end
+function param_button_toggle_biome    (_, _, alt_click) param_button_toggle("biome",     alt_click) end
+function param_button_toggle_encounter(_, _, alt_click) param_button_toggle("encounter", alt_click) end
+function param_button_toggle_count    (_, _, alt_click) param_button_toggle("count",     alt_click) end
+function param_button_toggle(type, alt_click)
+  if pokemon_in_preevolution_zone() or auto_search then return end
+  param_button_states[type] = get_next_state(param_button_states[type], len(param_button_tags[type]), alt_click)
+  update_panel()
+end
+
+function auto_button()
+  auto_search = not auto_search
+  update_panel()
+end
+
+function pokemon_in_layout_zone()
+  return len(layout_zone:getObjects()) > 0
+end
+
+function pokemon_in_preevolution_zone()
+  return len(preevolution_zone:getObjects()) > 0
+end
+
+function search_button(_, player_colour)
+  if pokemon_in_layout_zone() then
+    return_cards()
+  elseif pokemon_in_preevolution_zone() then
+    search_for_evolution()
+  else
+    climate, biome, encounter = get_search_params(player_colour)
+    search_for_encounter(climate, biome, encounter)
+  end
+  update_panel()
+end
+
+--
+--
+--
+
+function get_zone_from_tags(tags)
+  if contains(tags, EVOLUTION_CARD_TAG) then
+    return evolution_zone
+  elseif contains(tags, LEGENDARY_CARD_TAG) then
+    return legendary_zone
+  else
+    return standard_zone
+  end
+end
+
+function return_cards()
+  function return_coroutine()
+    return_coroutine_running = true
+    local infos = get_object_infos_from_zone_deck(layout_zone)
+
+    for _, info in reversedipairs(infos) do
+      local tags = info.tags
+      local guid = info.guid
+      local zone = get_zone_from_tags(tags)
+
+      if zone ~= standard_zone then
+        take_object_from_zone_deck(layout_zone, {
+          position = zone:getPosition() + Vector(0, 5, 0),
+          rotation = zone:getRotation(),
+          guid     = guid
+        })
+      else
+        local biome_tag = get_biome_tag(tags)
+        local climate_tag = get_climate_tag(tags)
+        local x_offset = 2.9 * (find_first_index(BIOME_TAGS, biome_tag) - 2.5)
+        local z_offset = -4.8 * (find_first_index(CLIMATE_TAGS, climate_tag) - 2)
+        take_object_from_zone_deck(layout_zone, {
+          position = zone:getPosition() + Vector(x_offset, 5, z_offset),
+          rotation = zone:getRotation(),
+          guid     = guid
+        })
+      end
+      brief_pause()
+    end
+    return_coroutine_running = false
+    return 1
+  end
+  if not return_coroutine_running then
+    startLuaCoroutine(self, "return_coroutine")
+  else
+    print("Return cards method currently running (if it is not, reloading the game should fix it).")
+  end
+end
+
+function get_preevolution()
+  for _, preevolution in pairs(preevolution_zone:getObjects()) do
+    if preevolution.type == "Card" then
+      return preevolution
+    end
+  end
+end
+
+function get_evolution_guid(evolution_name)
+  local infos = get_object_infos_from_zone_deck(evolution_zone)
+  for _, info in pairs(infos) do
+    if info.name == evolution_name then
+      return info.guid
+    end
+  end
+  print('Evolution "' ..evolution_name.. '" not found in the evolution deck.')
+end
+
+function search_for_evolution()
+  local preevolution = get_preevolution()
+  local evolution_names = preevolution:getVar("evolve_into")
+  if not evolution_names then
+    print("This Pokémon does not evolve.")
+    return
+  end
+
+  for _, evolution_name in pairs(evolution_names) do
+    local evolution_guid = get_evolution_guid(evolution_name)
+    take_object_from_zone_deck(evolution_zone, {
+      position = layout_zone:getPosition() + Vector(0, 5, 0),
+      rotation = layout_zone:getRotation() + Vector(0, 180, 0),
+      guid     = evolution_guid,
+      smooth   = false
+    })
+  end
+  Wait.frames(function() layout_zone.LayoutZone:layout() end, 100)
+end
+
+function get_param_button_tag(type)
+  local state = param_button_states[type]
+  return param_button_tags[type][state]
+end
+
+function get_search_params(player_colour)
+  if auto_search then
+    local trainer_token_guid = PLAYER_TRAINER_TOKEN_GUIDS[player_colour]
+    local trainer_token = getObjectFromGUID(trainer_token_guid)
+    if not trainer_token then
+      print('Could not find trainer token for player colour "' .. player_colour .. '".')
+      return
+    end
+    local hit_list = Physics:cast({
+      origin       = trainer_token:getPosition(),
+      direction    = {0, -1, 0},
+      type         = 2,
+      size         = {1.5, 1.5, 1.5},
+      max_distance = 1,
+      debug = true
+    })
+    for _, hit_info in pairs(hit_list) do
+      local hit_object = hit_info.hit_object
+      if hit_object:hasTag(ENCOUNTER_TOKEN_TAG) then
+        local encounter_token_tags = hit_object:getTags()
+        return get_climate_tag(encounter_token_tags), get_biome_tag(encounter_token_tags), get_encounter_tag(encounter_token_tags)
+      end
+    end
+    print("No wild encounter found near " .. trainer_token:getName() .. ".")
+    return
+  end
+  return get_param_button_tag("climate"), get_param_button_tag("biome"), get_param_button_tag("encounter")
+end
+
+function get_encounter_guid(zone, climate, biome, encounter)
+  local infos = get_object_infos_from_zone_deck(zone)
+  for _, info in pairs(infos) do
+    if contains(info.tags, climate) and contains(info.tags, biome) and contains(info.tags, encounter .. " Encounter Card") then
+      return info.guid
+    end
+  end
+end
+
+function search_for_encounter(climate, biome, encounter)
+  for i = 1, 3 do
+    local zone = standard_zone
+    if encounter == "Legendary" then
+      zone = legendary_zone
+    end
+    local encounter_guid = get_encounter_guid(zone, climate, biome, encounter)
+    take_object_from_zone_deck(zone, {
+      position = layout_zone:getPosition() + Vector(0, 5, 0),
+      rotation = layout_zone:getRotation() + Vector(0, 180, 0),
+      guid     = encounter_guid,
+      smooth   = false
+    })
+  end
+  Wait.frames(function() layout_zone.LayoutZone:layout() end, 100)
+end
+
+--
+--
+--
+
+function reset_panel()
+end
+
+function update_panel()
+  local i = 0
+  for type, state in pairs(param_button_states) do
+    local param_button_tag = param_button_tags[type][state]
+    local param_button_colour = (pokemon_in_preevolution_zone() or auto_search) and {200/255, 200/255, 200/255} or param_button_colours[type][state]
+    self:editButton({index=i, label=param_button_tag, color=param_button_colour})
+    i = i + 1
+  end
+
+  local auto_button_label = auto_search and "Auto On" or "Auto Off"
+  local auto_button_colour = auto_search and {100/255, 200/255, 100/255} or {200/255, 195/255, 190/255}
+  self:editButton({index=3, label=auto_button_label, color=auto_button_colour})
+
+  local search_button_label = "Search"
+  local search_button_colour = {100/255, 100/255, 250/255}
+  if pokemon_in_layout_zone() then
+    search_button_label = "Return"
+    search_button_colour = {250/255, 100/255, 100/255}
+  end
+  self:editButton({index=4, label=search_button_label, color=search_button_colour})
+end

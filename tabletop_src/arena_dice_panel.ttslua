@@ -1,0 +1,171 @@
+#include config
+#include utils
+
+local active_zone = getObjectFromGUID(active_zone_guid)
+local field_zone = getObjectFromGUID(field_zone_guid)
+local dice_bag = getObjectFromGUID(dice_bag_guid)
+
+local dice_button_state
+local type_button_state
+local type_name
+
+function onLoad()
+  button_params = {
+    function_owner = self,
+    color          = WOOD_COLOUR,
+    font_color     = WHITE_COLOUR,
+    hover_color    = LIGHT_WOOD_COLOUR,
+    press_color    = LIGHT_WOOD_COLOUR
+  }
+  -- Roll Button
+  button_params.click_function = "roll_button"
+  button_params.width = 850
+  button_params.height = 450
+  button_params.position = {0, 0.1, -0.4}
+  button_params.font_size = 200
+  button_params.label = "Roll"
+  self:createButton(button_params)
+  -- Dice Button
+  button_params.click_function = "dice_button_toggle"
+  button_params.width = 425
+  button_params.height = 300
+  button_params.position = {-0.45, 0.1, 0.55}
+  button_params.font_size = 100
+  self:createButton(button_params)
+  -- Type Button
+  button_params.click_function = "type_button_toggle"
+  button_params.width = 425
+  button_params.height = 300
+  button_params.position = {0.45, 0.1, 0.55}
+  button_params.font_size = 100
+  self:createButton(button_params)
+  reset_panel()
+  update_panel()
+end
+
+--
+--
+--
+
+function clean_up_dice()
+  local dice_list = getObjectsWithTag(DICE_TAG)
+  for _, dice in pairs(dice_list) do
+    dice:destroyObject()
+  end
+end
+
+function animate_model()
+  local models = field_zone:getObjects()
+  for _, model in pairs(models) do
+    model.AssetBundle:playTriggerEffect(1)
+  end
+end
+
+function roll_button()
+  clean_up_dice()
+  local direction = math.cos(math.rad(field_zone:getRotation().y))
+  local z_offset = direction * 1
+  local x_offset = -direction * (dice_button_state - 1) / 2
+  animate_model()
+  for _ = 1, dice_button_state do
+    local spawned_dice = dice_bag:takeObject({
+      position = field_zone:getPosition() + Vector(x_offset, 0.1, z_offset),
+      rotation = Vector(math.random(1, 4) * 90, math.random(1, 4) * 90, math.random(1, 4) * 90),
+      smooth   = false,
+      callback_function = function(dice) Wait.frames(function() if not dice:isDestroyed() then roll_callback(dice, direction) end end, 50) end
+    })
+    if type_name then
+      spawned_dice:setColorTint(TYPE_COLOURS[type_name])
+      spawned_dice:highlightOn(TYPE_COLOURS[type_name])
+    end
+    x_offset = x_offset + direction * 1
+  end
+end
+
+function roll_callback(dice, direction)
+  dice:addForce(Vector(0, 0, direction * 20))
+  dice:addTorque(Vector(math.random() * 5000, math.random() * 5000, math.random() * 5000))
+  Wait.frames(function() if not dice:isDestroyed() then adjust_dice(dice) end end, 300)
+end
+
+function adjust_dice(dice)
+  local rotation = dice:getRotation()
+  dice:setRotationSmooth(Vector(round(rotation.x / 90) * 90, rotation.y, round(rotation.z / 90) * 90))
+end
+
+--
+--
+--
+
+function dice_button_toggle(_, _, alt_click)
+  local state_step = not alt_click and 1 or -1
+  if dice_button_state + state_step > 9 or dice_button_state + state_step < 1 then
+    return
+  end
+  dice_button_state = dice_button_state + state_step
+  update_panel()
+end
+
+--
+--
+--
+
+function get_next_type_button_state(alt_click)
+  local active_pokemon = get_active_pokemon()
+
+  local move_types = get_move_types(active_pokemon)
+  if not move_types then
+    return nil
+  end
+  return get_next_state(type_button_state, #move_types, alt_click)
+end
+
+function type_button_toggle(_, _, alt_click)
+  type_button_state = get_next_type_button_state(alt_click)
+  update_panel()
+end
+
+--
+--
+--
+
+function get_active_pokemon()
+  for _, object in pairs(active_zone:getObjects()) do
+    if object.type == "Card" then return object end
+  end
+end
+
+function get_move_types(pokemon)
+  if not pokemon then
+    return {}
+  end
+  return pokemon:getVar("moves")
+end
+
+--
+--
+--
+
+function update_panel()
+  local active_pokemon = get_active_pokemon()
+  local move_types = get_move_types(active_pokemon)
+  if not type_button_state and move_types then
+    type_button_state = 1
+  end
+  type_name = move_types[type_button_state]
+  self:editButton({
+    index = 1,
+    label = dice_button_state .. " Dice"
+  })
+  self:editButton({
+    index = 2,
+    label = type_name and type_name or "No Type",
+    color = type_name and TYPE_COLOURS[type_name] or WOOD_COLOUR
+  })
+end
+
+function reset_panel()
+  dice_button_state = 1
+  type_button_state = nil
+  type_name = nil
+end
