@@ -34,7 +34,7 @@ ENCOUNTER_SORT_ZONE_GUID = "d216bb"
 -- Tags
 EVOLUTION_CARD_TAG = "Evolution Card"
 LEGENDARY_CARD_TAG = "Legendary Encounter Card"
-PWO_CARD_TAG = "Perfect World Order Card"
+GALACTIC_GRUNT_TAG = "Galactic Trainer Card"
 DICE_TAG = "Dice"
 
 POKEMON_CARD_TAG = "Pokemon Card"
@@ -101,6 +101,7 @@ DARK_COLOUR = {37/255, 37/255, 50/255}
 WOOD_COLOUR = {150/255, 75/255, 50/255}
 LIGHT_WOOD_COLOUR = {200/255, 125/255, 100/255}
 TYPE_COLOURS = {
+  Typeless = WOOD_COLOUR,
   Normal = {144/255, 153/255, 161/255},
   Fire = {255/255, 156/255, 84/255},
   Water = {77/255, 144/255, 213/255},

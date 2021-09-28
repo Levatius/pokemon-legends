@@ -6,6 +6,7 @@ local legendary_zone = getObjectFromGUID(legendary_zone_guid)
 local evolution_zone = getObjectFromGUID(evolution_zone_guid)
 local preevolution_zone = getObjectFromGUID(preevolution_zone_guid)
 local layout_zone = getObjectFromGUID(layout_zone_guid)
+local galactic_zone = getObjectFromGUID(galactic_zone_guid)
 
 local param_button_states = {climate = 1, biome = 1, encounter = 1}
 local param_button_tags = {
@@ -36,20 +37,20 @@ function onLoad()
   local i = 0
   for type, state in pairs(param_button_states) do
     button_params.click_function = "param_button_toggle_" .. type
-    button_params.position = {-0.4, 0.1, -0.75 + 0.35 * i}
+    button_params.position = {-0.35, 0.1, -0.75 + 0.35 * i}
     self:createButton(button_params)
     i = i + 1
   end
   -- Auto Button
   button_params.click_function = "auto_button"
   button_params.width = 350
-  button_params.position = {-0.4, 0.1, 0.3}
+  button_params.position = {-0.35, 0.1, 0.3}
   self:createButton(button_params)
   -- Search Button
   button_params.click_function = "search_button"
   button_params.width = 450
   button_params.height = 200
-  button_params.position = {-0.4, 0.1, 0.7}
+  button_params.position = {-0.35, 0.1, 0.7}
   self:createButton(button_params)
   update_panel()
 end
@@ -98,7 +99,9 @@ end
 --
 
 function get_zone_from_tags(tags)
-  if contains(tags, EVOLUTION_CARD_TAG) then
+  if contains(tags, GALACTIC_GRUNT_TAG) then
+    return galactic_zone
+  elseif contains(tags, EVOLUTION_CARD_TAG) then
     return evolution_zone
   elseif contains(tags, LEGENDARY_CARD_TAG) then
     return legendary_zone
@@ -202,8 +205,7 @@ function get_search_params(player_colour)
       direction    = {0, -1, 0},
       type         = 2,
       size         = {1.5, 1.5, 1.5},
-      max_distance = 1,
-      debug = true
+      max_distance = 1
     })
     for _, hit_info in pairs(hit_list) do
       local hit_object = hit_info.hit_object

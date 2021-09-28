@@ -7,7 +7,6 @@ local dice_bag = getObjectFromGUID(dice_bag_guid)
 
 local dice_button_state
 local type_button_state
-local type_name
 
 function onLoad()
   button_params = {
@@ -74,10 +73,16 @@ function roll_button()
       smooth   = false,
       callback_function = function(dice) Wait.frames(function() if not dice:isDestroyed() then roll_callback(dice, direction) end end, 50) end
     })
-    if type_name then
+
+    -- Colour the attack dice
+    local active_pokemon = get_active_pokemon()
+    local move_types = get_move_types(active_pokemon)
+    local type_name = move_types[type_button_state]
+    if type_name ~= "Typeless" then
       spawned_dice:setColorTint(TYPE_COLOURS[type_name])
       spawned_dice:highlightOn(TYPE_COLOURS[type_name])
     end
+
     x_offset = x_offset + direction * 1
   end
 end
@@ -136,10 +141,13 @@ function get_active_pokemon()
 end
 
 function get_move_types(pokemon)
-  if not pokemon then
-    return {}
+  move_types = {"Typeless"}
+  if pokemon then
+    for _, v in ipairs(pokemon:getVar("moves")) do
+      table.insert(move_types, v)
+    end
   end
-  return pokemon:getVar("moves")
+  return move_types
 end
 
 --
@@ -149,23 +157,19 @@ end
 function update_panel()
   local active_pokemon = get_active_pokemon()
   local move_types = get_move_types(active_pokemon)
-  if not type_button_state and move_types then
-    type_button_state = 1
-  end
-  type_name = move_types[type_button_state]
+  local type_name = move_types[type_button_state]
   self:editButton({
     index = 1,
     label = dice_button_state .. " Dice"
   })
   self:editButton({
     index = 2,
-    label = type_name and type_name or "No Type",
-    color = type_name and TYPE_COLOURS[type_name] or WOOD_COLOUR
+    label = type_name,
+    color = TYPE_COLOURS[type_name]
   })
 end
 
 function reset_panel()
   dice_button_state = 1
-  type_button_state = nil
-  type_name = nil
+  type_button_state = 1
 end

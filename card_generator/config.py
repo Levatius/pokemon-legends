@@ -64,6 +64,7 @@ FAIRY = 'fairy'
 
 IMMUNE = 'immune'
 RESIST = 'resist'
+REGULAR = 'regular'
 WEAK = 'weak'
 
 TYPE_CHART = {
@@ -86,5 +87,25 @@ TYPE_CHART = {
     STEEL: {IMMUNE: [], RESIST: [FIRE, WATER, GRASS, STEEL], WEAK: [ICE, ROCK, FAIRY]},
     FAIRY: {IMMUNE: [], RESIST: [FIRE, POISON, STEEL], WEAK: [FIGHTING, DRAGON, DARK]}
 }
+# TYPE_COLOURS = {
+#     NORMAL: {144 / 255, 153 / 255, 161 / 255},
+#     FIRE: {255 / 255, 156 / 255, 84 / 255},
+#     WATER: {77 / 255, 144 / 255, 213 / 255},
+#     ELECTRIC: {243 / 255, 210 / 255, 59 / 255},
+#     GRASS: {99 / 255, 187 / 255, 91 / 255},
+#     ICE: {116 / 255, 206 / 255, 192 / 255},
+#     FIGHTING: {206 / 255, 64 / 255, 105 / 255},
+#     POISON: {171 / 255, 106 / 255, 200 / 255},
+#     GROUND: {217 / 255, 119 / 255, 70 / 255},
+#     FLYING: {143 / 255, 168 / 255, 221 / 255},
+#     PSYCHIC: {249 / 255, 113 / 255, 118 / 255},
+#     BUG: {144 / 255, 193 / 255, 44 / 255},
+#     ROCK: {199 / 255, 183 / 255, 139 / 255},
+#     GHOST: {82 / 255, 105 / 255, 172 / 255},
+#     DRAGON: {10 / 255, 109 / 255, 196 / 255},
+#     DARK: {90 / 255, 83 / 255, 102 / 255},
+#     STEEL: {90 / 255, 142 / 255, 161 / 255},
+#     FAIRY: {236 / 255, 143 / 255, 230 / 255}
+# }
 
 EFFECTIVENESS_COLOURS = {IMMUNE: (250, 150, 150), RESIST: (250, 200, 150), WEAK: (150, 200, 150)}

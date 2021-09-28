@@ -53,10 +53,12 @@ def add_types_and_moves(img, stats):
         type_img = get_img(ASSETS_DIR / 'types' / f'{type_}.png', xy(2.5, 2.5))
         img.paste(type_img, xy(0.5 + i * 2.5, 0.5), type_img)
 
-    moves = get_moves(stats)
-    for i, move in enumerate(moves):
-        move_img = get_img(ASSETS_DIR / 'types' / f'{move}.png', xy(2, 2))
-        img.paste(move_img, xy(12 - (len(moves) * 2) + (i * 2), 17), move_img)
+    if pd.isnull(stats.trainer):
+        moves = get_moves(stats)
+        for i, move in enumerate(moves):
+            size = 1
+            move_img = get_img(ASSETS_DIR / 'types' / f'{move}.png', xy(size, size))
+            img.paste(move_img, xy(3 - (len(moves) / 2 * size) + (i % 2 * size), 17 + i // 2), move_img)
 
 
 def get_variant(stats):
@@ -71,10 +73,11 @@ def get_variant(stats):
 
 
 def get_size(stats):
-    if not pd.isnull(stats.trainer):
-        if stats.pokedex_number in (480, 481, 482, 474):
-            return 7
-    return max(min(stats.power + 4, 14), 6)
+    # if not pd.isnull(stats.trainer):
+    #     if stats.pokedex_number in (480, 481, 482, 474):
+    #         return 7
+    return max(min(stats.total // 2 + 3, 11), 7)
+    # return 11 if stats.is_legendary else 9
 
 
 def get_pokemon_art(stats):
@@ -100,41 +103,49 @@ def add_bases(img, stats):
     if pd.isnull(stats.trainer):
         held_item_base_img = Image.open(ASSETS_DIR / 'held_item_base.png').convert('RGBA').resize(xy(3.5, 3.5))
         img.paste(held_item_base_img, xy(1.75, 12.75), held_item_base_img)
-    power_base_img = Image.open(ASSETS_DIR / 'power_base.png').convert('RGBA').resize(xy(3.5, 3.5))
-    img.paste(power_base_img, xy(10.75, 12.75), power_base_img)
+        map_base_img = Image.open(ASSETS_DIR / 'map_base.png').convert('RGBA').resize(xy(3.5, 3.5))
+        img.paste(map_base_img, xy(10.75, 12.75), map_base_img)
 
-
-def add_legendary_icon(img, stats):
-    if stats.is_legendary:
-        legendary_icon_img = Image.open(ASSETS_DIR / 'legendary_icon.png').convert('RGBA').resize(xy(2, 2))
-        img.paste(legendary_icon_img, xy(13.25, 0.75), legendary_icon_img)
+    health_base_img = Image.open(ASSETS_DIR / 'health_base.png').convert('RGBA').resize(xy(3.5, 2))
+    img.paste(health_base_img, xy(11.75, 7.75), health_base_img)
+    initiative_base_img = Image.open(ASSETS_DIR / 'initiative_base.png').convert('RGBA').resize(xy(3.5, 2))
+    img.paste(initiative_base_img, xy(11.75, 10.25), initiative_base_img)
 
 
 def add_trainer(img, stats):
     if not pd.isnull(stats.trainer):
         trainer_img = get_img(ASSETS_DIR / 'trainers' / f'{stats.trainer}.png', xy(5, 9.5))
         img.paste(trainer_img, xy(0, 6.75), trainer_img)
-        trainer_icon_img = get_img(ASSETS_DIR / 'galactic_icon.png', xy(2, 2))
-        img.paste(trainer_icon_img, xy(7, 17), trainer_icon_img)
+
+
+def add_encounter_icon(img, stats):
+    if not pd.isnull(stats.trainer):
+        icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'galactic.png', xy(2, 2))
+    elif stats.is_legendary:
+        icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'legendary.png', xy(2, 2))
+    elif stats.total >= 15:
+        icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'strong.png', xy(2, 2))
+    elif stats.total >= 10:
+        icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'moderate.png', xy(2, 2))
+    else:
+        icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'weak.png', xy(2, 2))
+    img.paste(icon_img, xy(7, 17), icon_img)
 
 
 def add_location(img, stats):
     if not pd.isnull(stats.trainer):
         return
+
     if stats.is_legendary:
-        location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'unknown.png', xy(2.5, 2.5))
+        location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'unknown.png', xy(3, 3))
     else:
         try:
             location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'{stats.climate.lower()}_{stats.biome.lower()}.png',
-                                        xy(2.5, 2.5))
+                                        xy(3, 3))
         except (FileNotFoundError, AttributeError):
-            location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'unknown.png', xy(2.5, 2.5))
+            location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'unknown.png', xy(3, 3))
 
-    img.paste(location_icon_img, xy(0.25, 16.75), location_icon_img)
-
-
-def add_encounter_icon(img, stats):
-    pass
+    img.paste(location_icon_img, xy(11, 13), location_icon_img)
 
 
 def add_evolution_cost(img, stats):
@@ -142,8 +153,8 @@ def add_evolution_cost(img, stats):
         return
     d = ImageDraw.Draw(img)
     evolution_icon_img = get_img(ASSETS_DIR / 'evolution_icon.png', xy(2, 2))
-    img.paste(evolution_icon_img, xy(13.5, 17), evolution_icon_img)
-    d.text(xy(14.5, 18), str(int(stats.evolve_cost)), fill=WHITE_COLOUR, font=ORIENTAL_80, anchor='mm')
+    img.paste(evolution_icon_img, xy(13, 17), evolution_icon_img)
+    d.text(xy(14, 18), str(int(stats.evolve_cost)), fill=WHITE_COLOUR, font=ORIENTAL_80, anchor='mm')
 
 
 def add_text(img, stats):
@@ -158,8 +169,11 @@ def add_text(img, stats):
     if not pd.isnull(stats.description):
         d.text(xy(1 + len(types) * 2.5, 2.5), stats.description, fill=DARK_COLOUR, font=BARLOW_48, anchor='lm')
 
-    # Pokémon Power
-    d.text(xy(12.5, 14.5), str(stats.power), fill=DARK_COLOUR, font=ORIENTAL_160, anchor='mm')
+    # Pokémon Stats
+    d.text(xy(12.75, 8.75), str(stats.health), fill=DARK_COLOUR, font=ORIENTAL_96 if stats.health < 10 else ORIENTAL_80,
+           anchor='mm')
+    d.text(xy(12.75, 11.25), str(stats.initiative), fill=DARK_COLOUR,
+           font=ORIENTAL_96 if stats.initiative < 10 else ORIENTAL_80, anchor='mm')
 
 
 def add_move(img, stats):
@@ -186,6 +200,7 @@ def run(overwrite=False):
         add_location(img, stats)
         add_text(img, stats)
         add_move(img, stats)
+        add_encounter_icon(img, stats)
         add_evolution_cost(img, stats)
 
         base_img.paste(img, xy(0, 0), img)
@@ -193,4 +208,4 @@ def run(overwrite=False):
 
 
 if __name__ == '__main__':
-    run(overwrite=False)
+    run(overwrite=True)
