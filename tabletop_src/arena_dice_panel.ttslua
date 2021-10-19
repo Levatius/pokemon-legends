@@ -2,11 +2,12 @@
 #include utils
 
 local active_zone = getObjectFromGUID(active_zone_guid)
+local enemy_active_zone = getObjectFromGUID(enemy_active_zone_guid)
 local field_zone = getObjectFromGUID(field_zone_guid)
 local dice_bag = getObjectFromGUID(dice_bag_guid)
 
-local dice_button_state
-local type_button_state
+local dice_button_state = 1
+local type_button_state = 1
 
 function onLoad()
   button_params = {
@@ -20,25 +21,24 @@ function onLoad()
   button_params.click_function = "roll_button"
   button_params.width = 850
   button_params.height = 450
-  button_params.position = {0, 0.1, -0.4}
+  button_params.position = {0, 0.1, -0.4125}
   button_params.font_size = 200
   button_params.label = "Roll"
   self:createButton(button_params)
   -- Dice Button
   button_params.click_function = "dice_button_toggle"
-  button_params.width = 425
-  button_params.height = 300
-  button_params.position = {-0.45, 0.1, 0.55}
+  button_params.width = 400
+  button_params.height = 350
+  button_params.position = {-0.4625, 0.1, 0.525}
   button_params.font_size = 100
   self:createButton(button_params)
   -- Type Button
   button_params.click_function = "type_button_toggle"
-  button_params.width = 425
-  button_params.height = 300
-  button_params.position = {0.45, 0.1, 0.55}
+  button_params.width = 400
+  button_params.height = 350
+  button_params.position = {0.4625, 0.1, 0.525}
   button_params.font_size = 100
   self:createButton(button_params)
-  reset_panel()
   update_panel()
 end
 
@@ -47,7 +47,7 @@ end
 --
 
 function clean_up_dice()
-  local dice_list = getObjectsWithTag(DICE_TAG)
+  local dice_list = getObjectsWithTag(ATTACK_DICE_TAG)
   for _, dice in pairs(dice_list) do
     dice:destroyObject()
   end
@@ -130,18 +130,34 @@ function type_button_toggle(_, _, alt_click)
   update_panel()
 end
 
+function get_effectiveness(type_name, enemy_base_types)
+  if not type_name then
+    return nil
+  end
+
+  local effectiveness = 0
+
+  if enemy_base_types then
+    for _, enemy_base_type in pairs(enemy_base_types) do
+      effectiveness = effectiveness + (TYPE_CHART[type_name][enemy_base_type] and TYPE_CHART[type_name][enemy_base_type] or 0)
+    end
+  end
+  return effectiveness
+end
+
 --
 --
 --
 
-function get_active_pokemon()
-  for _, object in pairs(active_zone:getObjects()) do
+function get_active_pokemon(is_enemy)
+  local zone = not is_enemy and active_zone or enemy_active_zone
+  for _, object in pairs(zone:getObjects()) do
     if object.type == "Card" then return object end
   end
 end
 
 function get_move_types(pokemon)
-  move_types = {"Typeless"}
+  local move_types = {"Typeless"}
   if pokemon then
     for _, v in ipairs(pokemon:getVar("moves")) do
       table.insert(move_types, v)
@@ -150,26 +166,36 @@ function get_move_types(pokemon)
   return move_types
 end
 
+function get_base_types(pokemon)
+  if pokemon then
+    return pokemon:getVar("types")
+  end
+end
+
 --
 --
 --
 
 function update_panel()
-  local active_pokemon = get_active_pokemon()
+  local active_pokemon = get_active_pokemon(false)
   local move_types = get_move_types(active_pokemon)
+  if type_button_state > #move_types then
+    type_button_state = 1
+  end
   local type_name = move_types[type_button_state]
+
+  local enemy_active_pokemon = get_active_pokemon(true)
+  local enemy_base_types = get_base_types(enemy_active_pokemon)
+
+  local effectiveness = get_effectiveness(type_name, enemy_base_types)
+
   self:editButton({
     index = 1,
     label = dice_button_state .. " Dice"
   })
   self:editButton({
     index = 2,
-    label = type_name,
+    label = type_name .. "\n" .. signed_label(effectiveness),
     color = TYPE_COLOURS[type_name]
   })
-end
-
-function reset_panel()
-  dice_button_state = 1
-  type_button_state = 1
 end

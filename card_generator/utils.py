@@ -26,6 +26,6 @@ def wrap_text(text, draw, font, max_width):
     multiline_text_list = []
     for text in text_list:
         if not multiline_text_list or draw.textsize(f'{multiline_text_list[-1]} {text}', font)[0] >= 64 * max_width:
-            multiline_text_list.append('')
+            multiline_text_list.append(str())
         multiline_text_list[-1] += text + ' '
     return '\n'.join(multiline_text_list)

@@ -17,6 +17,7 @@
   "ColorDiffuse": null,
   "Tags": null,
   "LuaScript": null,
+  "Hands": false,
   "CustomDeck": {
     "1": {
       "FaceURL": "",

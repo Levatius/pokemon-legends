@@ -121,11 +121,13 @@ def add_trainer(img, stats):
 def add_encounter_icon(img, stats):
     if not pd.isnull(stats.trainer):
         icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'galactic.png', xy(2, 2))
+    elif stats.is_starter:
+        icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'starter.png', xy(2, 2))
     elif stats.is_legendary:
         icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'legendary.png', xy(2, 2))
-    elif stats.total >= 15:
+    elif stats.total >= STRONG_ENCOUNTER_THRESHOLD:
         icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'strong.png', xy(2, 2))
-    elif stats.total >= 10:
+    elif stats.total >= MODERATE_ENCOUNTER_THRESHOLD:
         icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'moderate.png', xy(2, 2))
     else:
         icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'weak.png', xy(2, 2))
@@ -208,4 +210,4 @@ def run(overwrite=False):
 
 
 if __name__ == '__main__':
-    run(overwrite=True)
+    run(overwrite=False)

@@ -2,6 +2,7 @@
 #include utils
 
 local standard_zone = getObjectFromGUID(standard_zone_guid)
+local starter_zone = getObjectFromGUID(starter_zone_guid)
 local legendary_zone = getObjectFromGUID(legendary_zone_guid)
 local evolution_zone = getObjectFromGUID(evolution_zone_guid)
 local preevolution_zone = getObjectFromGUID(preevolution_zone_guid)
@@ -37,20 +38,20 @@ function onLoad()
   local i = 0
   for type, state in pairs(param_button_states) do
     button_params.click_function = "param_button_toggle_" .. type
-    button_params.position = {-0.35, 0.1, -0.75 + 0.35 * i}
+    button_params.position = {-0.35, 0.4, -0.75 + 0.35 * i}
     self:createButton(button_params)
     i = i + 1
   end
   -- Auto Button
   button_params.click_function = "auto_button"
   button_params.width = 350
-  button_params.position = {-0.35, 0.1, 0.3}
+  button_params.position = {-0.35, 0.4, 0.3}
   self:createButton(button_params)
   -- Search Button
   button_params.click_function = "search_button"
   button_params.width = 450
   button_params.height = 200
-  button_params.position = {-0.35, 0.1, 0.7}
+  button_params.position = {-0.35, 0.4, 0.7}
   self:createButton(button_params)
   update_panel()
 end
@@ -103,6 +104,8 @@ function get_zone_from_tags(tags)
     return galactic_zone
   elseif contains(tags, EVOLUTION_CARD_TAG) then
     return evolution_zone
+  elseif contains(tags, STARTER_CARD_TAG) then
+    return starter_zone
   elseif contains(tags, LEGENDARY_CARD_TAG) then
     return legendary_zone
   else
@@ -217,13 +220,13 @@ function get_search_params(player_colour)
     print("No wild encounter found near " .. trainer_token:getName() .. ".")
     return
   end
-  return get_param_button_tag("climate"), get_param_button_tag("biome"), get_param_button_tag("encounter")
+  return get_param_button_tag("climate"), get_param_button_tag("biome"), get_param_button_tag("encounter") .. " Encounter Card"
 end
 
 function get_encounter_guid(zone, climate, biome, encounter)
   local infos = get_object_infos_from_zone_deck(zone)
   for _, info in pairs(infos) do
-    if contains(info.tags, climate) and contains(info.tags, biome) and contains(info.tags, encounter .. " Encounter Card") then
+    if contains(info.tags, climate) and contains(info.tags, biome) and contains(info.tags, encounter) then
       return info.guid
     end
   end
@@ -250,9 +253,6 @@ end
 --
 --
 
-function reset_panel()
-end
-
 function update_panel()
   local i = 0
   for type, state in pairs(param_button_states) do
@@ -271,6 +271,9 @@ function update_panel()
   if pokemon_in_layout_zone() then
     search_button_label = "Return"
     search_button_colour = {250/255, 100/255, 100/255}
+  elseif pokemon_in_preevolution_zone() then
+    search_button_label = "Evolve"
+    search_button_colour = {200/255, 100/255, 250/255}
   end
   self:editButton({index=4, label=search_button_label, color=search_button_colour})
 end

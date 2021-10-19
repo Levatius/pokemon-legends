@@ -15,7 +15,6 @@ def add_header(img, stats):
     type_img = get_img(ASSETS_DIR / 'types' / f'{stats.type}.png', xy(2, 2))
     img.paste(type_img, xy(0.25, 0.25), type_img)
 
-    # d.text(xy(2.5, 2), str(stats.power_cost), fill=PURPLE_COLOUR, font=ORIENTAL_80, anchor='mm')
     d.text(xy(7.25, 1.25), stats.move_name, fill=DARK_COLOUR, font=BARLOW_80, anchor='mm')
     if not pd.isnull(stats.damage):
         d.text(xy(13.25, 1.25), str(stats.damage), fill=DARK_COLOUR, font=ORIENTAL_96, anchor='mm')

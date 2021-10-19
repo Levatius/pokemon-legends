@@ -108,18 +108,29 @@ end
 
 function update_panel()
   for i = 0, 6 do
-    local button_index_offest = 8
     local apricorn_name = APRICORN_NAMES[i + 1] .. " Apricorn"
     local apricorn_count = count_objects_with_name_in_bag(apricorn_name)
+
+    -- local tooltip = nil
+    -- local font_color = WHITE_COLOUR
+    -- if apricorn_count >= 7 then
+    --   tooltip = "You feel like you are being watched"
+    --   font_color = {1, 0.5, 0.5}
+    -- end
+
     self.editButton({
-      index = button_index_offest + i,
-      label = apricorn_count
+      index = i,
+      -- tooltip = tooltip
+    })
+    self.editButton({
+      index = 8 + i,
+      label = apricorn_count,
+      -- font_color = font_color
     })
   end
-  local button_index_offest = 8 + 7
   local journey_point_count = count_objects_with_name_in_bag(JOURNEY_POINT_TOKEN_NAME)
   self.editButton({
-    index = button_index_offest,
+    index = 8 + 7,
     label = journey_point_count
   })
 end

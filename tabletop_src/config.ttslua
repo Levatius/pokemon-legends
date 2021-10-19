@@ -35,7 +35,9 @@ ENCOUNTER_SORT_ZONE_GUID = "d216bb"
 EVOLUTION_CARD_TAG = "Evolution Card"
 LEGENDARY_CARD_TAG = "Legendary Encounter Card"
 GALACTIC_GRUNT_TAG = "Galactic Trainer Card"
-DICE_TAG = "Dice"
+ATTACK_DICE_TAG = "Attack Dice"
+VILLAGE_CARD_TAG = "Village Card"
+STARTER_CARD_TAG = "Starter Card"
 
 POKEMON_CARD_TAG = "Pokemon Card"
 POKEMON_MODEL_TAG = "Pokemon Model"
@@ -126,7 +128,7 @@ TYPE_COLOURS = {
 OHKO_THRESHOLD = 7
 
 -- Modifiers
-STAB_BONUS = 0
+STAB_BONUS = 1
 WEAK = 2
 RESIST = -2
 IMMUNE = -4
@@ -155,7 +157,8 @@ TYPE_CHART = {
   Dragon = {Dragon = WEAK, Steel = RESIST, Fairy = IMMUNE},
   Dark = {Fighting = RESIST, Psychic = WEAK, Ghost = WEAK, Dark = RESIST, Fairy = RESIST},
   Steel = {Fire = RESIST, Water = RESIST, Grass = RESIST, Ice = WEAK, Rock = WEAK, Steel = RESIST, Fairy = WEAK},
-  Fairy = {Fire = RESIST, Fighting = WEAK, Poison = RESIST, Dragon = WEAK, Dark = WEAK, Steel = RESIST}
+  Fairy = {Fire = RESIST, Fighting = WEAK, Poison = RESIST, Dragon = WEAK, Dark = WEAK, Steel = RESIST},
+  Typeless = {}
 }
 
 -- URLs

@@ -139,16 +139,11 @@ function get_climate_tag(tags)
 end
 
 function get_encounter_tag(tags)
-  for _, tag in pairs(tags) do
-    if contains(ENCOUNTER_TAGS, tag) then
-      return tag
+  for _, encounter_tag in pairs(ENCOUNTER_TAGS) do
+    local full_encounter_tag = encounter_tag .. " Encounter Card"
+    if contains(tags, full_encounter_tag) then
+      return full_encounter_tag
     end
-  end
-end
-
-function get_danger_tag(tags)
-  if contains(tags, DANGER_TAG) then
-    return DANGER_TAG
   end
 end
 
@@ -185,7 +180,6 @@ function update_panels(zone)
   for _, update_panel_guid in pairs(zone:getVar("update_panel_guids")) do
     local update_panel = getObjectFromGUID(update_panel_guid)
     -- ERROR HERE ON EXIT, GUID -1
-    update_panel:call("reset_panel")
     update_panel:call("update_panel")
   end
 end

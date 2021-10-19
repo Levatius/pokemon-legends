@@ -29,13 +29,15 @@ def get_card_type(stats, is_evolution):
         return 'Evolution Card'
 
     if pd.isnull(stats.trainer):
-        if stats.is_legendary:
+        if stats.is_starter:
+            return 'Starter Card'
+        elif stats.is_legendary:
             return 'Legendary Encounter Card'
-        elif stats.power >= 7:
+        elif stats.total >= STRONG_ENCOUNTER_THRESHOLD:
             return 'Strong Encounter Card'
-        elif stats.power >= 5:
+        elif stats.total >= MODERATE_ENCOUNTER_THRESHOLD:
             return 'Moderate Encounter Card'
-        elif stats.power >= 1:
+        else:
             return 'Weak Encounter Card'
     else:
         return 'Galactic Trainer Card'
@@ -72,7 +74,8 @@ def get_lua_script(stats):
     local_variables = {
         'pokedex_name': f'"{stats.pokedex_name}"',
         'internal_name': f'"{stats.internal_name}"',
-        'power': stats.power,
+        'health': stats.health,
+        'initiative': stats.initiative,
         'types': get_lua_table_from_fields((stats.type_1, stats.type_2)),
         'moves': get_lua_table_from_fields((stats.move_1, stats.move_2, stats.move_3, stats.move_4)),
         'evolve_into': get_lua_table_from_field(stats.evolve_into),

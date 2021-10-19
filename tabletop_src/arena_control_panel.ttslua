@@ -1,0 +1,82 @@
+#include config
+#include utils
+
+local active_zone = getObjectFromGUID(active_zone_guid)
+local field_zone = getObjectFromGUID(field_zone_guid)
+local model_bag = getObjectFromGUID(model_bag_guid)
+
+function onLoad()
+  update_panel()
+end
+
+--
+--
+--
+
+function get_active_pokemon()
+  for _, object in pairs(active_zone:getObjects()) do
+    if object.type == "Card" then return object end
+  end
+end
+
+--
+--
+--
+
+function handle_models(pokemon)
+  local models = field_zone:getObjects()
+  if pokemon and #models == 0 then
+    local model_guid = find_model_guid(pokemon)
+    if model_guid then
+      deploy_model(model_guid, pokemon)
+    end
+  elseif not pokemon and #models > 0 then
+    undeploy_models(models)
+  end
+end
+
+function find_model_guid(pokemon)
+  for _, contained_object in pairs(model_bag:getObjects()) do
+    if contained_object.name == pokemon:getVar("internal_name") then
+      return contained_object.guid
+    end
+  end
+end
+
+function deploy_model(model_guid, pokemon)
+  local model = model_bag:takeObject({
+    position          = field_zone:getPosition(),
+    rotation          = field_zone:getRotation(),
+    guid              = model_guid,
+    callback_function = function(model) deploy_model_callback(model, pokemon) end
+  })
+  model.interactable = false
+end
+
+function deploy_model_callback(model, pokemon)
+  model.AssetBundle:playTriggerEffect(2)
+  --play_cry(pokemon)
+end
+
+function play_cry(pokemon)
+  local pokemon_name = pokemon:getVar("pokedex_name")
+  local audio_clip_name = string.gsub(string.lower(pokemon_name), "[%s+%.+%-+]", "") .. ".mp3"
+  cry_player:setValue(CRY_BASE_URL .. audio_clip_name)
+end
+
+function undeploy_models(models)
+  for _, model in pairs(models) do
+    if not model:isDestroyed() then
+      model_bag:putObject(model)
+    end
+  end
+end
+
+--
+--
+--
+
+function update_panel()
+  local active_pokemon = get_active_pokemon()
+  handle_models(active_pokemon)
+end

@@ -66,6 +66,11 @@ function onObjectEnterZone(zone, object)
     if zone:getName() == "Search Layout Zone" then
       update_panels(zone)
     end
+  -- Hand Zones
+  elseif zone.type == "Hand" then
+    if object:hasTag(VILLAGE_CARD_TAG) then
+      zone:setValue(object:getGMNotes())
+    end
   end
 end
 
