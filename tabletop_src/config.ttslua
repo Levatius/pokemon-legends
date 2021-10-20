@@ -165,7 +165,7 @@ TYPE_CHART = {
 CRY_BASE_URL = "https://play.pokemonshowdown.com/audio/cries/"
 
 -- Music
-STANDARD_MUSIC_EVENTS = {
+MUSIC_EVENTS = {
   {
     title = "Wild Encounter",
     url = "http://cloud-3.steamusercontent.com/ugc/1778335968028788727/32160068B6C9F2C440610E5EC3658AC4B0374AFE/"
@@ -175,37 +175,19 @@ STANDARD_MUSIC_EVENTS = {
     url = "http://cloud-3.steamusercontent.com/ugc/1787345199297169875/01EEC1DD72DB0E6A54B211EAA69C64B365095379/"
   },
   {
-    title = "Lake Guardians",
-    url = "http://cloud-3.steamusercontent.com/ugc/1778335968028787579/907A1DDDD6BD58157928FF77DE68A037F81F3E08/"
-  },
-  {
     title = "Spear Pillar",
     url = "http://cloud-3.steamusercontent.com/ugc/1778335968028788571/D7BB0B5A262B291E2FC29FB8993A185870C13F06/"
   },
   {
-    title = "Arceus",
-    url = "http://cloud-3.steamusercontent.com/ugc/1778335968028787438/CC10C52BCF54B1DDE70096DD2E9D55194D05D4BA/"
-  }
-}
-ANCIENT_MUSIC_EVENTS = {
-  {
-    title = "Wild Encounter",
-    url = "http://cloud-3.steamusercontent.com/ugc/1787345199297178737/55AF2BF4B757EB3AD98A87D6F49DCE3C24CBD435/"
+    title = "Galactic Grunt",
+    url = "http://cloud-3.steamusercontent.com/ugc/1745700738162462694/87BF4DBD46F952F4986DBD82DAF4094CF60E01C0/"
   },
   {
-    title = "Legendary Encounter",
-    url = "http://cloud-3.steamusercontent.com/ugc/1787345199297178120/999EA01115A658500340E69465B7D25192BD3B00/"
+    title = "Galactic Commander",
+    url = "http://cloud-3.steamusercontent.com/ugc/1745700738162462610/69A62BECD1C4FFB22BF619346306AFCC2661F28F/"
   },
   {
-    title = "Lake Guardians",
-    url = "http://cloud-3.steamusercontent.com/ugc/1787345199297177780/846D5E8B463599186CD70E504AB70215F9E46067/"
-  },
-  {
-    title = "Spear Pillar",
-    url = "http://cloud-3.steamusercontent.com/ugc/1787345199297178632/0E947020B75F3B86A24E139E7354E154034AF221/"
-  },
-  {
-    title = "Arceus",
-    url = "http://cloud-3.steamusercontent.com/ugc/1787345199297177185/CC8D4FAD55322325612093DE0B26E49014ADD2A2/"
+    title = "Galactic Boss",
+    url = "http://cloud-3.steamusercontent.com/ugc/1745700738162462526/40358A4DC482A8FB8174CF21FA2BDB64FE40FCFC/"
   }
 }

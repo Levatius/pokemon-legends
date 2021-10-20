@@ -5,13 +5,5 @@ function music_events.on_enter_music_cartridge_zone(music_cartridge_zone, music_
   local playlist = music_cartridge:getVar("playlist")
   if not playlist then return end
   MusicPlayer:setPlaylist(playlist)
-  print("Playlist set to: \"" .. music_cartridge:getName() .. "\" by " .. music_cartridge:getDescription())
-end
-
-function music_events.on_rotate_music_event_token(music_event_token)
-  for _, object in pairs(getObjectsWithTag(MUSIC_EVENTS_TAG)) do
-    if object ~= music_event_token and not object.is_face_down then
-      object:setRotationSmooth(object:getRotation() + Vector(0, 0, 180), false, true)
-    end
-  end
+  print('Playlist set to: "' .. music_cartridge:getName() .. '" by ' .. music_cartridge:getDescription())
 end

@@ -1,0 +1,66 @@
+#include config
+#include utils
+
+local selected_music_event_index
+
+function onLoad()
+  button_params = {
+    function_owner = self,
+    scale          = {0.5, 1, 0.5},
+    width          = 900,
+    height         = 250,
+    font_size      = 90,
+    font_color     = WHITE_COLOUR,
+    hover_color    = LIGHT_WOOD_COLOUR,
+    press_color    = LIGHT_WOOD_COLOUR
+  }
+  -- Music Event Buttons
+  for i = 0, 5 do
+    button_params.click_function = "music_event_button_" .. i
+    button_params.label = MUSIC_EVENTS[i + 1]["title"]
+    self:createButton(button_params)
+  end
+  self.editButton({index=0, position={-0.95, 0.4, -0.75}})
+  self.editButton({index=1, position={-0.95, 0.4, -0.50}})
+  self.editButton({index=2, position={-0.95, 0.4, -0.25}})
+  self.editButton({index=3, position={0.95, 0.4, -0.75}})
+  self.editButton({index=4, position={0.95, 0.4, -0.50}})
+  self.editButton({index=5, position={0.95, 0.4, -0.25}})
+  update_panel()
+end
+
+function music_event_button_0() music_event_button(1) end
+function music_event_button_1() music_event_button(2) end
+function music_event_button_2() music_event_button(3) end
+function music_event_button_3() music_event_button(4) end
+function music_event_button_4() music_event_button(5) end
+function music_event_button_5() music_event_button(6) end
+
+function music_event_button(index)
+  if index == selected_music_event_index then
+    MusicPlayer:pause()
+    selected_music_event_index = nil
+  else
+    print('Now playing battle music: "' .. MUSIC_EVENTS[index]["title"] .. '"')
+    MusicPlayer:setCurrentAudioclip(MUSIC_EVENTS[index])
+    selected_music_event_index = index
+  end
+  update_panel()
+end
+
+--
+--
+--
+
+function update_panel()
+  for i = 0, 5 do
+    local color = WOOD_COLOUR
+    local tooltip = "Play Battle Music"
+
+    if i + 1 == selected_music_event_index then
+      color = LIGHT_WOOD_COLOUR
+      tooltip = "Stop Battle Music"
+    end
+    self.editButton({index=i, label=label, color=color, tooltip=tooltip})
+  end
+end

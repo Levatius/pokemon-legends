@@ -31,6 +31,7 @@ function onLoad()
   button_params.height = 350
   button_params.position = {-0.4625, 0.1, 0.525}
   button_params.font_size = 100
+  button_params.tooltip = "Toggle Attack Strength"
   self:createButton(button_params)
   -- Type Button
   button_params.click_function = "type_button_toggle"
@@ -38,6 +39,7 @@ function onLoad()
   button_params.height = 350
   button_params.position = {0.4625, 0.1, 0.525}
   button_params.font_size = 100
+  button_params.tooltip = "Toggle Attack Type"
   self:createButton(button_params)
   update_panel()
 end

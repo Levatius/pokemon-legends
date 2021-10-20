@@ -13,9 +13,10 @@ function onLoad()
   text_params = {
     click_function = "dummy_button",
     function_owner = self,
+    scale          = {0.5, 1, 0.5},
     width          = 0,
     height         = 0,
-    font_size      = 100,
+    font_size      = 200,
     font_color     = WHITE_COLOUR
   }
   -- Resource Buttons
@@ -110,22 +111,9 @@ function update_panel()
   for i = 0, 6 do
     local apricorn_name = APRICORN_NAMES[i + 1] .. " Apricorn"
     local apricorn_count = count_objects_with_name_in_bag(apricorn_name)
-
-    -- local tooltip = nil
-    -- local font_color = WHITE_COLOUR
-    -- if apricorn_count >= 7 then
-    --   tooltip = "You feel like you are being watched"
-    --   font_color = {1, 0.5, 0.5}
-    -- end
-
-    self.editButton({
-      index = i,
-      -- tooltip = tooltip
-    })
     self.editButton({
       index = 8 + i,
-      label = apricorn_count,
-      -- font_color = font_color
+      label = apricorn_count
     })
   end
   local journey_point_count = count_objects_with_name_in_bag(JOURNEY_POINT_TOKEN_NAME)

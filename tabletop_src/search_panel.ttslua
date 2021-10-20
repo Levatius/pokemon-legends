@@ -26,13 +26,12 @@ local auto_search = false
 function onLoad()
   button_params = {
     function_owner = self,
-    width          = 450,
-    height         = 150,
-    font_size      = 75,
+    scale          = {0.5, 1, 0.5},
+    width          = 900,
+    height         = 300,
+    font_size      = 150,
     color          = WOOD_COLOUR,
-    font_color     = WHITE_COLOUR,
-    hover_color    = LIGHT_WOOD_COLOUR,
-    press_color    = LIGHT_WOOD_COLOUR
+    font_color     = WHITE_COLOUR
   }
   -- Param Buttons
   local i = 0
@@ -44,13 +43,13 @@ function onLoad()
   end
   -- Auto Button
   button_params.click_function = "auto_button"
-  button_params.width = 350
+  button_params.width = 700
   button_params.position = {-0.35, 0.4, 0.3}
   self:createButton(button_params)
   -- Search Button
   button_params.click_function = "search_button"
-  button_params.width = 450
-  button_params.height = 200
+  button_params.width = 900
+  button_params.height = 400
   button_params.position = {-0.35, 0.4, 0.7}
   self:createButton(button_params)
   update_panel()
@@ -256,9 +255,10 @@ end
 function update_panel()
   local i = 0
   for type, state in pairs(param_button_states) do
-    local param_button_tag = param_button_tags[type][state]
-    local param_button_colour = (pokemon_in_preevolution_zone() or auto_search) and {200/255, 200/255, 200/255} or param_button_colours[type][state]
-    self:editButton({index=i, label=param_button_tag, color=param_button_colour})
+    local label = param_button_tags[type][state]
+    local color = (pokemon_in_preevolution_zone() or auto_search) and {200/255, 200/255, 200/255} or param_button_colours[type][state]
+    local tooltip = "Toggle " .. capitalise(type)
+    self:editButton({index=i, label=label, color=color, tooltip=tooltip})
     i = i + 1
   end
 

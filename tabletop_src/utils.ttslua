@@ -195,3 +195,7 @@ end
 function round(value)
   return math.floor(value + 0.5)
 end
+
+function capitalise(str)
+    return str:gsub("^%l", string.upper)
+end

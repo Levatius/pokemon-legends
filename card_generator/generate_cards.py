@@ -73,11 +73,11 @@ def get_variant(stats):
 
 
 def get_size(stats):
-    # if not pd.isnull(stats.trainer):
-    #     if stats.pokedex_number in (480, 481, 482, 474):
-    #         return 7
-    return max(min(stats.total // 2 + 3, 11), 7)
-    # return 11 if stats.is_legendary else 9
+    min_size = 7
+    max_size = 11
+    if not pd.isnull(stats.trainer):
+        max_size = 10
+    return max(min(stats.total // 2 + 3, max_size), min_size)
 
 
 def get_pokemon_art(stats):
@@ -113,9 +113,20 @@ def add_bases(img, stats):
 
 
 def add_trainer(img, stats):
-    if not pd.isnull(stats.trainer):
-        trainer_img = get_img(ASSETS_DIR / 'trainers' / f'{stats.trainer}.png', xy(5, 9.5))
-        img.paste(trainer_img, xy(0, 6.75), trainer_img)
+    if pd.isnull(stats.trainer):
+        return
+
+    trainer_img = get_img(ASSETS_DIR / 'trainers' / f'{stats.trainer}.png', xy(5, 9.5))
+    img.paste(trainer_img, xy(0, 6.75), trainer_img)
+
+    rank_img = get_img(ASSETS_DIR / 'trainer_icons' / f'rank_{stats.trainer_rank}.png', xy(2, 2))
+    img.paste(rank_img, xy(1, 17), rank_img)
+
+    party_order_img = get_img(ASSETS_DIR / 'trainer_icons' / f'party_order.png', xy(2, 2))
+    img.paste(party_order_img, xy(13, 17), party_order_img)
+
+    d = ImageDraw.Draw(img)
+    d.text(xy(14, 18), str(int(stats.party_order)), fill=DARK_COLOUR, font=ORIENTAL_80, anchor='mm')
 
 
 def add_encounter_icon(img, stats):
@@ -195,8 +206,9 @@ def run(overwrite=False):
         base_img = compose_base(stats)
         img = Image.new('RGBA', xy(16, 28))
         add_frame(img)
-        add_trainer(img, stats)
+
         add_pokemon_art(img, stats)
+        add_trainer(img, stats)
         add_bases(img, stats)
         add_types_and_moves(img, stats)
         add_location(img, stats)
