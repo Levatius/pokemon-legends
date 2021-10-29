@@ -6,28 +6,29 @@ function onLoad()
   button_params = {
     click_function = "flip_button",
     function_owner = self,
-    width          = 200,
-    height         = 150,
-    color          = {0, 0, 0, 0}
-  }
-  text_params = {
-    click_function = "dummy_button",
-    function_owner = self,
     label          = "Flip",
-    width          = 0,
-    height         = 0,
-    font_size      = 50,
+    scale          = {0.25, 1, 0.25},
+    width          = 450,
+    height         = 300,
+    font_size      = 150,
     font_color     = WHITE_COLOUR
   }
   self:createButton(button_params)
-  self:createButton(text_params)
   update_panel()
   self.interactable = false
 end
 
 function get_z_dir()
-  return math.cos(math.rad(self:getRotation().z))
+  return round(math.cos(math.rad(self:getRotation().z)))
 end
+
+function is_faceup()
+  return get_z_dir() == 1
+end
+
+--
+--
+--
 
 function flip_button()
   self:setRotation(self:getRotation() + Vector(0, 0, 180))
@@ -35,11 +36,14 @@ function flip_button()
 end
 
 function update_panel()
-  for i = 0, 1 do
-    self:editButton({
-      index=i,
-      position={0, 0.05 + 0.05 * get_z_dir(), -0.2},
-      rotation={0, 0, self:getRotation().z}
-    })
+  local color = WOOD_COLOUR
+  if not is_faceup() then
+    color = DARK_COLOUR
   end
+  self:editButton({
+    index=0,
+    position={0, 0.05 + 0.05 * get_z_dir(), -0.2},
+    rotation={0, 0, self:getRotation().z},
+    color=color
+  })
 end

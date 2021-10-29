@@ -199,3 +199,21 @@ end
 function capitalise(str)
     return str:gsub("^%l", string.upper)
 end
+
+function get_trainer_token(player_colour)
+  local trainer_tokens = getObjectsWithTag(TRAINER_TOKEN_TAG)
+  for _, trainer_token in pairs(trainer_tokens) do
+    local trainer_colour = trainer_token:getGMNotes()
+    if trainer_colour == player_colour then
+      return trainer_token
+    end
+  end
+  print('Could not find trainer token for player colour "' .. player_colour .. '".')
+end
+
+function get_object(zone)
+  local objects = zone:getObjects()
+  for _, object in pairs(objects) do
+    return object
+  end
+end

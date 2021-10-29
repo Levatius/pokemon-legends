@@ -1,9 +1,0 @@
-music_events = {}
-
--- Events
-function music_events.on_enter_music_cartridge_zone(music_cartridge_zone, music_cartridge)
-  local playlist = music_cartridge:getVar("playlist")
-  if not playlist then return end
-  MusicPlayer:setPlaylist(playlist)
-  print('Playlist set to: "' .. music_cartridge:getName() .. '" by ' .. music_cartridge:getDescription())
-end

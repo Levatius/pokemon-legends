@@ -1,0 +1,116 @@
+#include config
+#include utils
+
+local pokedex_search = getObjectFromGUID(pokedex_search_guid)
+local pokedex_layout_zone = getObjectFromGUID(pokedex_layout_zone_guid)
+local arena_active_zones = {}
+local music_box = getObjectFromGUID(music_box_guid)
+
+function onLoad()
+  for _, arena_active_zone_guid in pairs(arena_active_zone_guids) do
+    table.insert(arena_active_zones, getObjectFromGUID(arena_active_zone_guid))
+  end
+
+  button_params = {
+    click_function = "flip_button",
+    function_owner = self,
+    scale          = {0.5, 1, 0.5},
+    width          = 600,
+    height         = 150,
+    font_size      = 80,
+    color          = {250/255, 245/255, 240/255},
+    font_color     = DARK_COLOUR
+  }
+  self:createButton(button_params)
+
+  for i = 0, 2 do
+    button_params["click_function"] = "send_to_arena_" .. i
+    button_params["position"] = {0.725 - i * 0.725, 0.2, 0.75}
+    self:createButton(button_params)
+  end
+
+  update_panel()
+end
+
+function get_y_dir(obj)
+  return round(math.cos(math.rad(obj:getRotation().y)))
+end
+
+function get_z_dir(obj)
+  return round(math.cos(math.rad(obj:getRotation().z)))
+end
+
+function is_open()
+  return get_z_dir(self) == 1
+end
+
+--
+--
+--
+
+function flip_button()
+  local position = pokedex_search:getPosition() + Vector(0, 0, pokedex_search:getBounds()["size"].z)
+  if is_open() then
+    pokedex_search:call("return_cards")
+    position = pokedex_search:getPosition() + Vector(0, 2 * pokedex_search:getBounds()["size"].y, 0)
+  end
+  self:setPosition(position)
+  self:setRotation(self:getRotation() + Vector(0, 180, 180))
+  update_panel()
+end
+
+function is_arena_active_zone_empty(arena_active_zone)
+  for _, object in pairs(arena_active_zone:getObjects()) do
+    if object.type == "Card" then return false end
+  end
+  return true
+end
+
+function send_to_arena_0() send_to_arena(1) end
+function send_to_arena_1() send_to_arena(2) end
+function send_to_arena_2() send_to_arena(3) end
+function send_to_arena(index)
+  for _, arena_active_zone in pairs(arena_active_zones) do
+    if is_arena_active_zone_empty(arena_active_zone) then
+      local pokemon = pokedex_layout_zone:getObjects()[index]
+      if pokemon then
+        pokemon:setPositionSmooth(arena_active_zone:getPosition() + Vector(0, 0, get_y_dir(arena_active_zone) * 1.8), false, false)
+        pokemon:setRotationSmooth(arena_active_zone:getRotation())
+        Wait.frames(function() music_box:call("music_event_button_0") end, 100)
+        Wait.frames(function() pokedex_search:call("return_cards") end, 10)
+      end
+      return
+    end
+  end
+  print("The arena needs an empty slot.")
+end
+
+--
+--
+--
+
+function update_send_to_arena_buttons()
+  for i = 0, 2 do
+    local pokemon = pokedex_layout_zone:getObjects()[i + 1]
+    local label = "Battle!"
+    local width = 400
+    local height = 200
+    if not pokemon then
+      label = ""
+      width = 0
+      height = 0
+    end
+    self:editButton({index=1 + i, label=label, width=width, height=height})
+  end
+end
+
+function update_panel()
+  local label = is_open() and "Close Pokédex" or "Open Pokédex"
+  self:editButton({
+    index=0,
+    label=label,
+    position={0, 0.1 + 0.1 * get_z_dir(self), 0.55 * get_z_dir(self)},
+    rotation={0, self:getRotation().y + 180, self:getRotation().z}
+  })
+  update_send_to_arena_buttons()
+end

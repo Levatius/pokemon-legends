@@ -1,0 +1,128 @@
+#include config
+#include utils
+
+local claimed_wild_area_descriptions = {}
+
+function onLoad()
+  button_params = {
+    function_owner = self,
+    scale          = {0.5, 1, 0.5},
+    color          = WOOD_COLOUR,
+    font_color     = WHITE_COLOUR
+  }
+  button_params["click_function"] = "debug_game"
+  button_params["position"]       = {-1.85, 0, 0.85}
+  button_params["rotation"]       = {0, 180, 180}
+  button_params["width"]          = 150
+  button_params["height"]         = 150
+  self:createButton(button_params)
+  button_params["click_function"] = "setup_game"
+  button_params["label"]          = "Start Game"
+  button_params["position"]       = {0, 0.2, 0}
+  button_params["rotation"]       = {0, 0, 0}
+  button_params["width"]          = 3400
+  button_params["height"]         = 1500
+  button_params["font_size"]      = 600
+  button_params["color"]          = {75/255, 200/255, 150/255}
+  self:createButton(button_params)
+  self.interactable = false
+end
+
+--
+--
+--
+
+function setup_items(hidden_tokens)
+  for _, hidden_token in pairs(hidden_tokens) do
+    local hidden_token_tags = hidden_token:getTags()
+    local hidden_token_biome = get_biome_tag(hidden_token_tags)
+    local hidden_token_climate = get_climate_tag(hidden_token_tags)
+
+    -- Remove biome and climate tags from hidden encounters
+    if get_encounter_tag(hidden_token_tags) then
+      if hidden_token_biome then
+        hidden_token:removeTag(hidden_token_biome)
+        hidden_token_biome = nil
+      end
+      if hidden_token_climate then
+        hidden_token:removeTag(hidden_token_climate)
+        hidden_token_climate = nil
+      end
+    end
+
+    -- Find wild areas that are compatible with the hidden tokens
+    local wild_areas = shuffle(getObjectsWithAllTags({WILD_AREA_TAG, hidden_token_biome, hidden_token_climate}))
+
+    for _, wild_area in ipairs(wild_areas) do
+      local wild_area_tags = wild_area:getTags()
+      local wild_area_biome = get_biome_tag(wild_area_tags)
+      local wild_area_climate = get_climate_tag(wild_area_tags)
+
+      if not contains(claimed_wild_area_descriptions, wild_area:getDescription()) then
+        hit_list = Physics:cast({
+          origin       = wild_area:getPosition(),
+          direction    = {0, 1, 0},
+          type         = 2,
+          size         = {2, 2, 2},
+          max_distance = 1
+        })
+        local safe_to_place = true
+        for _, hit_info in pairs(hit_list) do
+          local hit_object = hit_info.hit_object
+          if hit_object:hasTag(WORLD_TOKEN_TAG) or hit_object:hasTag(ENCOUNTER_TOKEN_TAG) or hit_object:hasTag(TRAINER_TOKEN_TAG) then
+            safe_to_place = false
+          end
+        end
+        if safe_to_place then
+          hidden_token:setPositionSmooth(wild_area:getPosition() + Vector(0, 2.5, 0), false, false)
+          if hidden_token:hasTag(ENCOUNTER_TOKEN_TAG) then
+            hidden_token:setRotationSmooth(Vector(0, 180, 0))
+          else
+            hidden_token:setRotationSmooth(Vector(0, 180, 180))
+          end
+          table.insert(claimed_wild_area_descriptions, wild_area:getDescription())
+
+          -- Add biome and climate tags of wild area to hidden encounters
+          if get_encounter_tag(hidden_token_tags) then
+            hidden_token:addTag(wild_area_biome)
+            hidden_token:addTag(wild_area_climate)
+          end
+
+          break
+        end
+      end
+    end
+  end
+end
+
+--
+--
+--
+
+function setup_game()
+  claimed_wild_area_descriptions = {}
+  local artifact_tokens = shuffle(getObjectsWithTag(ARTIFACT_TOKEN_TAG))
+  setup_items(artifact_tokens)
+  local hidden_tokens = shuffle(getObjectsWithTag(HIDDEN_TOKEN_TAG))
+  setup_items(hidden_tokens)
+
+  local card_objects = getObjectsWithAnyTags({POKEMON_CARD_TAG, VILLAGE_CARD_TAG, SHRINE_CARD_TAG})
+  for _, card_object in pairs(card_objects) do
+    if card_object.type == "Deck" then
+      card_object:randomize()
+    end
+  end
+
+  local act_cards = getObjectsWithTag(ACT_CARD_TAG)
+  for _, act_card in pairs(act_cards) do
+    if act_card:getName() == "Prologue" and act_card.is_face_down then
+      act_card:flip()
+    end
+  end
+
+  self:flip()
+end
+
+function debug_game()
+  self:flip()
+end

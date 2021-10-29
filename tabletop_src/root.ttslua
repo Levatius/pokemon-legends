@@ -1,18 +1,9 @@
 #include config
 #include utils
-#include events/arena
-#include events/battle_token
-#include events/evolution
-#include events/music
-#include events/player
-#include events/pokemon_collection
 
 function onload()
   print("Root Loaded")
   math.randomseed(os.time())
-
-  local cry_player = getObjectFromGUID(CRY_PLAYER_GUID)
-  cry_player:setValue(CRY_BASE_URL)
 
   init_models()
 end
@@ -53,21 +44,13 @@ end
 --
 
 function onObjectEnterZone(zone, object)
-  if object:getGUID() == -1 then return end
-  -- Scripting Zones
-  if zone.type == "Scripting" then
-    if zone:getName() == "Active Zone" or zone:getName() == "Search Preevolution Zone" then
-      update_panels(zone)
-    elseif zone:hasTag(MUSIC_CARTRIDGE_TAG) then
-      music_events.on_enter_music_cartridge_zone(zone, object)
-    end
-  -- Layout Zones
-  elseif zone.type == "Layout" then
-    if zone:getName() == "Search Layout Zone" then
-      update_panels(zone)
-    end
+  if not object or object:getGUID() == -1 then return end
+  -- Update Zones
+  if zone:hasTag(UPDATE_PANELS_TAG) then
+    update_panels(zone)
+  end
   -- Hand Zones
-  elseif zone.type == "Hand" then
+  if zone.type == "Hand" then
     if object:hasTag(VILLAGE_CARD_TAG) then
       zone:setValue(object:getGMNotes())
     end
@@ -75,16 +58,10 @@ function onObjectEnterZone(zone, object)
 end
 
 function onObjectLeaveZone(zone, object)
-  if object:getGUID() == -1 then return end
-  if zone.type == "Scripting" then
-    if zone:getName() == "Active Zone" or zone:getName() == "Search Preevolution Zone" then
-      update_panels(zone)
-    end
-  -- Layout Zones
-  elseif zone.type == "Layout" then
-    if zone:getName() == "Search Layout Zone" then
-      update_panels(zone)
-    end
+  if not object or object:getGUID() == -1 then return end
+  -- Update Zones
+  if zone:hasTag(UPDATE_PANELS_TAG) then
+    update_panels(zone)
   end
 end
 
@@ -110,29 +87,6 @@ function onObjectLeaveContainer(container, object)
   if container:hasTag(APRICORN_TOKEN_TAG) and container:hasTag(JOURNEY_POINT_TOKEN_TAG) then
     for _, bag_panel in pairs(getObjectsWithTag(BAG_PANEL_TAG)) do
       bag_panel:call("update_panel")
-    end
-  end
-end
-
--- Rotation Events
--- function onObjectRotate(object)
---   if object:hasTag(POKEMON_CARD_TAG) and object.type == "Card" then
---     arena_events.on_rotate_pokemon_card(object)
---   elseif object:hasTag(STATUS_TOKEN_TAG) then
---     arena_events.on_rotate_status_token(object)
---   elseif object:hasTag(MUSIC_EVENTS_TAG) then
---     music_events.on_rotate_music_event_token(object)
---   end
--- end
-
--- Collision Events
-function onObjectCollisionEnter(hit_object, collision_info)
-  local collision_object = collision_info.collision_object
-  if hit_object:hasTag(POKEMON_CARD_TAG) and hit_object.type == "Card" then
-    if collision_object:hasTag(DAMAGE_TOKEN_TAG) then
-      hit_object:addAttachment(collision_object)
-    else
-      evolution_events.on_collision_with_pokemon_card(hit_object, collision_object)
     end
   end
 end

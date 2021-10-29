@@ -43,7 +43,7 @@ def compose_base(stats):
 
 
 def add_frame(img):
-    frame_img = Image.open(ASSETS_DIR / 'frame_base.png').convert('RGBA').resize(xy(15.5, 19))
+    frame_img = Image.open(ASSETS_DIR / 'frame_base.png').convert('RGBA').resize(xy(15.5, 19.25))
     img.paste(frame_img, xy(0.25, 0.25), frame_img)
 
 
@@ -56,9 +56,9 @@ def add_types_and_moves(img, stats):
     if pd.isnull(stats.trainer):
         moves = get_moves(stats)
         for i, move in enumerate(moves):
-            size = 1
+            size = 1.25
             move_img = get_img(ASSETS_DIR / 'types' / f'{move}.png', xy(size, size))
-            img.paste(move_img, xy(3 - (len(moves) / 2 * size) + (i % 2 * size), 17 + i // 2), move_img)
+            img.paste(move_img, xy(3.25 - (len(moves) / 2 * size) + (i % 2 * size), 16.75 + i // 2 * size), move_img)
 
 
 def get_variant(stats):
@@ -119,14 +119,14 @@ def add_trainer(img, stats):
     trainer_img = get_img(ASSETS_DIR / 'trainers' / f'{stats.trainer}.png', xy(5, 9.5))
     img.paste(trainer_img, xy(0, 6.75), trainer_img)
 
-    rank_img = get_img(ASSETS_DIR / 'trainer_icons' / f'rank_{stats.trainer_rank}.png', xy(2, 2))
-    img.paste(rank_img, xy(1, 17), rank_img)
+    rank_img = get_img(ASSETS_DIR / 'trainer_icons' / f'rank_{stats.trainer_rank}.png', xy(2.5, 2.5))
+    img.paste(rank_img, xy(0.75, 16.75), rank_img)
 
-    party_order_img = get_img(ASSETS_DIR / 'trainer_icons' / f'party_order.png', xy(2, 2))
-    img.paste(party_order_img, xy(13, 17), party_order_img)
+    party_order_img = get_img(ASSETS_DIR / 'trainer_icons' / f'party_order.png', xy(2.5, 2.5))
+    img.paste(party_order_img, xy(12.75, 16.75), party_order_img)
 
     d = ImageDraw.Draw(img)
-    d.text(xy(14, 18), str(int(stats.party_order)), fill=DARK_COLOUR, font=ORIENTAL_80, anchor='mm')
+    d.text(xy(14, 18), str(int(stats.party_order)), fill=GOLD_COLOUR, font=ORIENTAL_96, anchor='mm')
 
 
 def add_encounter_icon(img, stats):
@@ -149,7 +149,7 @@ def add_location(img, stats):
     if not pd.isnull(stats.trainer):
         return
 
-    if stats.is_legendary:
+    if stats.is_legendary or stats.is_starter:
         location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'unknown.png', xy(3, 3))
     else:
         try:
@@ -162,12 +162,17 @@ def add_location(img, stats):
 
 
 def add_evolution_cost(img, stats):
-    if pd.isnull(stats.evolve_into):
+    if not pd.isnull(stats.trainer):
         return
-    d = ImageDraw.Draw(img)
-    evolution_icon_img = get_img(ASSETS_DIR / 'evolution_icon.png', xy(2, 2))
-    img.paste(evolution_icon_img, xy(13, 17), evolution_icon_img)
-    d.text(xy(14, 18), str(int(stats.evolve_cost)), fill=WHITE_COLOUR, font=ORIENTAL_80, anchor='mm')
+
+    if not pd.isnull(stats.evolve_into):
+        d = ImageDraw.Draw(img)
+        evolution_icon_img = get_img(ASSETS_DIR / 'evolution_icon.png', xy(2.5, 2.5))
+        img.paste(evolution_icon_img, xy(12.75, 16.75), evolution_icon_img)
+        d.text(xy(14, 18), str(int(stats.evolve_cost)), fill=WHITE_COLOUR, font=ORIENTAL_96, anchor='mm')
+    else:
+        evolution_icon_img = get_img(ASSETS_DIR / 'evolution_final_icon.png', xy(2.5, 2.5))
+        img.paste(evolution_icon_img, xy(12.75, 16.75), evolution_icon_img)
 
 
 def add_text(img, stats):

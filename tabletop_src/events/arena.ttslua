@@ -1,7 +1,0 @@
-arena_events = {}
-
-function arena_events.on_enter_field_zone()
-end
-
-function arena_events.on_leave_field_zone()
-end

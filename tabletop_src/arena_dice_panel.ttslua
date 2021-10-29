@@ -75,6 +75,7 @@ function roll_button()
       smooth   = false,
       callback_function = function(dice) Wait.frames(function() if not dice:isDestroyed() then roll_callback(dice, direction) end end, 50) end
     })
+    spawned_dice:addTag(ATTACK_DICE_TAG)
 
     -- Colour the attack dice
     local active_pokemon = get_active_pokemon()

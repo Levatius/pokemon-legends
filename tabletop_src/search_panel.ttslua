@@ -9,16 +9,16 @@ local preevolution_zone = getObjectFromGUID(preevolution_zone_guid)
 local layout_zone = getObjectFromGUID(layout_zone_guid)
 local galactic_zone = getObjectFromGUID(galactic_zone_guid)
 
-local param_button_states = {climate = 1, biome = 1, encounter = 1}
+local param_button_states = {biome = 1, climate = 1, encounter = 1}
 local param_button_tags = {
-  climate   = CLIMATE_TAGS,
   biome     = BIOME_TAGS,
+  climate   = CLIMATE_TAGS,
   encounter = ENCOUNTER_TAGS
 }
 local param_button_colours = {
-  climate   = {{200/255, 200/255, 250/255}, {150/255, 200/255, 250/255}, {250/255, 200/255, 125/255}},
   biome     = {{100/255, 150/255, 100/255}, {50/255, 100/255, 50/255}, {150/255, 125/255, 100/255}, {100/255, 175/255, 200/255}},
-  encounter = {{100/255, 200/255, 100/255}, {100/255, 150/255, 250/255}, {250/255, 100/255, 100/255}, {250/255, 200/255, 100/255}}
+  climate   = {{200/255, 200/255, 250/255}, {150/255, 200/255, 250/255}, {250/255, 200/255, 125/255}},
+  encounter = {{100/255, 200/255, 100/255}, {100/255, 150/255, 250/255}, {250/255, 100/255, 100/255}}
 }
 local return_coroutine_running = false
 local auto_search = false
@@ -37,20 +37,20 @@ function onLoad()
   local i = 0
   for type, state in pairs(param_button_states) do
     button_params.click_function = "param_button_toggle_" .. type
-    button_params.position = {-0.35, 0.4, -0.75 + 0.35 * i}
+    button_params.position = {-0.35, 0.2, -0.75 + 0.35 * i}
     self:createButton(button_params)
     i = i + 1
   end
   -- Auto Button
   button_params.click_function = "auto_button"
   button_params.width = 700
-  button_params.position = {-0.35, 0.4, 0.3}
+  button_params.position = {-0.35, 0.2, 0.3}
   self:createButton(button_params)
   -- Search Button
   button_params.click_function = "search_button"
   button_params.width = 900
   button_params.height = 400
-  button_params.position = {-0.35, 0.4, 0.7}
+  button_params.position = {-0.35, 0.2, 0.7}
   self:createButton(button_params)
   update_panel()
 end
@@ -59,8 +59,8 @@ end
 --
 --
 
-function param_button_toggle_climate  (_, _, alt_click) param_button_toggle("climate",   alt_click) end
 function param_button_toggle_biome    (_, _, alt_click) param_button_toggle("biome",     alt_click) end
+function param_button_toggle_climate  (_, _, alt_click) param_button_toggle("climate",   alt_click) end
 function param_button_toggle_encounter(_, _, alt_click) param_button_toggle("encounter", alt_click) end
 function param_button_toggle_count    (_, _, alt_click) param_button_toggle("count",     alt_click) end
 function param_button_toggle(type, alt_click)
@@ -88,8 +88,8 @@ function search_button(_, player_colour)
   elseif pokemon_in_preevolution_zone() then
     search_for_evolution()
   else
-    climate, biome, encounter = get_search_params(player_colour)
-    search_for_encounter(climate, biome, encounter)
+    biome, climate, encounter = get_search_params(player_colour)
+    search_for_encounter(biome, climate, encounter)
   end
   update_panel()
 end
@@ -124,7 +124,7 @@ function return_cards()
 
       if zone ~= standard_zone then
         take_object_from_zone_deck(layout_zone, {
-          position = zone:getPosition() + Vector(0, 5, 0),
+          position = zone:getPosition() + Vector(0, 2.5, 0),
           rotation = zone:getRotation(),
           guid     = guid
         })
@@ -180,7 +180,7 @@ function search_for_evolution()
   for _, evolution_name in pairs(evolution_names) do
     local evolution_guid = get_evolution_guid(evolution_name)
     take_object_from_zone_deck(evolution_zone, {
-      position = layout_zone:getPosition() + Vector(0, 5, 0),
+      position = layout_zone:getPosition() + Vector(0, 2.5, 0),
       rotation = layout_zone:getRotation() + Vector(0, 180, 0),
       guid     = evolution_guid,
       smooth   = false
@@ -196,10 +196,8 @@ end
 
 function get_search_params(player_colour)
   if auto_search then
-    local trainer_token_guid = PLAYER_TRAINER_TOKEN_GUIDS[player_colour]
-    local trainer_token = getObjectFromGUID(trainer_token_guid)
+    local trainer_token = get_trainer_token(player_colour)
     if not trainer_token then
-      print('Could not find trainer token for player colour "' .. player_colour .. '".')
       return
     end
     local hit_list = Physics:cast({
@@ -213,39 +211,45 @@ function get_search_params(player_colour)
       local hit_object = hit_info.hit_object
       if hit_object:hasTag(ENCOUNTER_TOKEN_TAG) then
         local encounter_token_tags = hit_object:getTags()
-        return get_climate_tag(encounter_token_tags), get_biome_tag(encounter_token_tags), get_encounter_tag(encounter_token_tags)
+        return get_biome_tag(encounter_token_tags), get_climate_tag(encounter_token_tags), get_encounter_tag(encounter_token_tags)
       end
     end
-    print("No wild encounter found near " .. trainer_token:getName() .. ".")
     return
   end
-  return get_param_button_tag("climate"), get_param_button_tag("biome"), get_param_button_tag("encounter") .. " Encounter Card"
+  return get_param_button_tag("biome"), get_param_button_tag("climate"), get_param_button_tag("encounter") .. " Encounter Card"
 end
 
-function get_encounter_guid(zone, climate, biome, encounter)
-  local infos = get_object_infos_from_zone_deck(zone)
+function get_encounter_guid(zone, biome, climate, encounter)
+  local infos = get_object_infos_from_zone_deck(zone, true)
   for _, info in pairs(infos) do
-    if contains(info.tags, climate) and contains(info.tags, biome) and contains(info.tags, encounter) then
+    if contains(info.tags, biome) and contains(info.tags, climate) and contains(info.tags, encounter) then
       return info.guid
     end
   end
 end
 
-function search_for_encounter(climate, biome, encounter)
-  for i = 1, 3 do
-    local zone = standard_zone
-    if encounter == "Legendary" then
-      zone = legendary_zone
+function search_for_encounter(biome, climate, encounter)
+  local search_count = 1
+  if encounter == "Moderate Encounter Card" then
+    search_count = 2
+  elseif encounter == "Weak Encounter Card" then
+    search_count = 3
+  end
+
+  for i = 1, search_count do
+    local encounter_guid = get_encounter_guid(standard_zone, biome, climate, encounter)
+    if not encounter_guid and i == 1 then
+      print("No wild Pokémon found.")
+      break
     end
-    local encounter_guid = get_encounter_guid(zone, climate, biome, encounter)
-    take_object_from_zone_deck(zone, {
-      position = layout_zone:getPosition() + Vector(0, 5, 0),
+    take_object_from_zone_deck(standard_zone, {
+      position = layout_zone:getPosition() + Vector(0, 0.25, 0),
       rotation = layout_zone:getRotation() + Vector(0, 180, 0),
       guid     = encounter_guid,
       smooth   = false
     })
   end
-  Wait.frames(function() layout_zone.LayoutZone:layout() end, 100)
+  Wait.frames(function() layout_zone.LayoutZone:layout() end, 10)
 end
 
 --

@@ -61,6 +61,7 @@ end
 function play_cry(pokemon)
   local pokemon_name = pokemon:getVar("pokedex_name")
   local audio_clip_name = string.gsub(string.lower(pokemon_name), "[%s+%.+%-+]", "") .. ".mp3"
+  local cry_player = getObjectFromGUID(CRY_PLAYER_GUID)
   cry_player:setValue(CRY_BASE_URL .. audio_clip_name)
 end
 
