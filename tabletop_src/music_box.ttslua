@@ -14,8 +14,6 @@ function onLoad()
   button_params = {
     function_owner = self,
     scale          = {0.5, 1, 0.5},
-    width          = 750,
-    height         = 200,
     font_size      = 80,
     font_color     = WHITE_COLOUR,
     hover_color    = LIGHT_WOOD_COLOUR,
@@ -56,10 +54,6 @@ function music_event_button_4() music_event_button(5) end
 function music_event_button_5() music_event_button(6) end
 
 function music_event_button(index)
-  if is_arena_empty() then
-    print("There must be Pokémon in the arena to play a music event.")
-    return
-  end
   if index == selected_music_event_index then
     MusicPlayer:pause()
     MusicPlayer.repeat_track = false
@@ -103,11 +97,13 @@ end
 --
 --
 
+function is_music_event_playing()
+  return selected_music_event_index ~= nil
+end
+
 function is_arena_active_zone_empty(arena_active_zone)
-  for _, object in pairs(arena_active_zone:getObjects()) do
-    if object.type == "Card" then return false end
-  end
-  return true
+  local pokemon = get_object(arena_active_zone)
+  return pokemon == nil
 end
 
 function is_arena_empty()
@@ -132,7 +128,9 @@ function update_panel()
 
   for i = 0, 5 do
     local label = MUSIC_EVENTS[i + 1]["title"]
-    local color = {175/255, 100/255, 75/255}
+    local width = 750
+    local height = 200
+    local color = WOOD_COLOUR
     local tooltip = "Play Music"
 
     if i + 1 == selected_music_event_index then
@@ -140,10 +138,10 @@ function update_panel()
       tooltip = "Stop Music"
     elseif is_arena_empty() then
       label = ""
-      color = {125/255, 50/255, 25/255}
-      tooltip = ""
+      width = 0
+      height = 0
     end
-    self:editButton({index=i, label=label, color=color, tooltip=tooltip})
+    self:editButton({index=i, label=label, width=width, height=height, color=color, tooltip=tooltip})
   end
 
   if not now_playing then

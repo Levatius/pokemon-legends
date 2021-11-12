@@ -4,7 +4,7 @@
 local pokedex_search = getObjectFromGUID(pokedex_search_guid)
 local pokedex_layout_zone = getObjectFromGUID(pokedex_layout_zone_guid)
 local arena_active_zones = {}
-local music_box = getObjectFromGUID(music_box_guid)
+local music_box = getObjectFromGUID(MUSIC_BOX_GUID)
 
 function onLoad()
   for _, arena_active_zone_guid in pairs(arena_active_zone_guids) do
@@ -74,8 +74,8 @@ function send_to_arena(index)
     if is_arena_active_zone_empty(arena_active_zone) then
       local pokemon = pokedex_layout_zone:getObjects()[index]
       if pokemon then
-        pokemon:setPositionSmooth(arena_active_zone:getPosition() + Vector(0, 0, get_y_dir(arena_active_zone) * 1.8), false, false)
-        pokemon:setRotationSmooth(arena_active_zone:getRotation())
+        pokemon:setPosition(arena_active_zone:getPosition() + Vector(0, 0, get_y_dir(arena_active_zone) * 1.8))
+        pokemon:setRotation(arena_active_zone:getRotation())
         Wait.frames(function() music_box:call("music_event_button_0") end, 100)
         Wait.frames(function() pokedex_search:call("return_cards") end, 10)
       end

@@ -4,6 +4,7 @@ NESBURGH_GUID = "83102a"
 APRICORN_BAG_GUIDS = {"c2d9cc", "5ae126", "926a58", "1d667c", "c7bdb9", "43f641", "76d021"}
 JOURNEY_POINT_BAG_GUID = "611d38"
 CRY_PLAYER_GUID = "54209c"
+MUSIC_BOX_GUID = "e829ae"
 ENCOUNTER_REGULAR_ZONE_GUID = "4d7853"
 ENCOUNTER_EVOLUTION_ZONE_GUID = "ae4239"
 ENCOUNTER_LEGENDARY_ZONE_GUID = "001a84"
@@ -15,37 +16,42 @@ HIDDEN_TOKEN_TAG = "Hidden Token"
 ARTIFACT_TOKEN_TAG = "Artifact Token"
 WORLD_TOKEN_TAG = "World Token"
 UPDATE_PANELS_TAG = "Update Panels"
-EVOLUTION_CARD_TAG = "Evolution Card"
-LEGENDARY_CARD_TAG = "Legendary Encounter Card"
-GALACTIC_GRUNT_TAG = "Galactic Trainer Card"
-ATTACK_DICE_TAG = "Attack Dice"
-VILLAGE_CARD_TAG = "Village Card"
-SHRINE_CARD_TAG = "Shrine Card"
-ACT_CARD_TAG = "Act Card"
-STARTER_CARD_TAG = "Starter Card"
 
+STARTER_CARD_TAG = "Starter Card"
+WEAK_CARD_TAG = "Weak Encounter Card"
+MODERATE_CARD_TAG = "Moderate Encounter Card"
+STRONG_CARD_TAG = "Strong Encounter Card"
+LEGENDARY_CARD_TAG = "Legendary Encounter Card"
+EVOLUTION_CARD_TAG = "Evolution Card"
+
+GALACTIC_TRAINER_CARD_TAG = "Galactic Trainer Card"
+GALACTIC_GRUNT_TAG = "Galactic Grunt"
+GALACTIC_COMMANDER_TAG = "Galactic Commander"
+GALACTIC_BOSS_TAG = "Galactic Boss"
+
+ACT_CARD_TAG = "Act Card"
+SHRINE_CARD_TAG = "Shrine Card"
+VILLAGE_CARD_TAG = "Village Card"
+
+ATTACK_DICE_TAG = "Attack Dice"
 POKEMON_CARD_TAG = "Pokemon Card"
 POKEMON_MODEL_TAG = "Pokemon Model"
-BATTLE_TOKEN_TAG = "Battle Token"
+
 ENCOUNTER_TOKEN_TAG = "Encounter Token"
 JOURNEY_POINT_TOKEN_TAG = "Journey Point Token"
 APRICORN_TOKEN_TAG = "Apricorn Token"
-EVENT_TOKEN_TAG = "Event Token"
-APRICORN_TREE_TAG = "Apricorn Tree"
-DAMAGE_TOKEN_TAG = "Damage Token"
-MUSIC_CARTRIDGE_TAG = "Music Cartridge"
 
 TRAINER_TOKEN_TAG = "Trainer Token"
 VILLAGE_TAG = "Village"
-MUSIC_EVENTS_TAG = "Music Events"
-STANCE_TOKEN_TAG = "Stance Token"
-AURA_POWER_TOKEN_TAG = "Aura Power Token"
 
 WILD_AREA_TAG = "Wild Area"
 CLIMATE_TAGS = {"Cold", "Temperate", "Warm"}
 BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean"}
-ENCOUNTER_TAGS = {"Weak", "Moderate", "Strong"}
+ENCOUNTER_TAGS = {"Weak", "Moderate", "Strong", "Legendary"}
 BAG_PANEL_TAG = "Bag Panel"
+
+POKEMON_ZONE_TAG = "Pokemon Zone"
+BALL_TOKEN_TAG = "Ball Token"
 
 -- Names
 POUCH_NAME = "Pouch"
@@ -82,6 +88,7 @@ CRAFTY_NAMES = {
 
 -- Colours
 WHITE_COLOUR = {1, 1, 1}
+OFF_WHITE_COLOUR = {250/255, 245/255, 240/255}
 LIGHT_BACKING_COLOUR = {225/255, 220/255, 215/255}
 GREY_COLOUR = {200/255, 195/255, 190/255}
 DARK_COLOUR = {37/255, 37/255, 50/255}
@@ -142,7 +149,7 @@ TYPE_CHART = {
   Ghost = {Normal = IMMUNE, Psychic = WEAK, Ghost = WEAK, Dark = RESIST},
   Dragon = {Dragon = WEAK, Steel = RESIST, Fairy = IMMUNE},
   Dark = {Fighting = RESIST, Psychic = WEAK, Ghost = WEAK, Dark = RESIST, Fairy = RESIST},
-  Steel = {Fire = RESIST, Water = RESIST, Grass = RESIST, Ice = WEAK, Rock = WEAK, Steel = RESIST, Fairy = WEAK},
+  Steel = {Fire = RESIST, Water = RESIST, Electric = RESIST, Ice = WEAK, Rock = WEAK, Steel = RESIST, Fairy = WEAK},
   Fairy = {Fire = RESIST, Fighting = WEAK, Poison = RESIST, Dragon = WEAK, Dark = WEAK, Steel = RESIST},
   Typeless = {}
 }

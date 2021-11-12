@@ -1,0 +1,46 @@
+#include config
+#include utils
+
+function onLoad()
+  button_params = {
+    click_function = "flip_button",
+    function_owner = self,
+    label          = "Flip",
+    scale          = {0.25, 1, 0.25},
+    width          = 450,
+    height         = 300,
+    color          = OFF_WHITE_COLOUR,
+    font_size      = 150,
+    font_color     = WHITE_COLOUR
+  }
+  self:createButton(button_params)
+  update_panel()
+end
+
+function get_z_dir()
+  return round(math.cos(math.rad(self:getRotation().z)))
+end
+
+--
+--
+--
+
+function flip_button()
+  self:setPosition(Vector(self:getPosition().x, 1.07 + 0.1 * get_z_dir(), self:getPosition().z))
+  self:setRotation(self:getRotation() + Vector(0, 0, 180))
+  update_panel()
+end
+
+function update_panel()
+  local color = {250/255, 150/255, 100/255}
+  if get_z_dir() == 1 then
+    color = {100/255, 150/255, 250/255}
+  end
+
+  self:editButton({
+    index=0,
+    position={0, 0.1 + 0.1 * get_z_dir(), 0.8},
+    rotation={0, 0, self:getRotation().z},
+    color=color
+  })
+end

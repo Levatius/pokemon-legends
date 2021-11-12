@@ -46,6 +46,7 @@ function fly(_, player_colour)
     bird:setPositionSmooth(target_pos, false, false)
     trainer_token:setPositionSmooth(target_pos, false, false)
     while bird:isSmoothMoving() do coroutine.yield(0) end
+    trainer_token:call("onDrop")
     -- Dropoff
     bird:setRotationSmooth(Vector(0, (nesburgh_pos - target_pos):heading("y"), 0), false, true)
     while bird:isSmoothMoving() do coroutine.yield(0) end

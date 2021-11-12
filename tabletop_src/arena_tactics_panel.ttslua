@@ -1,49 +1,36 @@
 #include config
 #include utils
 
+local active_zone = getObjectFromGUID(active_zone_guid)
+local music_box = getObjectFromGUID(MUSIC_BOX_GUID)
 
 function onLoad()
-  button_params = {
-    click_function = "flip_button",
-    function_owner = self,
-    label          = "Flip",
-    scale          = {0.25, 1, 0.25},
-    width          = 450,
-    height         = 300,
-    font_size      = 150,
-    font_color     = WHITE_COLOUR
-  }
-  self:createButton(button_params)
   update_panel()
-  self.interactable = false
-end
-
-function get_z_dir()
-  return round(math.cos(math.rad(self:getRotation().z)))
-end
-
-function is_faceup()
-  return get_z_dir() == 1
+  self.interactable = true
 end
 
 --
 --
 --
-
-function flip_button()
-  self:setRotation(self:getRotation() + Vector(0, 0, 180))
-  update_panel()
-end
 
 function update_panel()
-  local color = WOOD_COLOUR
-  if not is_faceup() then
-    color = DARK_COLOUR
+  local pokemon = get_object(active_zone)
+  if pokemon and pokemon:hasTag(GALACTIC_TRAINER_CARD_TAG) then
+    self:setPosition(Vector(self:getPosition().x, 2.07, self:getPosition().z))
+    self:setRotation(Vector(self:getRotation().x, self:getRotation().y, 180))
+    -- Play music only when no music event is playing
+    local is_music_event_playing = music_box:call("is_music_event_playing")
+    if not is_music_event_playing then
+      if pokemon:hasTag(GALACTIC_GRUNT_TAG) then
+        Wait.frames(function() music_box:call("music_event_button_3") end, 100)
+      elseif pokemon:hasTag(GALACTIC_COMMANDER_TAG) then
+        Wait.frames(function() music_box:call("music_event_button_4") end, 100)
+      elseif pokemon:hasTag(GALACTIC_BOSS_TAG) then
+        Wait.frames(function() music_box:call("music_event_button_5") end, 100)
+      end
+    end
+  else
+    self:setPosition(Vector(self:getPosition().x, 1.97, self:getPosition().z))
+    self:setRotation(Vector(self:getRotation().x, self:getRotation().y, 0))
   end
-  self:editButton({
-    index=0,
-    position={0, 0.05 + 0.05 * get_z_dir(), -0.2},
-    rotation={0, 0, self:getRotation().z},
-    color=color
-  })
 end

@@ -92,8 +92,8 @@ end
 function take_object_from_zone_deck(zone, params)
   for _, zone_deck in pairs(zone:getObjects()) do
     if zone_deck.type == "Card" and zone_deck:getGUID() == params.guid then
-      zone_deck:setPositionSmooth(params.position, false, true)
-      zone_deck:setRotationSmooth(params.rotation, false, true)
+      zone_deck:setPosition(params.position)
+      zone_deck:setRotation(params.rotation)
       return zone_deck
     elseif zone_deck.type == "Deck" then
       for _, card in pairs(zone_deck:getObjects()) do
@@ -179,8 +179,9 @@ end
 function update_panels(zone)
   for _, update_panel_guid in pairs(zone:getVar("update_panel_guids")) do
     local update_panel = getObjectFromGUID(update_panel_guid)
-    -- ERROR HERE ON EXIT, GUID -1
-    update_panel:call("update_panel")
+    if update_panel then
+      update_panel:call("update_panel")
+    end
   end
 end
 

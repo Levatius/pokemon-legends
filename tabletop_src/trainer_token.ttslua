@@ -1,0 +1,132 @@
+#include config
+#include utils
+
+local biome
+local climate
+local encounter
+
+local title
+local description
+local exclaimation
+
+local do_text_reset = false
+
+function onLoad()
+  button_params = {
+    click_function = "dummy_button",
+    function_owner = self,
+    rotation       = {270, 0, 0},
+    width          = 0,
+    height         = 0
+  }
+  -- Title Button
+  button_params.label = ""
+  button_params.position = {0, 2, 0}
+  button_params.font_size = 200
+  button_params.font_color = DARK_COLOUR
+  self:createButton(button_params)
+  button_params.position = {0, 2.025, 0}
+  button_params.font_color = WHITE_COLOUR
+  self:createButton(button_params)
+  -- Description Button
+  button_params.label = ""
+  button_params.position = {0, 1.5, 0}
+  button_params.font_size = 150
+  button_params.font_color = DARK_COLOUR
+  self:createButton(button_params)
+  button_params.position = {0, 1.525, 0}
+  button_params.font_color = WHITE_COLOUR
+  self:createButton(button_params)
+  -- Exclaimation Button
+  button_params.label = ""
+  button_params.position = {0, 1.75, 0}
+  button_params.font_size = 750
+  button_params.font_color = DARK_COLOUR
+  self:createButton(button_params)
+  button_params.position = {0, 1.775, 0}
+  button_params.font_color = WHITE_COLOUR
+  self:createButton(button_params)
+  update_panel()
+end
+
+function reset_text()
+  title = ""
+  description = ""
+  exclaimation = ""
+end
+
+function onPickUp()
+  reset_text()
+  update_panel()
+end
+
+function search_area()
+  local hit_list = Physics:cast({
+    origin       = self:getPosition() + Vector(0, 1, 0),
+    direction    = {0, -1, 0},
+    type         = 2,
+    size         = {1.5, 1.5, 1.5},
+    max_distance = 2
+  })
+
+  for _, hit_info in pairs(hit_list) do
+    local hit_object = hit_info.hit_object
+
+    biome = get_biome_tag(hit_object:getTags())
+    climate = get_climate_tag(hit_object:getTags())
+    encounter = get_encounter_tag(hit_object:getTags())
+
+    if hit_object:hasTag(ENCOUNTER_TOKEN_TAG) then
+      exclaimation = "!"
+      break
+    elseif hit_object:hasTag(HIDDEN_TOKEN_TAG) or hit_object:hasTag(ARTIFACT_TOKEN_TAG) then
+      exclaimation = "?"
+      break
+    elseif hit_object:hasTag(WORLD_TOKEN_TAG) then
+      title = hit_object:getName()
+      break
+    elseif hit_object:hasTag(WILD_AREA_TAG) then
+      title = hit_object:getName()
+      if title == "" then
+        title = hit_object:getDescription()
+      end
+      description = biome .. " · " .. climate
+      break
+    end
+  end
+end
+
+function onDrop()
+  do_text_reset = not do_text_reset
+
+  Wait.frames(
+    function()
+      search_area()
+      update_panel()
+    end, 50)
+  Wait.frames(
+  function()
+    if do_text_reset then
+      reset_text()
+      update_panel()
+      do_text_reset = false
+    else
+      do_text_reset = true
+    end
+  end, 500)
+end
+
+function update_panel()
+  if title then
+    self:editButton({index=0, label=title})
+    self:editButton({index=1, label=title})
+  end
+  if biome or climate then
+    self:editButton({index=2, label=description})
+    self:editButton({index=3, label=description})
+  end
+  if exclaimation then
+    self:editButton({index=4, label=exclaimation})
+    self:editButton({index=5, label=exclaimation})
+  end
+end

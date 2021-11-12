@@ -99,6 +99,16 @@ end
 --
 --
 
+function flip_over_prologue(if_face_up)
+  local act_cards = getObjectsWithTag(ACT_CARD_TAG)
+  for _, act_card in pairs(act_cards) do
+    if act_card:getName() == "Prologue" and if_face_up ~= act_card.is_face_down then
+      act_card:flip()
+      break
+    end
+  end
+end
+
 function setup_game()
   claimed_wild_area_descriptions = {}
   local artifact_tokens = shuffle(getObjectsWithTag(ARTIFACT_TOKEN_TAG))
@@ -106,23 +116,39 @@ function setup_game()
   local hidden_tokens = shuffle(getObjectsWithTag(HIDDEN_TOKEN_TAG))
   setup_items(hidden_tokens)
 
-  local card_objects = getObjectsWithAnyTags({POKEMON_CARD_TAG, VILLAGE_CARD_TAG, SHRINE_CARD_TAG})
+  local card_objects = getObjectsWithAnyTags({SHRINE_CARD_TAG})
   for _, card_object in pairs(card_objects) do
     if card_object.type == "Deck" then
       card_object:randomize()
     end
   end
 
-  local act_cards = getObjectsWithTag(ACT_CARD_TAG)
-  for _, act_card in pairs(act_cards) do
-    if act_card:getName() == "Prologue" and act_card.is_face_down then
-      act_card:flip()
-    end
-  end
-
+  flip_over_prologue(false)
   self:flip()
 end
 
-function debug_game()
-  self:flip()
+function debug_game(_, _, alt_click)
+  if not alt_click then
+    flip_over_prologue(true)
+    self:flip()
+  else
+    -- Count encounter tokens
+    local encounter_tokens = getObjectsWithTag(ENCOUNTER_TOKEN_TAG)
+    local encounter_tokens_count = {}
+    for _, encounter_token in pairs(encounter_tokens) do
+      local name = encounter_token:getName()
+      if encounter_tokens_count[name] then
+        encounter_tokens_count[name] = encounter_tokens_count[name] + 1
+      else
+        encounter_tokens_count[name] = 1
+      end
+    end
+    log(encounter_tokens_count)
+
+    -- Flip over hidden tokens
+    local hidden_tokens = getObjectsWithAnyTags({ARTIFACT_TOKEN_TAG, HIDDEN_TOKEN_TAG})
+    for _, hidden_token in pairs(hidden_tokens) do
+      hidden_token:setRotationSmooth(Vector(0, 180, 0))
+    end
+  end
 end

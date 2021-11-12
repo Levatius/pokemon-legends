@@ -43,6 +43,15 @@ def get_card_type(stats, is_evolution):
         return 'Galactic Trainer Card'
 
 
+def get_trainer_rank(stats):
+    if stats.trainer_rank == 'grunt':
+        return 'Galactic Grunt'
+    elif stats.trainer_rank == 'commander':
+        return 'Galactic Commander'
+    elif stats.trainer_rank == 'boss':
+        return 'Galactic Boss'
+
+
 def get_tags(stats, is_evolution=False):
     return [
         tag for tag in
@@ -50,7 +59,8 @@ def get_tags(stats, is_evolution=False):
             "Pokemon Card",
             stats.biome,
             stats.climate,
-            get_card_type(stats, is_evolution)
+            get_card_type(stats, is_evolution),
+            get_trainer_rank(stats)
         ]
         if not pd.isnull(tag)
     ]

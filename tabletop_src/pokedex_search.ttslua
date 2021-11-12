@@ -1,0 +1,289 @@
+#include config
+#include utils
+
+local starter_zone = getObjectFromGUID(starter_zone_guid)
+local weak_zone = getObjectFromGUID(weak_zone_guid)
+local moderate_zone = getObjectFromGUID(moderate_zone_guid)
+local strong_zone = getObjectFromGUID(strong_zone_guid)
+local legendary_zone = getObjectFromGUID(legendary_zone_guid)
+local evolution_zone = getObjectFromGUID(evolution_zone_guid)
+local preevolution_zone = getObjectFromGUID(preevolution_zone_guid)
+local layout_zone = getObjectFromGUID(layout_zone_guid)
+local galactic_grunt_zone = getObjectFromGUID(galactic_grunt_zone_guid)
+local galactic_commander_zone = getObjectFromGUID(galactic_commander_zone_guid)
+local galactic_boss_zone = getObjectFromGUID(galactic_boss_zone_guid)
+
+local return_coroutine_running = false
+
+function onLoad()
+  count_params = {
+    click_function = "dummy_button",
+    function_owner = self,
+    scale          = {0.5, 1, 0.5},
+    width          = 0,
+    height         = 0,
+    font_size      = 100,
+    color          = {0, 0, 0},
+    font_color     = WHITE_COLOUR
+  }
+  for j, biome in pairs(BIOME_TAGS) do
+    for i, climate in pairs(CLIMATE_TAGS) do
+      local index = (j-1) * len(CLIMATE_TAGS) + (i-1)
+      count_params.position = {-0.8125 + (i-1) * 0.315, 0.2, -0.5375 + (j-1) * 0.315}
+      self:createButton(count_params)
+    end
+  end
+
+  button_params = {
+    function_owner = self,
+    scale          = {0.5, 1, 0.5},
+    width          = 810,
+    height         = 270,
+    font_size      = 150,
+    font_color     = WHITE_COLOUR
+  }
+  -- Search Button
+  button_params.click_function = "search_button"
+  button_params.position = {-0.635, 0.2, 0.77}
+  self:createButton(button_params)
+  -- Evolve Button
+  button_params.click_function = "evolve_button"
+  button_params.position = {0.635, 0.2, 0.77}
+  self:createButton(button_params)
+  update_panel()
+end
+
+--
+--
+--
+
+function pokemon_in_layout_zone()
+  return len(layout_zone:getObjects()) > 0
+end
+
+function pokemon_in_preevolution_zone()
+  return len(preevolution_zone:getObjects()) > 0
+end
+
+function search_button(_, player_colour)
+  if pokemon_in_layout_zone() then
+    return_cards()
+  else
+    biome, climate, encounter = get_search_params(player_colour)
+    search_for_encounter(biome, climate, encounter)
+  end
+  update_panel()
+end
+
+function evolve_button()
+  if not pokemon_in_preevolution_zone() then
+    print("Place a Pokémon in the slot above.")
+    return
+  elseif pokemon_in_layout_zone() then
+    print("Return the currently searched Pokémon.")
+    return
+  end
+
+  local preevolution = get_object(preevolution_zone)
+  local evolution_names = preevolution:getVar("evolve_into")
+  if not evolution_names then
+    print("This Pokémon does not evolve.")
+    return
+  end
+
+  for _, evolution_name in pairs(evolution_names) do
+    local evolution_guid = get_evolution_guid(evolution_name)
+    take_object_from_zone_deck(evolution_zone, {
+      position = layout_zone:getPosition() + Vector(0, 2.5, 0),
+      rotation = layout_zone:getRotation() + Vector(0, 180, 0),
+      guid     = evolution_guid,
+      smooth   = false
+    })
+  end
+  Wait.frames(function() layout_zone.LayoutZone:layout() end, 10)
+  update_panel()
+end
+
+--
+--
+--
+
+function get_zone_from_tags(tags)
+  if contains(tags, GALACTIC_GRUNT_TAG) then
+    return galactic_grunt_zone
+  elseif contains(tags, GALACTIC_COMMANDER_TAG) then
+    return galactic_commander_zone
+  elseif contains(tags, GALACTIC_BOSS_TAG) then
+    return galactic_boss_zone
+  elseif contains(tags, STARTER_CARD_TAG) then
+    return starter_zone
+  elseif contains(tags, WEAK_CARD_TAG) then
+    return weak_zone
+  elseif contains(tags, MODERATE_CARD_TAG) then
+    return moderate_zone
+  elseif contains(tags, STRONG_CARD_TAG) then
+    return strong_zone
+  elseif contains(tags, LEGENDARY_CARD_TAG) then
+    return legendary_zone
+  elseif contains(tags, EVOLUTION_CARD_TAG) then
+    return evolution_zone
+  end
+end
+
+function return_cards()
+  function return_coroutine()
+    return_coroutine_running = true
+    local infos = get_object_infos_from_zone_deck(layout_zone)
+
+    for _, info in reversedipairs(infos) do
+      local tags = info.tags
+      local guid = info.guid
+      local zone = get_zone_from_tags(tags)
+      take_object_from_zone_deck(layout_zone, {
+        position = zone:getPosition() + Vector(0, 2.5, 0),
+        rotation = zone:getRotation(),
+        guid     = guid,
+        smooth   = false
+      })
+      brief_pause()
+    end
+    return_coroutine_running = false
+    return 1
+  end
+  if not return_coroutine_running then
+    startLuaCoroutine(self, "return_coroutine")
+  else
+    print("Return cards method currently running (if it is not, reloading the game should fix it).")
+  end
+end
+
+function get_evolution_guid(evolution_name)
+  local infos = get_object_infos_from_zone_deck(evolution_zone)
+  for _, info in pairs(infos) do
+    if info.name == evolution_name then
+      return info.guid
+    end
+  end
+  print('Evolution "' ..evolution_name.. '" not found in the evolution deck.')
+end
+
+function get_search_params(player_colour)
+  local trainer_token = get_trainer_token(player_colour)
+  if not trainer_token then
+    return
+  end
+
+  local hit_list = Physics:cast({
+    origin       = trainer_token:getPosition(),
+    direction    = {0, -1, 0},
+    type         = 2,
+    size         = {1.5, 1.5, 1.5},
+    max_distance = 1
+  })
+
+  for _, hit_info in pairs(hit_list) do
+    local hit_object = hit_info.hit_object
+    if hit_object:hasTag(ENCOUNTER_TOKEN_TAG) then
+      local encounter_token_tags = hit_object:getTags()
+      return get_biome_tag(encounter_token_tags), get_climate_tag(encounter_token_tags), get_encounter_tag(encounter_token_tags)
+    end
+  end
+  print("Trainer token not on an encounter token.")
+end
+
+function get_encounter_guid(zone, biome, climate, encounter)
+  local infos = get_object_infos_from_zone_deck(zone, true)
+  for _, info in pairs(infos) do
+    if contains(info.tags, biome) and contains(info.tags, climate) and contains(info.tags, encounter) then
+      return info.guid
+    end
+  end
+end
+
+function search_for_encounter(biome, climate, encounter)
+  local search_count
+  local search_zone
+
+  if encounter == "Weak Encounter Card" then
+    search_count = 3
+    search_zone = weak_zone
+  elseif encounter == "Moderate Encounter Card" then
+    search_count = 2
+    search_zone = moderate_zone
+  elseif encounter == "Strong Encounter Card" then
+    search_count = 1
+    search_zone = strong_zone
+  elseif encounter == "Legendary Encounter Card" then
+    search_count = 1
+    search_zone = legendary_zone
+  else
+    return
+  end
+
+  for i = 1, search_count do
+    local encounter_guid = get_encounter_guid(search_zone, biome, climate, encounter)
+    if not encounter_guid and i == 1 then
+      print("No wild Pokémon found.")
+      break
+    end
+    take_object_from_zone_deck(search_zone, {
+      position = layout_zone:getPosition() + Vector(0, 0.25, 0),
+      rotation = layout_zone:getRotation() + Vector(0, 180, 0),
+      guid     = encounter_guid,
+      smooth   = false
+    })
+  end
+  Wait.frames(function() layout_zone.LayoutZone:layout() end, 10)
+end
+
+function count_wild_pokemon()
+  local biome_climate_counts = {}
+  for _, zone in pairs({weak_zone, moderate_zone, strong_zone}) do
+    local infos = get_object_infos_from_zone_deck(zone, false)
+    for _, info in pairs(infos) do
+      local biome = get_biome_tag(info.tags)
+      local climate = get_climate_tag(info.tags)
+      if biome and climate then
+        if not biome_climate_counts[biome .. climate] then
+          biome_climate_counts[biome .. climate] = 1
+        else
+          biome_climate_counts[biome .. climate] = biome_climate_counts[biome .. climate] + 1
+        end
+      end
+    end
+  end
+  return biome_climate_counts
+end
+
+--
+--
+--
+
+function update_panel()
+  local index = 0
+  local biome_climate_counts = count_wild_pokemon()
+  for j, biome in pairs(BIOME_TAGS) do
+    for i, climate in pairs(CLIMATE_TAGS) do
+      index = (j-1) * len(CLIMATE_TAGS) + (i-1)
+      local label = biome_climate_counts[biome .. climate]
+      self:editButton({index=index, label=label})
+    end
+  end
+  index = index + 1
+
+  local search_button_label = "Search"
+  local search_button_colour = {100/255, 100/255, 250/255}
+  if pokemon_in_layout_zone() then
+    search_button_label = "Return"
+    search_button_colour = {250/255, 100/255, 100/255}
+  end
+  self:editButton({index=index, label=search_button_label, color=search_button_colour})
+  index = index + 1
+
+  local evolve_button_label = "Evolve"
+  local evolve_button_colour = {200/255, 100/255, 250/255}
+  if not pokemon_in_preevolution_zone() or pokemon_in_layout_zone() then
+    evolve_button_colour = {50/255, 75/255, 100/255}
+  end
+  self:editButton({index=index, label=evolve_button_label, color=evolve_button_colour})
+end

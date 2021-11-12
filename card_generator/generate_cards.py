@@ -227,4 +227,4 @@ def run(overwrite=False):
 
 
 if __name__ == '__main__':
-    run(overwrite=False)
+    run(overwrite=True)

@@ -13,16 +13,6 @@ end
 --
 --
 
-function get_active_pokemon()
-  for _, object in pairs(active_zone:getObjects()) do
-    if object.type == "Card" then return object end
-  end
-end
-
---
---
---
-
 function handle_models(pokemon)
   local models = field_zone:getObjects()
   if pokemon and #models == 0 then
@@ -78,6 +68,6 @@ end
 --
 
 function update_panel()
-  local active_pokemon = get_active_pokemon()
+  local active_pokemon = get_object(active_zone)
   handle_models(active_pokemon)
 end
