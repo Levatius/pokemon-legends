@@ -21,29 +21,29 @@ function onLoad()
   }
   -- Title Button
   button_params.label = ""
-  button_params.position = {0, 2, 0}
-  button_params.font_size = 200
+  button_params.position = {0, 4.5, 0}
+  button_params.font_size = 500
   button_params.font_color = DARK_COLOUR
   self:createButton(button_params)
-  button_params.position = {0, 2.025, 0}
+  button_params.position = {0, 4.55, 0}
   button_params.font_color = WHITE_COLOUR
   self:createButton(button_params)
   -- Description Button
   button_params.label = ""
-  button_params.position = {0, 1.5, 0}
-  button_params.font_size = 150
+  button_params.position = {0, 3.5, 0}
+  button_params.font_size = 400
   button_params.font_color = DARK_COLOUR
   self:createButton(button_params)
-  button_params.position = {0, 1.525, 0}
+  button_params.position = {0, 3.55, 0}
   button_params.font_color = WHITE_COLOUR
   self:createButton(button_params)
   -- Exclaimation Button
   button_params.label = ""
-  button_params.position = {0, 1.75, 0}
-  button_params.font_size = 750
+  button_params.position = {0, 4, 0}
+  button_params.font_size = 5000
   button_params.font_color = DARK_COLOUR
   self:createButton(button_params)
-  button_params.position = {0, 1.775, 0}
+  button_params.position = {0, 4.05, 0}
   button_params.font_color = WHITE_COLOUR
   self:createButton(button_params)
   update_panel()

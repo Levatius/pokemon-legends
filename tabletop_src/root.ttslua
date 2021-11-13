@@ -44,7 +44,7 @@ end
 --
 
 function onObjectEnterZone(zone, object)
-  if not zone or not object or object:getGUID() == -1 then return end
+  if not zone or not object then return end
   -- Update Zones
   if zone:hasTag(UPDATE_PANELS_TAG) then
     update_panels(zone)
@@ -60,6 +60,9 @@ function onObjectEnterZone(zone, object)
     -- Arena Special Case
     if zone:getName() == "Arena Pokemon Zone" then
       zone = getObjectFromGUID(zone:getVar("pokemon_zone_guid"))
+      if not zone then
+        return
+      end
       -- if object:getDescription() then
       --   print("Go " .. object:getDescription() .. "!")
       -- end
@@ -97,7 +100,7 @@ function onObjectEnterZone(zone, object)
 end
 
 function onObjectLeaveZone(zone, object)
-  if not zone or not object or object:getGUID() == -1 then return end
+  if not zone or not object then return end
   -- Update Zones
   if zone:hasTag(UPDATE_PANELS_TAG) then
     update_panels(zone)
@@ -107,6 +110,9 @@ function onObjectLeaveZone(zone, object)
     -- Arena Special Case
     if zone:getName() == "Arena Pokemon Zone" then
       zone = getObjectFromGUID(zone:getVar("pokemon_zone_guid"))
+      if not zone then
+        return
+      end
     end
 
     -- Register Zone

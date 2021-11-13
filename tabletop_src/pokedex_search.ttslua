@@ -188,7 +188,7 @@ function get_search_params(player_colour)
       return get_biome_tag(encounter_token_tags), get_climate_tag(encounter_token_tags), get_encounter_tag(encounter_token_tags)
     end
   end
-  print("Trainer token not on an encounter token.")
+  print('Trainer token for player colour "' .. player_colour ..  '" not on an encounter token.')
 end
 
 function get_encounter_guid(zone, biome, climate, encounter)
@@ -223,7 +223,7 @@ function search_for_encounter(biome, climate, encounter)
   for i = 1, search_count do
     local encounter_guid = get_encounter_guid(search_zone, biome, climate, encounter)
     if not encounter_guid and i == 1 then
-      print("No wild Pokémon found.")
+      print("No wild Pokémon found, you may claim any Apricorns here but your turn ends.")
       break
     end
     take_object_from_zone_deck(search_zone, {
@@ -238,6 +238,11 @@ end
 
 function count_wild_pokemon()
   local biome_climate_counts = {}
+
+  if not weak_zone or not moderate_zone or not strong_zone then
+    return biome_climate_counts
+  end
+
   for _, zone in pairs({weak_zone, moderate_zone, strong_zone}) do
     local infos = get_object_infos_from_zone_deck(zone, false)
     for _, info in pairs(infos) do
@@ -266,6 +271,9 @@ function update_panel()
     for i, climate in pairs(CLIMATE_TAGS) do
       index = (j-1) * len(CLIMATE_TAGS) + (i-1)
       local label = biome_climate_counts[biome .. climate]
+      if not label then
+        label = ""
+      end
       self:editButton({index=index, label=label})
     end
   end

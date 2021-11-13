@@ -30,7 +30,7 @@ function fly(_, player_colour)
   function fly_coroutine()
     nesburgh:setVar("fly_coroutine_running", true)
     local initial_pos = trainer_token:getPosition()
-    local target_pos = self:getPosition()
+    local target_pos = self:getPosition() + Vector(0, 0.1, 0)
     local nesburgh_pos = nesburgh:getPosition()
 
     -- Initial
