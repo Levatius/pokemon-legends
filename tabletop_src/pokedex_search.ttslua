@@ -194,7 +194,12 @@ end
 function get_encounter_guid(zone, biome, climate, encounter)
   local infos = get_object_infos_from_zone_deck(zone, true)
   for _, info in pairs(infos) do
-    if contains(info.tags, biome) and contains(info.tags, climate) and contains(info.tags, encounter) then
+    local card_biome = get_biome_tag(info.tags)
+    local card_climate = get_climate_tag(info.tags)
+    local card_encounter = get_encounter_tag(info.tags)
+    if card_biome == biome and card_climate == climate and card_encounter == encounter then
+      return info.guid
+    elseif not card_biome and not card_climate and card_encounter == encounter then
       return info.guid
     end
   end

@@ -123,7 +123,10 @@ function onObjectLeaveZone(zone, object)
       end
     end
     object:setVar("registered_zone_guid", zone:getGUID())
-    object:setDescription(pokemon_name)
+    if pokemon_name then
+      object:setName(pokemon_name)
+      object:setDescription("Flip over when the Pokémon faints.")
+    end
   end
 end
 
