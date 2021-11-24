@@ -12,7 +12,7 @@ def pos(x, y):
     return int(512 * x), int(896 * y)
 
 
-def read_cube(cube_name='sinnoh_cube', sheet_name='sinnoh'):
+def read_cube(cube_name='sinnoh_cube', sheet_name='pokemon'):
     df = pd.read_excel(ROOT_DIR / f'{cube_name}.xlsx', sheet_name)
     return df
 

@@ -9,7 +9,6 @@ function onLoad()
     scale          = {0.25, 1, 0.25},
     width          = 450,
     height         = 300,
-    color          = OFF_WHITE_COLOUR,
     font_size      = 150,
     font_color     = WHITE_COLOUR
   }

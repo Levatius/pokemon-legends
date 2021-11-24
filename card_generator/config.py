@@ -3,31 +3,32 @@ from PIL import ImageFont
 
 COMPONENT_DIR = Path(__file__).parent
 ROOT_DIR = COMPONENT_DIR.parent
-ASSETS_DIR = COMPONENT_DIR.parent / 'assets'
+ASSETS_DIR = COMPONENT_DIR.parent / 'assets' / 'card_generator'
 OUTPUT_DIR = COMPONENT_DIR / 'output'
 MOVES_OUTPUT_DIR = OUTPUT_DIR / 'moves'
 CARD_FRONTS_OUTPUT_DIR = OUTPUT_DIR / 'card_fronts'
 CARD_BACKS_OUTPUT_DIR = OUTPUT_DIR / 'card_backs'
 DECKS_OUTPUT_DIR = OUTPUT_DIR / 'decks'
+DECKS_OBJECTS_OUTPUT_DIR = OUTPUT_DIR / 'deck_objects'
 CARD_OBJECT_TEMPLATE = ASSETS_DIR / 'card_object_template.json'
 DECK_OBJECT_TEMPLATE = ASSETS_DIR / 'deck_object_template.json'
 
 ART_FORM_URL = 'https://www.serebii.net/pokemon/art'
 
-ORIENTAL_64 = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=64)
-ORIENTAL_80 = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=80)
-ORIENTAL_96 = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=96)
-ORIENTAL_160 = ImageFont.truetype(str(ASSETS_DIR / 'la_oriental.otf'), size=160)
-BARLOW_96 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=96)
-BARLOW_80 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=80)
-BARLOW_64 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=64)
-BARLOW_56 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=56)
-BARLOW_48 = ImageFont.truetype(str(ASSETS_DIR / 'barlow.ttf'), size=48)
+# Fonts
+FONT_DIR = ASSETS_DIR / 'fonts'
+FONT_ORIENTAL = str(FONT_DIR / 'la_oriental.otf')
+ORIENTAL_80 = ImageFont.truetype(FONT_ORIENTAL, size=80)
+ORIENTAL_96 = ImageFont.truetype(FONT_ORIENTAL, size=96)
+BARLOW_48 = ImageFont.truetype(str(ASSETS_DIR / 'fonts' / 'barlow.ttf'), size=48)
+BARLOW_64 = ImageFont.truetype(str(ASSETS_DIR / 'fonts' / 'barlow.ttf'), size=64)
+BARLOW_80 = ImageFont.truetype(str(ASSETS_DIR / 'fonts' / 'barlow.ttf'), size=80)
+BARLOW_96 = ImageFont.truetype(str(ASSETS_DIR / 'fonts' / 'barlow.ttf'), size=96)
 
+# Colours
 DARK_COLOUR = (37, 37, 50)
 GOLD_COLOUR = (250, 200, 100)
 WHITE_COLOUR = (255, 255, 255)
-PURPLE_COLOUR = (250, 0, 200)
 
 CARD_FRONTS_DECK_CLOUD_URLS = [
     'http://cloud-3.steamusercontent.com/ugc/1792989789157145036/3941A9D7703CBABAB8488362D217AE390AE9D045/',
@@ -88,7 +89,7 @@ TYPE_CHART = {
     GHOST: {IMMUNE: [NORMAL], RESIST: [DARK], WEAK: [PSYCHIC, GHOST]},
     DRAGON: {IMMUNE: [FAIRY], RESIST: [STEEL], WEAK: [DRAGON]},
     DARK: {IMMUNE: [], RESIST: [FIGHTING, DARK, FAIRY], WEAK: [PSYCHIC, GHOST]},
-    STEEL: {IMMUNE: [], RESIST: [FIRE, WATER, GRASS, STEEL], WEAK: [ICE, ROCK, FAIRY]},
+    STEEL: {IMMUNE: [], RESIST: [FIRE, WATER, ELECTRIC, STEEL], WEAK: [ICE, ROCK, FAIRY]},
     FAIRY: {IMMUNE: [], RESIST: [FIRE, POISON, STEEL], WEAK: [FIGHTING, DRAGON, DARK]}
 }
 # TYPE_COLOURS = {

@@ -1,5 +1,6 @@
 import pandas as pd
 from PIL import Image
+from tqdm import tqdm
 
 from config import *
 from utils import xy, pos, read_cube
@@ -19,13 +20,16 @@ def add_card_at_pos(base_img, pokemon_card_path, position):
 
 
 def run():
+    print('Generating decks:')
+    DECKS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
     i, j = 0, 0
     df = read_cube()
 
     card_fronts_deck_img = get_card_deck_base_img()
     card_backs_deck_img = get_card_deck_base_img()
 
-    for row_number, stats in df.iterrows():
+    for row_number, stats in tqdm(df.iterrows(), total=df.shape[0]):
         if i == 70:
             card_fronts_deck_img.save(DECKS_OUTPUT_DIR / CARD_FRONTS_DECK_IMG.format(j=j))
             card_fronts_deck_img = get_card_deck_base_img()
@@ -36,7 +40,7 @@ def run():
 
         pokemon_card_path = CARD_FRONTS_OUTPUT_DIR / f'{row_number}_{stats.pokedex_name}.png'
         card_back_path = CARD_BACKS_OUTPUT_DIR / f'{stats.move_name}.png' if pd.isnull(
-            stats.trainer) else ASSETS_DIR / 'card_backs' / f'galactic_{stats.trainer_rank}.png'
+            stats.trainer) else ASSETS_DIR / 'card_backs' / f'galactic_{stats.encounter_tier}.png'
         card_pos = pos(i % 10, (i // 10) % 7)
 
         card_fronts_deck_img = add_card_at_pos(card_fronts_deck_img, pokemon_card_path, card_pos)

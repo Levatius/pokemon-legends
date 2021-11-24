@@ -63,9 +63,6 @@ function onObjectEnterZone(zone, object)
       if not zone then
         return
       end
-      -- if object:getDescription() then
-      --   print("Go " .. object:getDescription() .. "!")
-      -- end
     end
 
     local registered_zone_guid = object:getVar("registered_zone_guid")

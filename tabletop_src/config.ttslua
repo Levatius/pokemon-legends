@@ -3,13 +3,8 @@ BIRD_GUID = "527326"
 NESBURGH_GUID = "83102a"
 APRICORN_BAG_GUIDS = {"c2d9cc", "5ae126", "926a58", "1d667c", "c7bdb9", "43f641", "76d021"}
 JOURNEY_POINT_BAG_GUID = "611d38"
-CRY_PLAYER_GUID = "54209c"
 MUSIC_BOX_GUID = "e829ae"
-ENCOUNTER_REGULAR_ZONE_GUID = "4d7853"
-ENCOUNTER_EVOLUTION_ZONE_GUID = "ae4239"
-ENCOUNTER_LEGENDARY_ZONE_GUID = "001a84"
-ENCOUNTER_PWO_ZONE_GUID = "6070e8"
-ENCOUNTER_SORT_ZONE_GUID = "d216bb"
+CRY_PLAYER_GUID = "54209c" -- Unused due to lack of volume control
 
 -- Tags
 HIDDEN_TOKEN_TAG = "Hidden Token"
@@ -24,7 +19,6 @@ STRONG_CARD_TAG = "Strong Encounter Card"
 LEGENDARY_CARD_TAG = "Legendary Encounter Card"
 EVOLUTION_CARD_TAG = "Evolution Card"
 
-GALACTIC_TRAINER_CARD_TAG = "Galactic Trainer Card"
 GALACTIC_GRUNT_TAG = "Galactic Grunt"
 GALACTIC_COMMANDER_TAG = "Galactic Commander"
 GALACTIC_BOSS_TAG = "Galactic Boss"
@@ -54,47 +48,14 @@ POKEMON_ZONE_TAG = "Pokemon Zone"
 BALL_TOKEN_TAG = "Ball Token"
 
 -- Names
-POUCH_NAME = "Pouch"
 JOURNEY_POINT_TOKEN_NAME = "Journey Point"
 APRICORN_NAMES = {"Red", "Blue", "Yellow", "Black", "Pink", "Green", "White"}
 
-FOCUS_EFFECT = "Focus"
-WEAKEN_EFFECT = "Weaken"
-BRACE_EFFECT = "Brace"
-TRAP_EFFECT = "Trap"
-RESTORE_EFFECT = "Restore"
-SWITCH_EFFECT = "Switch"
-
-CRAFTY_NAMES = {
-  Normal = RESTORE_EFFECT,
-  Fire = TRAP_EFFECT,
-  Water = SWITCH_EFFECT,
-  Electric = SWITCH_EFFECT,
-  Grass = RESTORE_EFFECT,
-  Ice = WEAKEN_EFFECT,
-  Fighting = FOCUS_EFFECT,
-  Poison = WEAKEN_EFFECT,
-  Ground = BRACE_EFFECT,
-  Flying = BRACE_EFFECT,
-  Psychic = FOCUS_EFFECT,
-  Bug = SWITCH_EFFECT,
-  Rock = WEAKEN_EFFECT,
-  Ghost = TRAP_EFFECT,
-  Dragon = FOCUS_EFFECT,
-  Dark = TRAP_EFFECT,
-  Steel = BRACE_EFFECT,
-  Fairy = RESTORE_EFFECT
-}
-
 -- Colours
 WHITE_COLOUR = {1, 1, 1}
-OFF_WHITE_COLOUR = {250/255, 245/255, 240/255}
-LIGHT_BACKING_COLOUR = {225/255, 220/255, 215/255}
-GREY_COLOUR = {200/255, 195/255, 190/255}
 DARK_COLOUR = {37/255, 37/255, 50/255}
 WOOD_COLOUR = {150/255, 75/255, 50/255}
 LIGHT_WOOD_COLOUR = {200/255, 125/255, 100/255}
-DARK_BLUE_COLOUR = {50/255, 75/255, 100/255}
 TYPE_COLOURS = {
   Typeless = WOOD_COLOUR,
   Normal = {144/255, 153/255, 161/255},
@@ -117,11 +78,7 @@ TYPE_COLOURS = {
   Fairy = {236/255, 143/255, 230/255}
 }
 
--- Thesholds
-OHKO_THRESHOLD = 7
-
 -- Modifiers
-STAB_BONUS = 1
 WEAK = 2
 RESIST = -2
 IMMUNE = -4
@@ -155,7 +112,7 @@ TYPE_CHART = {
 }
 
 -- URLs
-CRY_BASE_URL = "https://play.pokemonshowdown.com/audio/cries/"
+CRY_BASE_URL = "https://play.pokemonshowdown.com/audio/cries/" -- Unused due to lack of volume control
 
 -- Music
 MUSIC_EVENTS = {

@@ -1,5 +1,6 @@
 import pandas as pd
 from PIL import ImageDraw
+from tqdm import tqdm
 
 from config import *
 from utils import xy, read_cube, get_img, wrap_text
@@ -54,26 +55,28 @@ def add_effectiveness(img, stats):
 
 
 def run(overwrite=False):
+    print('Generating moves:')
+    MOVES_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
     df = read_cube(sheet_name='moves')
-    for _, stats in df.iterrows():
+    for _, stats in tqdm(df.iterrows(), total=df.shape[0]):
         output_path = MOVES_OUTPUT_DIR / f'{stats.move_name}.png'
         if output_path.is_file() and not overwrite:
-            print(f'Card for move "{stats.move_name}" exists, skipping')
             continue
-        print(f'Generating card for move "{stats.move_name}"')
 
         img = get_base()
         add_header(img, stats)
         add_description(img, stats)
-        #add_effectiveness(img, stats)
+        # add_effectiveness(img, stats)
         img.save(output_path)
 
-    for _, stats in df.iterrows():
+    print('Generating card backs:')
+    CARD_BACKS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    for _, stats in tqdm(df.iterrows(), total=df.shape[0]):
         output_path = CARD_BACKS_OUTPUT_DIR / f'{stats.move_name}.png'
         if output_path.is_file() and not overwrite:
-            print(f'Card back for move "{stats.move_name}" exists, skipping')
             continue
-        print(f'Generating card back for move "{stats.move_name}"')
 
         img = get_img(ASSETS_DIR / 'card_backs' / f'standard.png', xy(16, 28))
         move_img = get_img(MOVES_OUTPUT_DIR / f'{stats.move_name}.png', xy(14.5, 7.5))

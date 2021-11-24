@@ -15,7 +15,7 @@ end
 
 function update_panel()
   local pokemon = get_object(active_zone)
-  if pokemon and pokemon:hasTag(GALACTIC_TRAINER_CARD_TAG) then
+  if pokemon and (pokemon:hasTag(GALACTIC_GRUNT_TAG) or pokemon:hasTag(GALACTIC_COMMANDER_TAG) or pokemon:hasTag(GALACTIC_BOSS_TAG)) then
     self:setPosition(Vector(self:getPosition().x, 2.07, self:getPosition().z))
     self:setRotation(Vector(self:getRotation().x, self:getRotation().y, 180))
     -- Play music only when no music event is playing

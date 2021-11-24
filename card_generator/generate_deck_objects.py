@@ -1,6 +1,7 @@
 import json
 
 import pandas as pd
+from tqdm import tqdm
 
 from config import *
 from utils import read_cube
@@ -29,27 +30,36 @@ def get_card_type(stats, is_evolution):
         return 'Evolution Card'
 
     if pd.isnull(stats.trainer):
-        if stats.is_starter:
-            return 'Starter Card'
-        elif stats.is_legendary:
-            return 'Legendary Encounter Card'
-        elif stats.total >= STRONG_ENCOUNTER_THRESHOLD:
-            return 'Strong Encounter Card'
-        elif stats.total >= MODERATE_ENCOUNTER_THRESHOLD:
-            return 'Moderate Encounter Card'
-        else:
-            return 'Weak Encounter Card'
+        encounter_tier_tag_map = {
+            'starter': 'Starter Card',
+            'weak': 'Weak Encounter Card',
+            'moderate': 'Moderate Encounter Card',
+            'strong': 'Strong Encounter Card',
+            'legendary': 'Legendary Encounter Card'
+        }
+        return encounter_tier_tag_map.get(stats.encounter_tier)
+
+
+def get_encounter_tier_tag(stats, is_evolution):
+    if is_evolution:
+        return 'Evolution Card'
+
+    if pd.isnull(stats.trainer):
+        encounter_tier_tag_map = {
+            'starter': 'Starter Card',
+            'weak': 'Weak Encounter Card',
+            'moderate': 'Moderate Encounter Card',
+            'strong': 'Strong Encounter Card',
+            'legendary': 'Legendary Encounter Card'
+        }
+        return encounter_tier_tag_map.get(stats.encounter_tier)
     else:
-        return 'Galactic Trainer Card'
-
-
-def get_trainer_rank(stats):
-    if stats.trainer_rank == 'grunt':
-        return 'Galactic Grunt'
-    elif stats.trainer_rank == 'commander':
-        return 'Galactic Commander'
-    elif stats.trainer_rank == 'boss':
-        return 'Galactic Boss'
+        trainer_tier_tag_map = {
+            'grunt': 'Galactic Grunt',
+            'commander': 'Galactic Commander',
+            'boss': 'Galactic Boss'
+        }
+        return trainer_tier_tag_map.get(stats.encounter_tier)
 
 
 def get_tags(stats, is_evolution=False):
@@ -59,8 +69,7 @@ def get_tags(stats, is_evolution=False):
             "Pokemon Card",
             stats.biome,
             stats.climate,
-            get_card_type(stats, is_evolution),
-            get_trainer_rank(stats)
+            get_encounter_tier_tag(stats, is_evolution)
         ]
         if not pd.isnull(tag)
     ]
@@ -117,19 +126,22 @@ def add_card_to_deck(deck_json, i, j, stats, is_evolution=False):
 
 
 def run():
+    print('Generating deck objects:')
+    DECKS_OBJECTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
     i, j = 0, 0
 
     df = read_cube()
     deck_json = get_deck_json()
-    output_path = DECKS_OUTPUT_DIR / DECK_OBJECTS.format(j=j)
-    for _, stats in df.iterrows():
+    output_path = DECKS_OBJECTS_OUTPUT_DIR / DECK_OBJECTS.format(j=j)
+    for _, stats in tqdm(df.iterrows(), total=df.shape[0]):
         if i == 70:
             with open(output_path, 'w') as f:
                 json.dump(deck_json, f)
             i = 0
             j += 1
             deck_json = get_deck_json(j)
-            output_path = DECKS_OUTPUT_DIR / DECK_OBJECTS.format(j=j)
+            output_path = DECKS_OBJECTS_OUTPUT_DIR / DECK_OBJECTS.format(j=j)
 
         for k in range(stats.number_in_deck):
             add_card_to_deck(deck_json, i, j, stats, is_evolution=(k != 0))
