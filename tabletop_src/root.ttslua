@@ -43,6 +43,64 @@ end
 --
 --
 
+function get_pokemon_zone(zone)
+  -- Arena Special Case
+  if zone:getName() == "Arena Pokemon Zone" then
+    zone = getObjectFromGUID(zone:getVar("pokemon_zone_guid"))
+  end
+  return zone
+end
+
+function set_balls_in_zone_to_pokemon(zone, pokemon)
+  for _, object_in_zone in pairs(zone:getObjects()) do
+    if object_in_zone:hasTag(BALL_TOKEN_TAG) then
+      object_in_zone:setName(pokemon:getName())
+    end
+  end
+end
+
+function reset_balls_in_zone(zone)
+  for _, object_in_zone in pairs(zone:getObjects()) do
+    if object_in_zone:hasTag(BALL_TOKEN_TAG) then
+      object_in_zone:setName(object_in_zone:getGMNotes())
+      object_in_zone:setVar("registered_zone", nil)
+    end
+  end
+end
+
+function register_zone_to_ball(zone, ball)
+  -- Register Zone
+  ball:setVar("registered_zone", zone)
+  -- Set Name
+  for _, object_in_zone in pairs(zone:getObjects()) do
+    if object_in_zone:hasTag(POKEMON_CARD_TAG) and not object_in_zone.is_face_down then
+      ball:setName(object_in_zone:getName())
+      break
+    end
+  end
+end
+
+function is_zone_occupied(zone)
+  for _, object_in_zone in pairs(zone:getObjects()) do
+    if not object_in_zone:hasTag(BALL_TOKEN_TAG) then
+      return true
+    end
+  end
+  return false
+end
+
+function move_objects_between_zones(source_zone, target_zone)
+  for _, object_in_zone in pairs(source_zone:getObjects()) do
+    if not object_in_zone:hasTag(BALL_TOKEN_TAG) then
+      local rotation_delta = target_zone:getRotation() - source_zone:getRotation()
+      local position_delta = object_in_zone:getPosition() - source_zone:getPosition()
+      position_delta:rotateOver("y", rotation_delta.y)
+      object_in_zone:setPosition(target_zone:getPosition() + position_delta)
+      object_in_zone:setRotation(object_in_zone:getRotation() + rotation_delta)
+    end
+  end
+end
+
 function onObjectEnterZone(zone, object)
   if not zone or not object then return end
   -- Update Zones
@@ -56,42 +114,19 @@ function onObjectEnterZone(zone, object)
     end
   end
   -- Pokemon Zones
-  if zone:hasTag(POKEMON_ZONE_TAG) and object:hasTag(BALL_TOKEN_TAG) then
-    -- Arena Special Case
-    if zone:getName() == "Arena Pokemon Zone" then
-      zone = getObjectFromGUID(zone:getVar("pokemon_zone_guid"))
-      if not zone then
+  if zone:hasTag(POKEMON_ZONE_TAG) then
+    if object:hasTag(BALL_TOKEN_TAG) then
+      zone = get_pokemon_zone(zone)
+      local registered_zone = object:getVar("registered_zone")
+
+      if not registered_zone or is_zone_occupied(zone) then
+        register_zone_to_ball(zone, object)
         return
       end
-    end
+      move_objects_between_zones(registered_zone, zone)
 
-    local registered_zone_guid = object:getVar("registered_zone_guid")
-    local registered_zone
-    if registered_zone_guid then
-      registered_zone = getObjectFromGUID(registered_zone_guid)
-    end
-
-    local zone_occupied = false
-    for _, object_in_zone in pairs(zone:getObjects()) do
-      if not object_in_zone:hasTag(BALL_TOKEN_TAG) then
-        zone_occupied = true
-      end
-    end
-
-    if not registered_zone then
-      return
-    elseif zone_occupied then
-      return
-    end
-
-    for _, object_in_zone in pairs(registered_zone:getObjects()) do
-      if not object_in_zone:hasTag(BALL_TOKEN_TAG) then
-        local rotation_delta = zone:getRotation() - registered_zone:getRotation()
-        local position_delta = object_in_zone:getPosition() - registered_zone:getPosition()
-        position_delta:rotateOver("y", rotation_delta.y)
-        object_in_zone:setPosition(zone:getPosition() + position_delta)
-        object_in_zone:setRotation(object_in_zone:getRotation() + rotation_delta)
-      end
+    elseif object:hasTag(POKEMON_CARD_TAG) and not object.is_face_down then
+      set_balls_in_zone_to_pokemon(zone, object)
     end
   end
 end
@@ -103,26 +138,12 @@ function onObjectLeaveZone(zone, object)
     update_panels(zone)
   end
   -- Pokemon Zones
-  if zone:hasTag(POKEMON_ZONE_TAG) and object:hasTag(BALL_TOKEN_TAG) then
-    -- Arena Special Case
-    if zone:getName() == "Arena Pokemon Zone" then
-      zone = getObjectFromGUID(zone:getVar("pokemon_zone_guid"))
-      if not zone then
-        return
-      end
-    end
-
-    -- Register Zone
-    local pokemon_name
-    for _, object_in_zone in pairs(zone:getObjects()) do
-      if object_in_zone:hasTag(POKEMON_CARD_TAG) and not object_in_zone.is_face_down then
-        pokemon_name = object_in_zone:getName()
-      end
-    end
-    object:setVar("registered_zone_guid", zone:getGUID())
-    if pokemon_name then
-      object:setName(pokemon_name)
-      object:setDescription("Flip over when the Pokémon faints.")
+  if zone:hasTag(POKEMON_ZONE_TAG) then
+    if object:hasTag(BALL_TOKEN_TAG) then
+      zone = get_pokemon_zone(zone)
+      register_zone_to_ball(zone, object)
+    elseif object:hasTag(POKEMON_CARD_TAG) and not object.is_face_down then
+      reset_balls_in_zone(zone)
     end
   end
 end

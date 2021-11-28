@@ -123,11 +123,8 @@ def add_trainer(img, stats):
     rank_img = get_img(ASSETS_DIR / 'trainer_icons' / f'rank_{stats.encounter_tier}.png', xy(2.5, 2.5))
     img.paste(rank_img, xy(0.75, 16.75), rank_img)
 
-    # party_order_img = get_img(ASSETS_DIR / 'trainer_icons' / f'party_order.png', xy(2.5, 2.5))
-    # img.paste(party_order_img, xy(12.75, 16.75), party_order_img)
-    #
-    # d = ImageDraw.Draw(img)
-    # d.text(xy(14, 18), str(int(stats.party_order)), fill=GOLD_COLOUR, font=ORIENTAL_96, anchor='mm')
+    party_order_img = get_img(ASSETS_DIR / 'trainer_icons' / f'trainer.png', xy(2.5, 2.5))
+    img.paste(party_order_img, xy(12.75, 16.75), party_order_img)
 
 
 def add_encounter_icon(img, stats):

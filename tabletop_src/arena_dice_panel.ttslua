@@ -153,10 +153,22 @@ end
 --
 
 function get_active_pokemon(is_enemy)
+  local active_pokemon
   local zone = not is_enemy and active_zone or enemy_active_zone
   for _, object in pairs(zone:getObjects()) do
-    if object.type == "Card" then return object end
+    if object.type == "Card" then
+      active_pokemon = object
+      break
+    end
   end
+
+  if active_pokemon and active_pokemon:getLuaScript() == "" then
+    active_pokemon:setName("Missing Data")
+    active_pokemon:setDescription("Internal data for this card has been deleted. It can no longer be used in the arena. Try rewinding time.")
+    active_pokemon:highlightOn({250/255, 100/255, 100/255})
+    return
+  end
+  return active_pokemon
 end
 
 function get_move_types(pokemon)
@@ -181,6 +193,7 @@ end
 
 function update_panel()
   local active_pokemon = get_active_pokemon(false)
+
   local move_types = get_move_types(active_pokemon)
   if type_button_state > #move_types then
     type_button_state = 1

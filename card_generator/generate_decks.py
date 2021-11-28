@@ -5,9 +5,6 @@ from tqdm import tqdm
 from config import *
 from utils import xy, pos, read_cube
 
-CARD_FRONTS_DECK_IMG = '{j}_card_fronts_deck.png'
-CARD_BACKS_DECK_IMG = '{j}_card_backs_deck.png'
-
 
 def get_card_deck_base_img():
     return Image.new('RGBA', pos(10, 7))
@@ -49,6 +46,7 @@ def run():
     else:
         card_fronts_deck_img.save(DECKS_OUTPUT_DIR / CARD_FRONTS_DECK_IMG.format(j=j))
         card_backs_deck_img.save(DECKS_OUTPUT_DIR / CARD_BACKS_DECK_IMG.format(j=j))
+    input('Now upload your deck images to Steam Cloud in TTS, press enter to continue...')
 
 
 if __name__ == '__main__':

@@ -9,6 +9,8 @@ MOVES_OUTPUT_DIR = OUTPUT_DIR / 'moves'
 CARD_FRONTS_OUTPUT_DIR = OUTPUT_DIR / 'card_fronts'
 CARD_BACKS_OUTPUT_DIR = OUTPUT_DIR / 'card_backs'
 DECKS_OUTPUT_DIR = OUTPUT_DIR / 'decks'
+CARD_FRONTS_DECK_IMG = '{j}_card_fronts_deck.png'
+CARD_BACKS_DECK_IMG = '{j}_card_backs_deck.png'
 DECKS_OBJECTS_OUTPUT_DIR = OUTPUT_DIR / 'deck_objects'
 CARD_OBJECT_TEMPLATE = ASSETS_DIR / 'card_object_template.json'
 DECK_OBJECT_TEMPLATE = ASSETS_DIR / 'deck_object_template.json'
@@ -21,13 +23,13 @@ FONT_ORIENTAL = str(FONT_DIR / 'la_oriental.otf')
 ORIENTAL_80 = ImageFont.truetype(FONT_ORIENTAL, size=80)
 ORIENTAL_96 = ImageFont.truetype(FONT_ORIENTAL, size=96)
 BARLOW_48 = ImageFont.truetype(str(ASSETS_DIR / 'fonts' / 'barlow.ttf'), size=48)
+BARLOW_60 = ImageFont.truetype(str(ASSETS_DIR / 'fonts' / 'barlow.ttf'), size=60)
 BARLOW_64 = ImageFont.truetype(str(ASSETS_DIR / 'fonts' / 'barlow.ttf'), size=64)
 BARLOW_80 = ImageFont.truetype(str(ASSETS_DIR / 'fonts' / 'barlow.ttf'), size=80)
 BARLOW_96 = ImageFont.truetype(str(ASSETS_DIR / 'fonts' / 'barlow.ttf'), size=96)
 
 # Colours
 DARK_COLOUR = (37, 37, 50)
-GOLD_COLOUR = (250, 200, 100)
 WHITE_COLOUR = (255, 255, 255)
 
 CARD_FRONTS_DECK_CLOUD_URLS = [

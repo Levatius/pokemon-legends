@@ -13,8 +13,8 @@ def get_deck_json(j=0):
     with open(DECK_OBJECT_TEMPLATE) as f:
         deck_json = json.load(f)
     deck_json['ObjectStates'][0]['ColorDiffuse'] = {'r': 150 / 255, 'g': 75 / 255, 'b': 50 / 255}
-    deck_json['ObjectStates'][0]['CustomDeck']['1']['FaceURL'] = CARD_FRONTS_DECK_CLOUD_URLS[j]
-    deck_json['ObjectStates'][0]['CustomDeck']['1']['BackURL'] = CARD_BACKS_DECK_CLOUD_URLS[j]
+    deck_json['ObjectStates'][0]['CustomDeck']['1']['FaceURL'] = input(f'Enter cloud url for {CARD_FRONTS_DECK_IMG.format(j=j)}:\n')
+    deck_json['ObjectStates'][0]['CustomDeck']['1']['BackURL'] = input(f'Enter cloud url for {CARD_BACKS_DECK_IMG.format(j=j)}:\n')
     return deck_json
 
 
@@ -134,7 +134,7 @@ def run():
     df = read_cube()
     deck_json = get_deck_json()
     output_path = DECKS_OBJECTS_OUTPUT_DIR / DECK_OBJECTS.format(j=j)
-    for _, stats in tqdm(df.iterrows(), total=df.shape[0]):
+    for _, stats in df.iterrows():
         if i == 70:
             with open(output_path, 'w') as f:
                 json.dump(deck_json, f)

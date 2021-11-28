@@ -75,11 +75,7 @@ function setup_items(hidden_tokens)
         end
         if safe_to_place then
           hidden_token:setPositionSmooth(wild_area:getPosition() + Vector(0, 2.5, 0), false, false)
-          if hidden_token:hasTag(ENCOUNTER_TOKEN_TAG) then
-            hidden_token:setRotationSmooth(Vector(0, 180, 0))
-          else
-            hidden_token:setRotationSmooth(Vector(0, 180, 180))
-          end
+          hidden_token:setRotationSmooth(Vector(0, 180, 180))
           table.insert(claimed_wild_area_descriptions, wild_area:getDescription())
 
           -- Add biome and climate tags of wild area to hidden encounters
@@ -143,7 +139,6 @@ function debug_game(_, _, alt_click)
         encounter_tokens_count[name] = 1
       end
     end
-    log(encounter_tokens_count)
 
     -- Flip over hidden tokens
     local hidden_tokens = getObjectsWithAnyTags({ARTIFACT_TOKEN_TAG, HIDDEN_TOKEN_TAG})

@@ -69,8 +69,8 @@ function search_button(_, player_colour)
   if pokemon_in_layout_zone() then
     return_cards()
   else
-    biome, climate, encounter = get_search_params(player_colour)
-    search_for_encounter(biome, climate, encounter)
+    biome, climate, encounter, gm_notes = get_search_params(player_colour)
+    search_for_encounter(biome, climate, encounter, gm_notes)
   end
   update_panel()
 end
@@ -185,27 +185,33 @@ function get_search_params(player_colour)
     local hit_object = hit_info.hit_object
     if hit_object:hasTag(ENCOUNTER_TOKEN_TAG) then
       local encounter_token_tags = hit_object:getTags()
-      return get_biome_tag(encounter_token_tags), get_climate_tag(encounter_token_tags), get_encounter_tag(encounter_token_tags)
+      return get_biome_tag(encounter_token_tags), get_climate_tag(encounter_token_tags), get_encounter_tag(encounter_token_tags), hit_object:getGMNotes()
     end
   end
   print('Trainer token for player colour "' .. player_colour ..  '" not on an encounter token.')
 end
 
-function get_encounter_guid(zone, biome, climate, encounter)
+function get_encounter_guid(zone, biome, climate, encounter, gm_notes)
   local infos = get_object_infos_from_zone_deck(zone, true)
   for _, info in pairs(infos) do
-    local card_biome = get_biome_tag(info.tags)
-    local card_climate = get_climate_tag(info.tags)
-    local card_encounter = get_encounter_tag(info.tags)
-    if card_biome == biome and card_climate == climate and card_encounter == encounter then
-      return info.guid
-    elseif not card_biome and not card_climate and card_encounter == encounter then
-      return info.guid
+    if encounter == "Legendary Encounter Card" then
+      if info.name == gm_notes then
+        return info.guid
+      end
+    else
+      local card_biome = get_biome_tag(info.tags)
+      local card_climate = get_climate_tag(info.tags)
+      local card_encounter = get_encounter_tag(info.tags)
+      if card_biome == biome and card_climate == climate and card_encounter == encounter then
+        return info.guid
+      elseif not card_biome and not card_climate and card_encounter == encounter then
+        return info.guid
+      end
     end
   end
 end
 
-function search_for_encounter(biome, climate, encounter)
+function search_for_encounter(biome, climate, encounter, gm_notes)
   local search_count
   local search_zone
 
@@ -226,9 +232,9 @@ function search_for_encounter(biome, climate, encounter)
   end
 
   for i = 1, search_count do
-    local encounter_guid = get_encounter_guid(search_zone, biome, climate, encounter)
+    local encounter_guid = get_encounter_guid(search_zone, biome, climate, encounter, gm_notes)
     if not encounter_guid and i == 1 then
-      print("No wild Pokémon found, you may claim any Apricorns here but your turn ends.")
+      print("Out of Pokémon for this biome, climate and encounter tier. You may claim any Apricorns here but your turn ends.")
       break
     end
     take_object_from_zone_deck(search_zone, {

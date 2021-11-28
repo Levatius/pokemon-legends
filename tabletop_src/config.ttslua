@@ -27,6 +27,8 @@ ACT_CARD_TAG = "Act Card"
 SHRINE_CARD_TAG = "Shrine Card"
 VILLAGE_CARD_TAG = "Village Card"
 
+DICE_TAG = "Dice"
+HELD_ITEM_TAG = "Helm Item"
 ATTACK_DICE_TAG = "Attack Dice"
 POKEMON_CARD_TAG = "Pokemon Card"
 POKEMON_MODEL_TAG = "Pokemon Model"

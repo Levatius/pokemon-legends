@@ -76,7 +76,13 @@ function send_to_arena(index)
       if pokemon then
         pokemon:setPosition(arena_active_zone:getPosition() + Vector(0, 0, get_y_dir(arena_active_zone) * 1.8))
         pokemon:setRotation(arena_active_zone:getRotation())
-        Wait.frames(function() music_box:call("music_event_button_0") end, 100)
+        if pokemon:hasTag("Space") then
+          Wait.frames(function() music_box:call("music_event_button_2") end, 100)
+        elseif pokemon:hasTag("Legendary Encounter Card") then
+          Wait.frames(function() music_box:call("music_event_button_1") end, 100)
+        else
+          Wait.frames(function() music_box:call("music_event_button_0") end, 100)
+        end
         Wait.frames(function() pokedex_search:call("return_cards") end, 10)
       end
       return
