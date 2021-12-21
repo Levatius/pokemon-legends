@@ -1,3 +1,6 @@
 function onload()
   print("Root Loaded")
+  s = "Size=|S|"
+  _, _, a = string.find(s, "Size=|(%a+)|")
+  print(a)
 end

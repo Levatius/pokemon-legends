@@ -1,7 +1,6 @@
 import json
 
 import pandas as pd
-from tqdm import tqdm
 
 from config import *
 from utils import read_cube
@@ -113,8 +112,6 @@ def get_card_json(i, j, stats, is_evolution=False):
     card_json['Description'] = get_description(stats)
     card_json['Tags'] = get_tags(stats, is_evolution)
     card_json['LuaScript'] = get_lua_script(stats)
-    card_json['CustomDeck']['1']['FaceURL'] = CARD_FRONTS_DECK_CLOUD_URLS[j]
-    card_json['CustomDeck']['1']['BackURL'] = CARD_BACKS_DECK_CLOUD_URLS[j]
 
     return card_json
 

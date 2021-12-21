@@ -1,10 +1,9 @@
-NORMAL_MODEL_BAG_GUIDS = {"b6f5ec", "2c54b8", "806018", "f5e4cc"}
-SHINY_MODEL_BAG_GUIDS = {"55a0b6", "e3be24", "2be0a4", "9280d9"}
+MODEL_BAG_GUIDS = {"b6f5ec", "2c54b8", "806018", "f5e4cc"}
 ZONE_GUID = "508fa3"
-NORMAL_TARGET_GUID = "2a7ed2"
-SHINY_TARGET_GUID = "5f38f4"
+TARGET_GUID = "2a7ed2"
 FINAL_ZONE_GUID = "5446c7"
 FINAL_TARGET_GUID = "a9a0db"
+SIZE_TO_SCALE = {S=2, M=1.4, L=1.2, H=1.0, G=0.8, C=0.6}
 
 function onload()
   self.createButton({
@@ -27,19 +26,19 @@ function onload()
   })
 end
 
+--
+--
+--
 
-
-function transfer_callback(model, target_guid, description)
-  local target = getObjectFromGUID(target_guid)
-  model:setCustomObject({type=1})
-  model:addTag("Pokemon Model")
-  model:setLuaScript()
-  model:setGMNotes()
-  model:setDescription(description)
-  target:putObject(model)
+function transfer_models()
+  function run()
+    transfer(MODEL_BAG_GUIDS, TARGET_GUID)
+    return 1
+  end
+  startLuaCoroutine(self, "run")
 end
 
-function transfer(model_bag_guids, target_guid, description)
+function transfer(model_bag_guids, target_guid)
   local zone = getObjectFromGUID(ZONE_GUID)
   for _, model_bag_guid in ipairs(model_bag_guids) do
     local model_bag = getObjectFromGUID(model_bag_guid)
@@ -47,31 +46,35 @@ function transfer(model_bag_guids, target_guid, description)
       model_bag:takeObject({
         position = zone:getPosition(),
         guid = contained_object.guid,
-        callback_function = function(model) transfer_callback(model, target_guid, description) end
+        callback_function = function(model) transfer_callback(model, target_guid) end
       })
       wait(0.05)
     end
   end
 end
 
-function transfer_models()
-  function normal_run()
-    transfer(NORMAL_MODEL_BAG_GUIDS, NORMAL_TARGET_GUID, "Normal")
-    return 1
-  end
-  startLuaCoroutine(self, "normal_run")
-  -- function shiny_run()
-  --   transfer(SHINY_MODEL_BAG_GUIDS, SHINY_TARGET_GUID, "Shiny")
-  --   return 1
-  -- end
-  -- startLuaCoroutine(self, "shiny_run")
+function transfer_callback(model, target_guid)
+  local target = getObjectFromGUID(target_guid)
+  model:setCustomObject({type=1})
+  model:addTag("Pokemon Model")
+  model:setLuaScript()
+  local _, _, size = string.find(model:getGMNotes(), "Size=|(%a)|")
+  local scale = SIZE_TO_SCALE[size]
+  model:setScale(Vector(scale, scale, scale))
+  model:setGMNotes()
+  target:putObject(model)
 end
 
+--
+--
+--
 
-
-function cache_callback(model, final_target_guid)
-  local target = getObjectFromGUID(final_target_guid)
-  target:putObject(model)
+function cache_models()
+  function run()
+    cache(TARGET_GUID)
+    return 1
+  end
+  startLuaCoroutine(self, "run")
 end
 
 function cache(target_guid)
@@ -87,20 +90,14 @@ function cache(target_guid)
   end
 end
 
-function cache_models()
-  function normal_run()
-    cache(NORMAL_TARGET_GUID)
-    return 1
-  end
-  startLuaCoroutine(self, "normal_run")
-  -- function shiny_run()
-  --   cache(SHINY_TARGET_GUID)
-  --   return 1
-  -- end
-  -- startLuaCoroutine(self, "shiny_run")
+function cache_callback(model, final_target_guid)
+  local target = getObjectFromGUID(final_target_guid)
+  target:putObject(model)
 end
 
-
+--
+--
+--
 
 function wait(time)
     local start = os.time()

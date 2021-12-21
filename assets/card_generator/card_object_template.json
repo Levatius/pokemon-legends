@@ -18,17 +18,6 @@
   "Tags": null,
   "LuaScript": null,
   "Hands": false,
-  "CustomDeck": {
-    "1": {
-      "FaceURL": "",
-      "BackURL": "",
-      "NumWidth": 10,
-      "NumHeight": 7,
-      "BackIsHidden": true,
-      "UniqueBack": true,
-      "Type": 0
-    }
-  },
   "AttachedSnapPoints": [
     {
       "Position": {
