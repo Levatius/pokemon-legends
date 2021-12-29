@@ -3,7 +3,7 @@ ZONE_GUID = "508fa3"
 TARGET_GUID = "2a7ed2"
 FINAL_ZONE_GUID = "5446c7"
 FINAL_TARGET_GUID = "a9a0db"
-SIZE_TO_SCALE = {S=2, M=1.4, L=1.2, H=1.0, G=0.8, C=0.6}
+SIZE_TO_SCALE = {S=1.8, M=1.4, L=1.2, H=1.0, G=0.8, C=0.6}
 
 function onload()
   self.createButton({
