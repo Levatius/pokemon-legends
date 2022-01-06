@@ -48,6 +48,11 @@ def add_frame(img):
     img.paste(frame_img, xy(0.25, 0.25), frame_img)
 
 
+def add_creator_emblem(img):
+    creator_emblem_img = Image.open(ASSETS_DIR / 'creator_emblem.png').convert('RGBA').resize(xy(1, 1))
+    img.paste(creator_emblem_img, xy(14.75, 15.75), creator_emblem_img)
+
+
 def add_types_and_moves(img, stats):
     types = get_types(stats)
     for i, type_ in enumerate(types):
@@ -202,7 +207,7 @@ def run(overwrite=False):
         base_img = compose_base(stats)
         img = Image.new('RGBA', xy(16, 28))
         add_frame(img)
-
+        add_creator_emblem(img)
         add_pokemon_art(img, stats)
         add_trainer(img, stats)
         add_bases(img, stats)
