@@ -8,6 +8,14 @@ function len(t)
   return l
 end
 
+function get_keys(t)
+  local keys = {}
+  for key, _ in pairs(t) do
+    table.insert(keys, key)
+  end
+  return keys
+end
+
 function find_first_index(t, value)
   for i, value_ in pairs(t) do
     if value_ == value then

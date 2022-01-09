@@ -5,13 +5,26 @@ local active_zone = getObjectFromGUID(active_zone_guid)
 local enemy_active_zone = getObjectFromGUID(enemy_active_zone_guid)
 local field_zone = getObjectFromGUID(field_zone_guid)
 local dice_bag = getObjectFromGUID(dice_bag_guid)
+local fatigue_dice = getObjectFromGUID(fatigue_dice_guid)
 
 local dice_button_state = 1
 local type_button_state = 1
+local type_range_button_state = 1
+
+FATIGUE_LEVEL = 5
+FATIGUE_ROTATIONS = {
+  Vector(270, 180, 0),
+  Vector(0, 180, 0),
+  Vector(0, 180, 270),
+  Vector(0, 180, 90),
+  Vector(0, 180, 180),
+  Vector(90, 180, 0)
+}
 
 function onLoad()
   button_params = {
     function_owner = self,
+    scale          = {0.5, 1, 0.5},
     color          = WOOD_COLOUR,
     font_color     = WHITE_COLOUR,
     hover_color    = LIGHT_WOOD_COLOUR,
@@ -19,27 +32,36 @@ function onLoad()
   }
   -- Roll Button
   button_params.click_function = "roll_button"
-  button_params.width = 850
-  button_params.height = 450
+  button_params.width = 1700
+  button_params.height = 920
   button_params.position = {0, 0.1, -0.4125}
-  button_params.font_size = 200
+  button_params.font_size = 400
   button_params.label = "Roll"
   self:createButton(button_params)
   -- Dice Button
   button_params.click_function = "dice_button_toggle"
-  button_params.width = 400
-  button_params.height = 350
-  button_params.position = {-0.4625, 0.1, 0.525}
-  button_params.font_size = 100
+  button_params.width = 800
+  button_params.height = 680
+  button_params.position = {-0.465, 0.1, 0.525}
+  button_params.font_size = 200
   button_params.tooltip = "Toggle Attack Strength"
   self:createButton(button_params)
   -- Type Button
   button_params.click_function = "type_button_toggle"
-  button_params.width = 400
-  button_params.height = 350
-  button_params.position = {0.4625, 0.1, 0.525}
-  button_params.font_size = 100
+  button_params.width = 800
+  button_params.height = 680
+  button_params.position = {0.465, 0.1, 0.525}
+  button_params.font_size = 200
   button_params.tooltip = "Toggle Attack Type"
+  self:createButton(button_params)
+  -- Type Range Button
+  button_params.click_function = "type_range_button_toggle"
+  button_params.scale = {0.5, 0.5, 0.5}
+  button_params.width = 130
+  button_params.height = 130
+  button_params.position = {0.9025, 0.1, 0.125}
+  button_params.label = ""
+  button_params.tooltip = "Toggle All Types"
   self:createButton(button_params)
   update_panel()
 end
@@ -59,6 +81,20 @@ function animate_model()
   local models = field_zone:getObjects()
   for _, model in pairs(models) do
     model.AssetBundle:playTriggerEffect(1)
+  end
+end
+
+function reset_fatigue_dice()
+  local current_state = fatigue_dice:getValue()
+  if current_state > 1 then
+    fatigue_dice:setRotationSmooth(FATIGUE_ROTATIONS[1] + Vector(0, self:getRotation().y, 0))
+  end
+end
+
+function increment_fatigue_dice()
+  local current_state = fatigue_dice:getValue()
+  if current_state < 6 then
+    fatigue_dice:setRotationSmooth(FATIGUE_ROTATIONS[current_state + 1] + Vector(0, self:getRotation().y, 0))
   end
 end
 
@@ -87,6 +123,11 @@ function roll_button()
     end
 
     x_offset = x_offset + direction * 1
+  end
+
+  local active_pokemon = get_active_pokemon(false)
+  if active_pokemon then
+    increment_fatigue_dice()
   end
 end
 
@@ -152,6 +193,15 @@ end
 --
 --
 
+function type_range_button_toggle()
+  type_range_button_state = get_next_state(type_range_button_state, 2, false)
+  update_panel()
+end
+
+--
+--
+--
+
 function get_active_pokemon(is_enemy)
   local active_pokemon
   local zone = not is_enemy and active_zone or enemy_active_zone
@@ -173,10 +223,14 @@ end
 
 function get_move_types(pokemon)
   local move_types = {"Typeless"}
-  if pokemon then
-    for _, v in ipairs(pokemon:getVar("moves")) do
-      table.insert(move_types, v)
+  if type_range_button_state == 1 then
+    if pokemon then
+      for _, v in ipairs(pokemon:getVar("moves")) do
+        table.insert(move_types, v)
+      end
     end
+  else
+    move_types = get_keys(TYPE_CHART)
   end
   return move_types
 end
@@ -193,6 +247,9 @@ end
 
 function update_panel()
   local active_pokemon = get_active_pokemon(false)
+  if not active_pokemon then
+    reset_fatigue_dice()
+  end
 
   local move_types = get_move_types(active_pokemon)
   if type_button_state > #move_types then
@@ -205,6 +262,10 @@ function update_panel()
 
   local effectiveness = get_effectiveness(type_name, enemy_base_types)
 
+  if not active_pokemon and not enemy_active_pokemon then
+    clean_up_dice()
+  end
+
   self:editButton({
     index = 1,
     label = dice_button_state .. " Dice"
@@ -213,5 +274,10 @@ function update_panel()
     index = 2,
     label = type_name .. "\n" .. signed_label(effectiveness),
     color = TYPE_COLOURS[type_name]
+  })
+  local type_range_button_colours = {WOOD_COLOUR, {100/255, 200/255, 100/255}}
+  self:editButton({
+    index = 3,
+    color = type_range_button_colours[type_range_button_state]
   })
 end

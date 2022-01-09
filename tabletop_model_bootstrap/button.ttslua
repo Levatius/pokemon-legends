@@ -1,4 +1,4 @@
-MODEL_BAG_GUIDS = {"b6f5ec", "2c54b8", "806018", "f5e4cc"}
+MODEL_BAG_GUIDS = {"83e57d", "fa1523", "08537d", "b6f5ec", "2c54b8", "806018", "f5e4cc"}
 ZONE_GUID = "508fa3"
 TARGET_GUID = "2a7ed2"
 FINAL_ZONE_GUID = "5446c7"

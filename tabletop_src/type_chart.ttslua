@@ -5,12 +5,11 @@ function onLoad()
   button_params = {
     click_function = "flip_button",
     function_owner = self,
-    label          = "Flip",
     scale          = {0.25, 1, 0.25},
     width          = 450,
-    height         = 300,
-    font_size      = 150,
-    font_color     = WHITE_COLOUR
+    height         = 450,
+    color          = {0, 0, 0, 0},
+    tooltip        = "Flip"
   }
   self:createButton(button_params)
   update_panel()
@@ -31,15 +30,9 @@ function flip_button()
 end
 
 function update_panel()
-  local color = {250/255, 150/255, 100/255}
-  if get_z_dir() == 1 then
-    color = {100/255, 150/255, 250/255}
-  end
-
   self:editButton({
     index=0,
-    position={0, 0.1 + 0.1 * get_z_dir(), 0.8},
-    rotation={0, 0, self:getRotation().z},
-    color=color
+    position={0, 0.1 + 0.1 * get_z_dir(), 0.75},
+    rotation={0, 0, self:getRotation().z}
   })
 end

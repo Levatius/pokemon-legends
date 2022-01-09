@@ -16,7 +16,7 @@ end
 function init_models()
   -- Do not allow players to mess with any models
   for _, object in pairs(getObjectsWithTag(POKEMON_MODEL_TAG)) do
-    object.interactable = false
+    object.interactable = true
   end
   deduplicate_models()
 end
@@ -108,10 +108,24 @@ function onObjectEnterZone(zone, object)
     update_panels(zone)
   end
   -- Hand Zones
-  if zone.type == "Hand" then
-    if object:hasTag(VILLAGE_CARD_TAG) then
-      zone:setValue(object:getGMNotes())
+  if zone.type == "Hand" and object:hasTag(VILLAGE_CARD_TAG) then
+    if #zone:getObjects() > 1 then
+      print("Remove any objects from hand if trying to change hand colour.")
+      return
     end
+
+    local card_colour = object:getGMNotes()
+    local zone_colour = zone:getValue()
+
+    -- Change zone colour
+    for _, object in pairs(getObjects()) do
+      if object.type == "Hand" then
+        if object:getValue() == card_colour and object:getGUID() != zone:getGUID() then
+          object:setValue(zone_colour)
+        end
+      end
+    end
+    zone:setValue(card_colour)
   end
   -- Pokemon Zones
   if zone:hasTag(POKEMON_ZONE_TAG) then

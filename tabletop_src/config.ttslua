@@ -87,6 +87,7 @@ IMMUNE = -4
 
 -- Type Chart
 TYPE_CHART = {
+  Typeless = {},
   Normal = {Rock = RESIST, Ghost = IMMUNE, Steel = RESIST},
   Fire = {Fire = RESIST, Water = RESIST, Grass = WEAK, Ice = WEAK, Bug = WEAK, Rock = RESIST, Dragon = RESIST, Steel = WEAK},
   Water = {Fire = WEAK, Water = RESIST, Grass = RESIST, Ground = WEAK, Rock = WEAK, Dragon = RESIST},
@@ -109,8 +110,7 @@ TYPE_CHART = {
   Dragon = {Dragon = WEAK, Steel = RESIST, Fairy = IMMUNE},
   Dark = {Fighting = RESIST, Psychic = WEAK, Ghost = WEAK, Dark = RESIST, Fairy = RESIST},
   Steel = {Fire = RESIST, Water = RESIST, Electric = RESIST, Ice = WEAK, Rock = WEAK, Steel = RESIST, Fairy = WEAK},
-  Fairy = {Fire = RESIST, Fighting = WEAK, Poison = RESIST, Dragon = WEAK, Dark = WEAK, Steel = RESIST},
-  Typeless = {}
+  Fairy = {Fire = RESIST, Fighting = WEAK, Poison = RESIST, Dragon = WEAK, Dark = WEAK, Steel = RESIST}
 }
 
 -- URLs

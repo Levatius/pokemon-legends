@@ -49,7 +49,7 @@ end
 --
 
 function flip_button()
-  local position = pokedex_search:getPosition() + Vector(0, 0, pokedex_search:getBounds()["size"].z)
+  local position = pokedex_search:getPosition() + get_y_dir(self) * Vector(0, 0, pokedex_search:getBounds()["size"].z)
   if is_open() then
     pokedex_search:call("return_cards")
     position = pokedex_search:getPosition() + Vector(0, 2 * pokedex_search:getBounds()["size"].y, 0)
@@ -116,7 +116,7 @@ function update_panel()
     index=0,
     label=label,
     position={0, 0.1 + 0.1 * get_z_dir(self), 0.55 * get_z_dir(self)},
-    rotation={0, self:getRotation().y + 180, self:getRotation().z}
+    rotation={0, 90 - 90 * get_z_dir(self), self:getRotation().z}
   })
   update_send_to_arena_buttons()
 end
