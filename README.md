@@ -1,6 +1,6 @@
 # Pokémon: Legends of Sinnoh
 
-- `assests/`: Contains all the assets I have created for the game. You can add new assets here if you want to change how your custom cards look.
+- `assets/`: Contains all the assets I have created for the game. You can add new assets here if you want to change how your custom cards look.
 
 - `requirements.txt`: You need a Python environment with these packages installed to use the card generator.
 - `sinnoh_cube.xlsx`: Contains the full database of Pokémon and moves.
