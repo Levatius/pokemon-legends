@@ -95,16 +95,6 @@ end
 --
 --
 
-function flip_over_prologue(if_face_up)
-  local act_cards = getObjectsWithTag(ACT_CARD_TAG)
-  for _, act_card in pairs(act_cards) do
-    if act_card:getName() == "Prologue" and if_face_up ~= act_card.is_face_down then
-      act_card:flip()
-      break
-    end
-  end
-end
-
 function setup_game()
   claimed_wild_area_descriptions = {}
   local artifact_tokens = shuffle(getObjectsWithTag(ARTIFACT_TOKEN_TAG))
@@ -118,14 +108,11 @@ function setup_game()
       card_object:randomize()
     end
   end
-
-  flip_over_prologue(false)
   self:flip()
 end
 
 function debug_game(_, _, alt_click)
   if not alt_click then
-    flip_over_prologue(true)
     self:flip()
   else
     -- Count encounter tokens

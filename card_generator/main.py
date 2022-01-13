@@ -5,9 +5,9 @@ import generate_deck_objects
 
 
 def run_all(overwrite=False):
-    #generate_moves.run(overwrite)
-    #generate_pokemon.run(overwrite)
-    #generate_decks.run()
+    generate_moves.run(overwrite)
+    generate_pokemon.run(overwrite)
+    generate_decks.run()
     generate_deck_objects.run()
 
 

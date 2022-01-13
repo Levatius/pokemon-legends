@@ -85,15 +85,16 @@ function animate_model()
 end
 
 function reset_fatigue_dice()
-  local current_state = fatigue_dice:getValue()
-  if current_state > 1 then
-    fatigue_dice:setRotationSmooth(FATIGUE_ROTATIONS[1] + Vector(0, self:getRotation().y, 0))
-  end
+  fatigue_dice:setRotationSmooth(FATIGUE_ROTATIONS[1] + Vector(0, self:getRotation().y, 0))
+  fatigue_dice:highlightOff()
 end
 
 function increment_fatigue_dice()
   local current_state = fatigue_dice:getValue()
   if current_state < 6 then
+    if current_state == 5 then
+      fatigue_dice:highlightOn({250/255, 125/255, 100/255})
+    end
     fatigue_dice:setRotationSmooth(FATIGUE_ROTATIONS[current_state + 1] + Vector(0, self:getRotation().y, 0))
   end
 end
