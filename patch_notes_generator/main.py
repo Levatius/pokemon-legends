@@ -21,14 +21,13 @@ def run():
         if not old_row_df.empty:
             continue
 
-        health_text = f'Health: {new_row.health}'
-        initiative_text = f'Initiative: {new_row.initiative}'
-        move_text = f'Move: {new_row.move_name}'
-        location_text = f'Location: {new_row.biome}/{new_row.climate}'
-        texts = '\n'.join([f'\t\t{text}' for text in [health_text, initiative_text, move_text, location_text] if text])
-        print(f':small_blue_diamond: **{new_row.internal_name}**:')
-        print(texts)
-
+        health_text = f':health:: {new_row.health}'
+        initiative_text = f':initiative:: {new_row.initiative}'
+        move_text = f':crossed_swords:: {new_row.move_name}'
+        location_text = f':map:: {new_row.biome}/{new_row.climate}'
+        evolve_cost_text = f':journey_point:: {new_row.evolve_cost}' if not pd.isnull(new_row.evolve_cost) else None
+        texts = ', '.join([text for text in [health_text, initiative_text, move_text, location_text, evolve_cost_text] if text])
+        print(f':small_blue_diamond: **{new_row.internal_name}**: {texts}')
     print('\n**Modified Pokémon**')
     for _, new_row in new_df_pokemon.iterrows():
         if not pd.isnull(new_row.trainer):
@@ -39,16 +38,27 @@ def run():
             continue
 
         old_row = old_row_df.iloc[0]
-        if not (
-                new_row.initiative != old_row.initiative or new_row.health != old_row.health or new_row.move_name != old_row.move_name or (
-                not pd.isnull(new_row.biome) and new_row.biome != old_row.biome) or new_row.climate != old_row.climate):
-            continue
 
-        health_text = f'Health: {old_row.health} → {new_row.health}' if new_row.health != old_row.health else None
-        initiative_text = f'Initiative: {old_row.initiative} → {new_row.initiative}' if new_row.initiative != old_row.initiative else None
-        move_text = f'Move: {old_row.move_name} → {new_row.move_name}' if new_row.move_name != old_row.move_name else None
-        location_text = f'Location: {old_row.biome}/{old_row.climate} → {new_row.biome}/{new_row.climate}' if new_row.biome != old_row.biome or new_row.climate != old_row.climate else None
-        texts = ', '.join([f'{text}' for text in [health_text, initiative_text, move_text, location_text] if text])
+        texts = []
+        if new_row.health != old_row.health:
+            health_text = f':health:: {old_row.health} → {new_row.health}'
+            texts.append(health_text)
+        if new_row.initiative != old_row.initiative:
+            initiative_text = f':initiative:: {old_row.initiative} → {new_row.initiative}'
+            texts.append(initiative_text)
+        if new_row.move_name != old_row.move_name:
+            move_text = f':crossed_swords:: {old_row.move_name} → {new_row.move_name}'
+            texts.append(move_text)
+        if not pd.isnull(new_row.biome) and (new_row.biome != old_row.biome or new_row.climate != old_row.climate):
+            location_text = f':map:: {old_row.biome}/{old_row.climate} → {new_row.biome}/{new_row.climate}'
+            texts.append(location_text)
+        if not pd.isnull(new_row.evolve_cost) and new_row.evolve_cost != old_row.evolve_cost:
+            evolve_cost_text = f':journey_point:: {int(old_row.evolve_cost)} → {int(new_row.evolve_cost)}'
+            texts.append(evolve_cost_text)
+
+        if not texts:
+            continue
+        texts = ', '.join(texts)
         print(f':small_orange_diamond: **{new_row.internal_name}**: {texts}')
 
     print('\n**New Moves**')

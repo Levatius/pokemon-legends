@@ -12,4 +12,4 @@ def run_all(overwrite=False):
 
 
 if __name__ == '__main__':
-    run_all(overwrite=False)
+    run_all(overwrite=True)

@@ -20,6 +20,7 @@ ART_FORM_URL = 'https://www.serebii.net/pokemon/art'
 # Fonts
 FONT_DIR = ASSETS_DIR / 'fonts'
 FONT_ORIENTAL = str(FONT_DIR / 'la_oriental.otf')
+ORIENTAL_64 = ImageFont.truetype(FONT_ORIENTAL, size=64)
 ORIENTAL_80 = ImageFont.truetype(FONT_ORIENTAL, size=80)
 ORIENTAL_96 = ImageFont.truetype(FONT_ORIENTAL, size=96)
 BARLOW_48 = ImageFont.truetype(str(ASSETS_DIR / 'fonts' / 'barlow.ttf'), size=48)

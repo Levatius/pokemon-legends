@@ -36,8 +36,7 @@ def run():
             j += 1
 
         pokemon_card_path = CARD_FRONTS_OUTPUT_DIR / f'{row_number}_{stats.pokedex_name}.png'
-        card_back_path = CARD_BACKS_OUTPUT_DIR / f'{stats.move_name}.png' if pd.isnull(
-            stats.trainer) else ASSETS_DIR / 'card_backs' / f'galactic_{stats.encounter_tier}.png'
+        card_back_path = CARD_BACKS_OUTPUT_DIR / f'{stats.move_name}.png' if stats.encounter_tier not in ('grunt', 'commander', 'boss') else ASSETS_DIR / 'card_backs' / f'galactic_{stats.encounter_tier}.png'
         card_pos = pos(i % 10, (i // 10) % 7)
 
         card_fronts_deck_img = add_card_at_pos(card_fronts_deck_img, pokemon_card_path, card_pos)

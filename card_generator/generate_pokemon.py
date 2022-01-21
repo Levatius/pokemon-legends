@@ -22,7 +22,7 @@ def get_moves(stats):
 # Functions
 
 def compose_base(stats):
-    card_base = 'standard' if pd.isnull(stats.trainer) else 'team_galactic'
+    card_base = 'standard' if stats.encounter_tier not in ('grunt', 'commander', 'boss') else 'team_galactic'
     base_img = Image.open(ASSETS_DIR / 'card_bases' / f'{card_base}.png').convert('RGBA').resize(xy(16, 28))
 
     try:
@@ -128,13 +128,15 @@ def add_trainer(img, stats):
     rank_img = get_img(ASSETS_DIR / 'trainer_icons' / f'rank_{stats.encounter_tier}.png', xy(2.5, 2.5))
     img.paste(rank_img, xy(0.75, 16.75), rank_img)
 
-    party_order_img = get_img(ASSETS_DIR / 'trainer_icons' / f'trainer.png', xy(2.5, 2.5))
-    img.paste(party_order_img, xy(12.75, 16.75), party_order_img)
+    party_order_img = get_img(ASSETS_DIR / 'trainer_icons' / f'trainer.png', xy(2, 2))
+    img.paste(party_order_img, xy(13, 17), party_order_img)
 
 
 def add_encounter_icon(img, stats):
     if stats.encounter_tier in ('grunt', 'commander', 'boss'):
         icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'galactic.png', xy(2, 2))
+    elif 'elder' in stats.encounter_tier:
+        icon_img = get_img(ASSETS_DIR / 'encounter_icons' / 'noble.png', xy(2, 2))
     else:
         icon_img = get_img(ASSETS_DIR / 'encounter_icons' / f'{stats.encounter_tier}.png', xy(2, 2))
     img.paste(icon_img, xy(7, 17), icon_img)
@@ -170,6 +172,14 @@ def add_evolution_cost(img, stats):
         img.paste(evolution_icon_img, xy(12.75, 16.75), evolution_icon_img)
 
 
+def get_stats_font_size(stats_value):
+    if stats_value < 10:
+        return ORIENTAL_96
+    if stats_value < 20:
+        return ORIENTAL_80
+    return ORIENTAL_64
+
+
 def add_text(img, stats):
     d = ImageDraw.Draw(img)
     types = get_types(stats)
@@ -183,10 +193,9 @@ def add_text(img, stats):
         d.text(xy(1 + len(types) * 2.5, 2.5), stats.description, fill=DARK_COLOUR, font=BARLOW_48, anchor='lm')
 
     # Pokémon Stats
-    d.text(xy(12.75, 8.75), str(stats.health), fill=DARK_COLOUR, font=ORIENTAL_96 if stats.health < 10 else ORIENTAL_80,
+    d.text(xy(12.75, 8.75), str(stats.health), fill=DARK_COLOUR, font=get_stats_font_size(stats.health), anchor='mm')
+    d.text(xy(12.75, 11.25), str(stats.initiative), fill=DARK_COLOUR, font=get_stats_font_size(stats.initiative),
            anchor='mm')
-    d.text(xy(12.75, 11.25), str(stats.initiative), fill=DARK_COLOUR,
-           font=ORIENTAL_96 if stats.initiative < 10 else ORIENTAL_80, anchor='mm')
 
 
 def add_move(img, stats):
