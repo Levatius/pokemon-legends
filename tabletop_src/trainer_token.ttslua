@@ -48,7 +48,7 @@ function search_area()
     local hit_object = hit_info.hit_object
     if hit_object:hasTag(CAMPAIGN_TOKEN_TAG) then
       break
-    elseif hit_object:hasTag(ENCOUNTER_TOKEN_TAG) and not hit_object.is_face_down then
+    elseif (hit_object:hasTag(ENCOUNTER_TOKEN_TAG) and not hit_object.is_face_down) or (hit_object:hasTag(ENCOUNTER_TOKEN_TAG) and hit_object:getName() ~= "Alpha Pokémon") then
       exclaim()
       break
     end

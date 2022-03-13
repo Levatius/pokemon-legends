@@ -198,8 +198,6 @@ function get_encounter_guid(biome, climate, zone, gm_notes)
       local card_climate = get_climate_tag(info.tags)
       if card_biome == biome and card_climate == climate then
         return info.guid
-      elseif not card_biome and not card_climate then
-        return info.guid
       elseif not biome and not climate then
         return info.guid
       end
