@@ -1,3 +1,7 @@
+--
+-- CONFIG START
+--
+
 -- GUIDs
 BIRD_GUID = "527326"
 NESBURGH_GUID = "83102a"
@@ -5,11 +9,14 @@ APRICORN_BAG_GUIDS = {"c2d9cc", "5ae126", "926a58", "1d667c", "c7bdb9", "43f641"
 JOURNEY_POINT_BAG_GUID = "611d38"
 MUSIC_BOX_GUID = "e829ae"
 CRY_PLAYER_GUID = "54209c" -- Unused due to lack of volume control
+COMMANDER_CAMPAIGN_TOKEN_ZONE_GUID = "cc2674"
+BOSS_CAMPAIGN_TOKEN_ZONE_GUID = "2c6ace"
+HIDDEN_SPOT_DISCARD_ZONE_GUID = "02b565"
+SECRET_ENCOUNTER_ZONE_GUID = "f0666d"
+BREACH_ZONE_GUID = "f596eb"
 
 -- Tags
-HIDDEN_TOKEN_TAG = "Hidden Token"
-ARTIFACT_TOKEN_TAG = "Artifact Token"
-WORLD_TOKEN_TAG = "World Token"
+NOT_INTERACTABLE_TAG = "Not Interactable"
 UPDATE_PANELS_TAG = "Update Panels"
 
 STARTER_CARD_TAG = "Starter Card"
@@ -17,37 +24,55 @@ WEAK_CARD_TAG = "Weak Encounter Card"
 MODERATE_CARD_TAG = "Moderate Encounter Card"
 STRONG_CARD_TAG = "Strong Encounter Card"
 LEGENDARY_CARD_TAG = "Legendary Encounter Card"
+ULTRA_BEAST_CARD_TAG = "Ultra Beast Encounter Card"
+ULTRA_BURST_CARD_TAG = "Ultra Burst Encounter Card"
+NOBLE_CARD_TAG = "Noble Encounter Card"
+SECRET_CARD_TAG = "Secret Encounter Card"
 EVOLUTION_CARD_TAG = "Evolution Card"
 
 GALACTIC_GRUNT_TAG = "Galactic Grunt"
 GALACTIC_COMMANDER_TAG = "Galactic Commander"
 GALACTIC_BOSS_TAG = "Galactic Boss"
 
+ULTRA_BEAST_TAG = "Ultra Beast"
+ULTRA_BURST_TAG = "Ultra Burst"
+DISTORTION_WORLD_TAG = "Distortion World"
+DISTORTION_GATE_TAG = "Distortion Gate"
+
 ACT_CARD_TAG = "Act Card"
 SHRINE_CARD_TAG = "Shrine Card"
 VILLAGE_CARD_TAG = "Village Card"
+BREACH_CARD_TAG = "Breach Card"
 
 DICE_TAG = "Dice"
-HELD_ITEM_TAG = "Helm Item"
+HELD_ITEM_TAG = "Held Item"
 ATTACK_DICE_TAG = "Attack Dice"
 POKEMON_CARD_TAG = "Pokemon Card"
 POKEMON_MODEL_TAG = "Pokemon Model"
 
+-- Token Tags
 ENCOUNTER_TOKEN_TAG = "Encounter Token"
 JOURNEY_POINT_TOKEN_TAG = "Journey Point Token"
 APRICORN_TOKEN_TAG = "Apricorn Token"
-
+APRICORN_TREE_TOKEN_TAG = "Apricorn Tree Token"
+SHRINE_TOKEN_TAG = "Shrine Token"
 TRAINER_TOKEN_TAG = "Trainer Token"
-VILLAGE_TAG = "Village"
+HIDDEN_TOKEN_TAG = "Hidden Token"
+ARTIFACT_TOKEN_TAG = "Artifact Token"
+CAMPAIGN_TOKEN_TAG = "Campaign Token"
+VILLAGE_TOKEN_TAG = "Village Token"
+WORLD_TOKEN_TAG = "World Token"
+
 
 WILD_AREA_TAG = "Wild Area"
 CLIMATE_TAGS = {"Cold", "Temperate", "Warm"}
 BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean"}
-ENCOUNTER_TAGS = {"Weak", "Moderate", "Strong", "Legendary"}
+ENCOUNTER_TAGS = {"Weak", "Moderate", "Strong", "Legendary", "Distortion", "Secret"}
 BAG_PANEL_TAG = "Bag Panel"
 
 POKEMON_ZONE_TAG = "Pokemon Zone"
 BALL_TOKEN_TAG = "Ball Token"
+ALREADY_VISITED_TAG = "Already Visited"
 
 -- Names
 JOURNEY_POINT_TOKEN_NAME = "Journey Point"
@@ -141,5 +166,26 @@ MUSIC_EVENTS = {
   {
     title = "Galactic Boss",
     url = "http://cloud-3.steamusercontent.com/ugc/1745700738162462526/40358A4DC482A8FB8174CF21FA2BDB64FE40FCFC/"
-  }
+  },
+  {
+    title = "Village Noble",
+    url = "http://cloud-3.steamusercontent.com/ugc/1826778010514749542/1FD7A7C80B45ACC6EEFF669F4BE7755963423F5D/"
+  },
+  {
+    title = "Ultra Beast",
+    url = "http://cloud-3.steamusercontent.com/ugc/1826778010514749667/EADF34F88ADFC2F121D0BC11D2EAE55715C99790/"
+  },
+  {
+    title = "Ultra Burst",
+    url = "http://cloud-3.steamusercontent.com/ugc/1826778010514749776/1EEE0518C48AC64E3D23536119E25E3F1771F76F/"
+  },
 }
+
+SECRET_ENCOUNTER_MUSIC = {
+  title = "???",
+  url = "http://cloud-3.steamusercontent.com/ugc/1826778296327117226/C5B6D20BC92E4C96D3328669E36DE9372AF97E14/"
+}
+
+--
+-- CONFIG END
+--

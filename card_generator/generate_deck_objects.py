@@ -12,8 +12,10 @@ def get_deck_json(j=0):
     with open(DECK_OBJECT_TEMPLATE) as f:
         deck_json = json.load(f)
     deck_json['ObjectStates'][0]['ColorDiffuse'] = {'r': 150 / 255, 'g': 75 / 255, 'b': 50 / 255}
-    deck_json['ObjectStates'][0]['CustomDeck']['1']['FaceURL'] = input(f'Enter cloud url for {CARD_FRONTS_DECK_IMG.format(j=j)}:\n')
-    deck_json['ObjectStates'][0]['CustomDeck']['1']['BackURL'] = input(f'Enter cloud url for {CARD_BACKS_DECK_IMG.format(j=j)}:\n')
+    deck_json['ObjectStates'][0]['CustomDeck']['1']['FaceURL'] = input(
+        f'Enter cloud url for {CARD_FRONTS_DECK_IMG.format(j=j)}:\n')
+    deck_json['ObjectStates'][0]['CustomDeck']['1']['BackURL'] = input(
+        f'Enter cloud url for {CARD_BACKS_DECK_IMG.format(j=j)}:\n')
     return deck_json
 
 
@@ -22,21 +24,6 @@ def get_description(stats):
         return f'The {stats.classification}'
     else:
         return stats.description
-
-
-def get_card_type(stats, is_evolution):
-    if is_evolution:
-        return 'Evolution Card'
-
-    if pd.isnull(stats.trainer):
-        encounter_tier_tag_map = {
-            'starter': 'Starter Card',
-            'weak': 'Weak Encounter Card',
-            'moderate': 'Moderate Encounter Card',
-            'strong': 'Strong Encounter Card',
-            'legendary': 'Legendary Encounter Card'
-        }
-        return encounter_tier_tag_map.get(stats.encounter_tier)
 
 
 def get_encounter_tier_tag(stats, is_evolution):
@@ -49,7 +36,10 @@ def get_encounter_tier_tag(stats, is_evolution):
             'weak': 'Weak Encounter Card',
             'moderate': 'Moderate Encounter Card',
             'strong': 'Strong Encounter Card',
-            'legendary': 'Legendary Encounter Card'
+            'legendary': 'Legendary Encounter Card',
+            'ultra_beast': 'Ultra Beast Encounter Card',
+            'ultra_burst': 'Ultra Burst Encounter Card',
+            'noble': 'Noble Encounter Card'
         }
         return encounter_tier_tag_map.get(stats.encounter_tier)
     else:

@@ -30,18 +30,21 @@ function onLoad()
     font_color     = WHITE_COLOUR
   }
   -- Music Event Buttons
-  for i = 0, 5 do
+  for i = 0, 8 do
     button_params.click_function = "music_event_button_" .. i
     self:createButton(button_params)
   end
   self:createButton(text_params)
 
-  self.editButton({index=0, position={-0.8125, 0.2, -0.825}})
-  self.editButton({index=1, position={-0.8125, 0.2, -0.550}})
-  self.editButton({index=2, position={-0.8125, 0.2, -0.275}})
-  self.editButton({index=3, position={0.8125, 0.2, -0.825}})
-  self.editButton({index=4, position={0.8125, 0.2, -0.550}})
-  self.editButton({index=5, position={0.8125, 0.2, -0.275}})
+  self.editButton({index=0, position={-0.8125, 0.2, 0.275}})
+  self.editButton({index=1, position={-0.8125, 0.2, 0.550}})
+  self.editButton({index=2, position={-0.8125, 0.2, 0.825}})
+  self.editButton({index=3, position={0, 0.2, 0.275}})
+  self.editButton({index=4, position={0, 0.2, 0.550}})
+  self.editButton({index=5, position={0, 0.2, 0.825}})
+  self.editButton({index=6, position={0.8125, 0.2, 0.275}})
+  self.editButton({index=7, position={0.8125, 0.2, 0.550}})
+  self.editButton({index=8, position={0.8125, 0.2, 0.825}})
 
   update_panel()
 end
@@ -52,6 +55,9 @@ function music_event_button_2() music_event_button(3) end
 function music_event_button_3() music_event_button(4) end
 function music_event_button_4() music_event_button(5) end
 function music_event_button_5() music_event_button(6) end
+function music_event_button_6() music_event_button(7) end
+function music_event_button_7() music_event_button(8) end
+function music_event_button_8() music_event_button(9) end
 
 function music_event_button(index)
   if index == selected_music_event_index then
@@ -126,7 +132,7 @@ function update_panel()
 
   update_playlist()
 
-  for i = 0, 5 do
+  for i = 0, 8 do
     local label = MUSIC_EVENTS[i + 1]["title"]
     local width = 750
     local height = 200
@@ -147,5 +153,5 @@ function update_panel()
   if not now_playing then
     now_playing = "Music Box"
   end
-  self:editButton({index=6, label=now_playing})
+  self:editButton({index=9, label=now_playing})
 end

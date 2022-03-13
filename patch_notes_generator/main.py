@@ -21,11 +21,11 @@ def run():
         if not old_row_df.empty:
             continue
 
-        health_text = f':health:: {new_row.health}'
-        initiative_text = f':initiative:: {new_row.initiative}'
+        health_text = f':attr_health:: {new_row.health}'
+        initiative_text = f':attr_initiative:: {new_row.initiative}'
         move_text = f':crossed_swords:: {new_row.move_name}'
         location_text = f':map:: {new_row.biome}/{new_row.climate}'
-        evolve_cost_text = f':journey_point:: {new_row.evolve_cost}' if not pd.isnull(new_row.evolve_cost) else None
+        evolve_cost_text = f':attr_evolve_cost:: {new_row.evolve_cost}' if not pd.isnull(new_row.evolve_cost) else None
         texts = ', '.join([text for text in [health_text, initiative_text, move_text, location_text, evolve_cost_text] if text])
         print(f':small_blue_diamond: **{new_row.internal_name}**: {texts}')
     print('\n**Modified Pokémon**')
@@ -41,10 +41,10 @@ def run():
 
         texts = []
         if new_row.health != old_row.health:
-            health_text = f':health:: {old_row.health} → {new_row.health}'
+            health_text = f':attr_health:: {old_row.health} → {new_row.health}'
             texts.append(health_text)
         if new_row.initiative != old_row.initiative:
-            initiative_text = f':initiative:: {old_row.initiative} → {new_row.initiative}'
+            initiative_text = f':attr_initiative:: {old_row.initiative} → {new_row.initiative}'
             texts.append(initiative_text)
         if new_row.move_name != old_row.move_name:
             move_text = f':crossed_swords:: {old_row.move_name} → {new_row.move_name}'
@@ -53,7 +53,7 @@ def run():
             location_text = f':map:: {old_row.biome}/{old_row.climate} → {new_row.biome}/{new_row.climate}'
             texts.append(location_text)
         if not pd.isnull(new_row.evolve_cost) and new_row.evolve_cost != old_row.evolve_cost:
-            evolve_cost_text = f':journey_point:: {int(old_row.evolve_cost)} → {int(new_row.evolve_cost)}'
+            evolve_cost_text = f':attr_evolve_cost:: {int(old_row.evolve_cost)} → {int(new_row.evolve_cost)}'
             texts.append(evolve_cost_text)
 
         if not texts:
@@ -75,10 +75,11 @@ def run():
             old_row = old_row_df.iloc[0]
 
             damage_text = f'{old_row.damage} → {new_row.damage}' if new_row.damage != old_row.damage else f'{new_row.damage}'
+            description_text = new_row.description if new_row.description != old_row.description else ''
 
             if new_row.damage != old_row.damage or new_row.description != old_row.description:
                 print(
-                    f':small_orange_diamond: **{new_row.move_name}**: ({str(new_row.type).capitalize()}) [{damage_text}] {new_row.description}')
+                    f':small_orange_diamond: **{new_row.move_name}**: ({str(new_row.type).capitalize()}) [{damage_text}] {description_text}')
 
     print('\n**Removed Moves**')
     for _, old_row in old_df_moves.iterrows():

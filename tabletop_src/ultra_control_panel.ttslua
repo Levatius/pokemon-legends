@@ -1,0 +1,297 @@
+#include config
+#include utils
+
+BREACH_CLAIMED_TAG = "Breach Claimed"
+SEARCH_OFFSETS = {Vector(0, 0, 1.91), Vector(1.65, 0, 0.95), Vector(1.65, 0, -0.95), Vector(0, 0, -1.91), Vector(-1.65, 0, -0.95), Vector(-1.65, 0, 0.95)}
+TARGET_PRIORITIES = {
+  [ALREADY_VISITED_TAG] = -200,
+  [ULTRA_BEAST_TAG] = -100,
+  [TRAINER_TOKEN_TAG] = -100,
+  [LEGENDARY_CARD_TAG] = -100,
+  [VILLAGE_TOKEN_TAG] = -100,
+  [BREACH_CLAIMED_TAG] = -20,
+  [HIDDEN_TOKEN_TAG] = 10,
+  [ARTIFACT_TOKEN_TAG] = 10,
+  [SHRINE_TOKEN_TAG] = 10,
+  [APRICORN_TREE_TOKEN_TAG] = 10,
+  [WILD_AREA_TAG] = 1000
+}
+BREACH_STRENGTH_LIMIT = 70
+END_MUSIC = {
+  title = "The End",
+  url = "http://cloud-3.steamusercontent.com/ugc/1826778207093629013/525A638121F264E791BF90D2B0DCFFA7FCD3C924/"
+}
+
+local hidden_spot_discard_zone = getObjectFromGUID(HIDDEN_SPOT_DISCARD_ZONE_GUID)
+local breach_zone = getObjectFromGUID(BREACH_ZONE_GUID)
+local move_ultra_beasts_in_progress = false
+
+function onLoad()
+  button_params = {
+    click_function = "move_ultra_beasts",
+    function_owner = self,
+    position       = {0, 0.1, 0.7},
+    scale          = {0.5, 1, 0.5},
+    width          = 1400,
+    height         = 700,
+    font_size      = 550,
+    color          = {50/255, 50/255, 150/255},
+    font_color     = WHITE_COLOUR,
+    tooltip        = "Move Ultra Beasts"
+  }
+  self:createButton(button_params)
+  update_panel()
+end
+
+--
+--
+--
+
+function reset_already_visited_tags()
+  local guids_to_keep = {}
+  local ultra_beast_tokens = getObjectsWithTag(ULTRA_BEAST_TAG)
+  for _, ultra_beast_token in pairs(ultra_beast_tokens) do
+    local objects_on_tile = get_objects_in_search_offsets(ultra_beast_token, {Vector(0, 0, 0)})[1]
+    for _, object_on_tile in pairs(objects_on_tile) do
+      if object_on_tile:hasTag(ALREADY_VISITED_TAG) then
+        table.insert(guids_to_keep, object_on_tile:getGUID())
+      end
+    end
+  end
+
+  local already_visited_areas = getObjectsWithTag(ALREADY_VISITED_TAG)
+  for _, already_visited_area in pairs(already_visited_areas) do
+    if not contains(guids_to_keep, already_visited_area:getGUID()) then
+      already_visited_area:removeTag(ALREADY_VISITED_TAG)
+    end
+  end
+end
+
+function get_hit_objects_from_hit_infos(hit_infos)
+  local hit_objects = {}
+  for _, hit_info in pairs(hit_infos) do
+    local hit_object = hit_info.hit_object
+    table.insert(hit_objects, hit_object)
+  end
+  return hit_objects
+end
+
+function get_objects_in_search_offsets(ultra_beast_token, search_offsets)
+  local objects_in_search_offsets = {}
+  for _, search_offset in pairs(shuffle(search_offsets)) do
+    -- Cast parameters
+    local hit_infos = Physics:cast({
+      origin       = ultra_beast_token:getPosition() + search_offset + Vector(0, -5, 0),
+      direction    = {0, 1, 0},
+      type         = 2,
+      size         = {1, 1, 1},
+      max_distance = 10
+    })
+    local hit_objects = get_hit_objects_from_hit_infos(hit_infos)
+    table.insert(objects_in_search_offsets, hit_objects)
+  end
+  return objects_in_search_offsets
+end
+
+function calculate_priority(objects_in_search_offset)
+  local priority = 0
+  for _, object in pairs(objects_in_search_offset) do
+    for _, tag in pairs(object:getTags()) do
+      local priority_delta = TARGET_PRIORITIES[tag]
+      if priority_delta then
+        priority = priority + priority_delta
+      end
+    end
+  end
+  return priority
+end
+
+function get_objects_in_chosen_offset(objects_in_search_offsets)
+  local priorities = {}
+  for _, objects_in_search_offset in pairs(objects_in_search_offsets) do
+    local priority = calculate_priority(objects_in_search_offset)
+    table.insert(priorities, priority)
+  end
+  local max_key, _ = get_max_key_and_value(priorities)
+
+  local objects_in_chosen_offset = objects_in_search_offsets[max_key]
+  return objects_in_chosen_offset
+end
+
+function is_wild_area_safe(wild_area)
+  hit_list = Physics:cast({
+    origin       = wild_area:getPosition(),
+    direction    = {0, 1, 0},
+    type         = 2,
+    size         = {2, 2, 2},
+    max_distance = 1
+  })
+
+  for _, hit_info in pairs(hit_list) do
+    local hit_object = hit_info.hit_object
+    if hit_object:hasTag(WORLD_TOKEN_TAG) or hit_object:hasTag(TRAINER_TOKEN_TAG) or hit_object:hasTag(HIDDEN_TOKEN_TAG) or hit_object:hasTag(ARTIFACT_TOKEN_TAG) then
+      return false
+    end
+  end
+  return true
+end
+
+function get_safe_wild_area()
+  local distortion_world_wild_areas = getObjectsWithAllTags({WILD_AREA_TAG, DISTORTION_WORLD_TAG})
+
+  for _, wild_area in pairs(shuffle(distortion_world_wild_areas)) do
+    if is_wild_area_safe(wild_area) then
+      return wild_area
+    end
+  end
+end
+
+function handle_object_interactions(objects_in_chosen_offset)
+  for _, object in pairs(objects_in_chosen_offset) do
+    if object:hasTag(HIDDEN_TOKEN_TAG) or object:hasTag(ARTIFACT_TOKEN_TAG) then
+      local target_area = get_safe_wild_area()
+      if not target_area then
+        target_area = hidden_spot_discard_zone
+        object:setRotationSmooth(target_area:getRotation(), false, true)
+      end
+      object:setPositionSmooth(target_area:getPosition() + Vector(0, 1, 0), false, true)
+      while object:isSmoothMoving() do coroutine.yield(0) end
+    elseif object:hasTag(SHRINE_TOKEN_TAG) or object:hasTag(APRICORN_TREE_TOKEN_TAG) then
+      object:removeTag(ENCOUNTER_TOKEN_TAG)
+      object:addTag(BREACH_CLAIMED_TAG)
+      object:setColorTint({0.5, 0.5, 0.5, 1})
+    end
+  end
+end
+
+function move_ultra_beasts()
+  local total_move_count_limit = 2 + len(Player.getPlayers()) + math.floor(measure_breach_strength() / 10)
+
+  function move_ultra_beasts_coroutine()
+    move_ultra_beasts_in_progress = true
+    local ultra_beast_tokens = getObjectsWithTag(ULTRA_BEAST_TAG)
+    local total_move_count = 0
+    local breach_strength = measure_breach_strength()
+
+    while total_move_count < total_move_count_limit do
+      local previous_total_move_count = total_move_count
+
+      for _, ultra_beast_token in pairs(shuffle(ultra_beast_tokens)) do
+        local objects_in_search_offsets = get_objects_in_search_offsets(ultra_beast_token, SEARCH_OFFSETS)
+        local objects_in_chosen_offset = get_objects_in_chosen_offset(objects_in_search_offsets)
+
+        for _, object in pairs(objects_in_chosen_offset) do
+          if object:hasTag(WILD_AREA_TAG) then
+            ultra_beast_token:setPositionSmooth(object:getPosition() + Vector(0, 2, 0), false, true)
+            object:addTag(ALREADY_VISITED_TAG)
+            total_move_count = total_move_count + 1
+            while ultra_beast_token:isSmoothMoving() do coroutine.yield(0) end
+            break
+          end
+        end
+
+        handle_object_interactions(objects_in_chosen_offset)
+        update_panel()
+
+        -- Stop moving once the limit is hit
+        if total_move_count >= total_move_count_limit then
+          break
+        end
+      end
+
+      -- Check to see if movement has stagnated
+      if total_move_count == previous_total_move_count then
+        break
+      end
+    end
+
+    reset_already_visited_tags()
+    -- Deal out breach cards if breach strength passes a threshold
+    local new_breach_strength = measure_breach_strength()
+    if new_breach_strength < BREACH_STRENGTH_LIMIT and math.floor(new_breach_strength / 10) ~= math.floor(breach_strength / 10) then
+      local dots = ""
+      for i = 1, math.floor(new_breach_strength / 10) do dots = dots .. "." end
+      printToAll("The breach is growing stronger" .. dots, {1, 100/255, 100/255})
+      local breach_deck = get_object(breach_zone)
+      if breach_deck then
+        breach_deck:deal(1)
+      end
+    end
+    move_ultra_beasts_in_progress = false
+    return 1
+  end
+
+  if not move_ultra_beasts_in_progress then
+    startLuaCoroutine(self, "move_ultra_beasts_coroutine")
+  else
+    print("Ultra Beasts already moving.")
+  end
+end
+
+--
+--
+--
+
+function measure_breach_strength()
+  local shrine_token_number = len(getObjectsWithTag(SHRINE_TOKEN_TAG))
+  local apricorn_tree_token_number = len(getObjectsWithTag(APRICORN_TREE_TOKEN_TAG))
+  local breach_claimed_number = len(getObjectsWithTag(BREACH_CLAIMED_TAG))
+  return round(100 * breach_claimed_number / (shrine_token_number + apricorn_tree_token_number))
+end
+
+function game_over_coroutine()
+  local ultra_burst_token = getObjectsWithTag(ULTRA_BURST_TAG)[1]
+
+  if ultra_burst_token:getLock() then
+    return 1
+  end
+
+  printToAll("The breach has reached the critical threshold!", {1, 100/255, 100/255})
+
+  MusicPlayer:setCurrentAudioclip(END_MUSIC)
+  MusicPlayer.repeat_track = false
+
+  ultra_burst_token:setLock(true)
+  ultra_burst_token:setPositionSmooth(ultra_burst_token:getPosition() + Vector(0, 5, 0), false, false)
+  while ultra_burst_token:isSmoothMoving() do coroutine.yield(0) end
+
+  local steps = 100
+  local initial_light_intensity = Lighting.light_intensity
+  local initial_ambient_intensity = Lighting.ambient_intensity
+
+  for i = 0, steps do
+    Lighting.light_intensity = Lighting.light_intensity - (initial_light_intensity/steps)
+    Lighting.ambient_intensity = Lighting.ambient_intensity - (initial_ambient_intensity/(2*steps))
+    Lighting.apply()
+
+    ultra_burst_token:highlightOn({i/steps, i/steps, i/steps})
+    for i = 0, 50 do coroutine.yield(0) end
+  end
+
+  ultra_burst_token:setPositionSmooth(ultra_burst_token:getPosition() - Vector(0, 5, 0), false, false)
+  while ultra_burst_token:isSmoothMoving() do coroutine.yield(0) end
+  return 1
+end
+
+--
+--
+--
+
+function update_panel()
+  local breach_strength = measure_breach_strength()
+  local colour = {(50 + (100 * breach_strength)/BREACH_STRENGTH_LIMIT)/255, (150 - (100 * breach_strength)/BREACH_STRENGTH_LIMIT)/255, 50/255}
+  self:editButton({
+    index = 0,
+    label = tostring(breach_strength) .. "%",
+    color = colour,
+  })
+
+  if breach_strength >= BREACH_STRENGTH_LIMIT then
+    self:editButton({
+      index = 0,
+      click_function = "dummy_button",
+      font_color = {1, 100/255, 100/255}
+    })
+    startLuaCoroutine(self, "game_over_coroutine")
+  end
+end

@@ -86,16 +86,23 @@ def get_size(stats):
     return max(min(stats.total // 2 + 3, max_size), min_size)
 
 
+def converted_pokedex_number(stats):
+    if isinstance(stats.pokedex_number, int):
+        return f'{stats.pokedex_number:03}'
+    else:
+        return stats.pokedex_number
+
+
 def get_pokemon_art(stats):
     variant = get_variant(stats)
     pokemon_art_size = get_size(stats)
     try:
-        pokemon_art_img = get_img(ASSETS_DIR / 'pokemon' / f'{stats.pokedex_number:03}{variant}.png',
+        pokemon_art_img = get_img(ASSETS_DIR / 'pokemon' / f'{converted_pokedex_number(stats)}{variant}.png',
                                   xy(pokemon_art_size, pokemon_art_size))
     except (FileNotFoundError, AttributeError):
-        response = requests.get(f'{ART_FORM_URL}/{stats.pokedex_number:03}{variant}.png')
+        response = requests.get(f'{ART_FORM_URL}/{converted_pokedex_number(stats)}{variant}.png')
         pokemon_art_img = get_img(BytesIO(response.content), xy(pokemon_art_size, pokemon_art_size))
-        pokemon_art_img.save(ASSETS_DIR / 'pokemon' / f'{stats.pokedex_number:03}{variant}.png')
+        pokemon_art_img.save(ASSETS_DIR / 'pokemon' / f'{converted_pokedex_number(stats)}{variant}.png')
     return pokemon_art_img
 
 
@@ -107,8 +114,13 @@ def add_pokemon_art(img, stats):
 
 def add_bases(img, stats):
     if pd.isnull(stats.trainer):
-        held_item_base_img = Image.open(ASSETS_DIR / 'held_item_base.png').convert('RGBA').resize(xy(3.5, 3.5))
-        img.paste(held_item_base_img, xy(1.75, 12.75), held_item_base_img)
+        if not stats.uncapturable:
+            held_item_base_img = Image.open(ASSETS_DIR / 'held_item_base.png').convert('RGBA').resize(xy(3.5, 3.5))
+            img.paste(held_item_base_img, xy(1.75, 12.75), held_item_base_img)
+        else:
+            uncapturable_base_img = Image.open(ASSETS_DIR / 'uncapturable_base.png').convert('RGBA').resize(xy(3.5, 3.5))
+            img.paste(uncapturable_base_img, xy(1.75, 12.75), uncapturable_base_img)
+
         map_base_img = Image.open(ASSETS_DIR / 'map_base.png').convert('RGBA').resize(xy(3.5, 3.5))
         img.paste(map_base_img, xy(10.75, 12.75), map_base_img)
 
@@ -146,8 +158,11 @@ def add_location(img, stats):
     if not pd.isnull(stats.trainer):
         return
 
-    if stats.is_legendary or stats.is_starter:
+    if stats.encounter_tier == 'legendary':
         location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'unknown.png', xy(3, 3))
+    elif stats.encounter_tier == 'noble':
+        village_name = stats.description.split(' ')[1].lower()
+        location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'noble_{village_name}.png', xy(3, 3))
     else:
         try:
             location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'{stats.climate.lower()}_{stats.biome.lower()}.png',

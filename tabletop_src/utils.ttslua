@@ -1,3 +1,7 @@
+--
+-- UTILS START
+--
+
 function dummy_button() end
 
 function len(t)
@@ -29,32 +33,14 @@ function contains(t, value)
   return first_index != nil
 end
 
-function find_objects_with_tag(zone, tag)
-  local objects_with_tag = {}
-  for _, object in pairs(zone:getObjects()) do
-    if object:hasTag(tag) then
-      table.insert(objects_with_tag, object)
-    end
+function get_max_key_and_value(t)
+  local key, max = 1, t[1]
+  for k, v in ipairs(t) do
+      if t[k] > max then
+          key, max = k, v
+      end
   end
-  return objects_with_tag
-end
-
-function equals_any(value, t)
-  for _, value_ in pairs(t) do
-    if value == value_ then
-      return true
-    end
-  end
-  return false
-end
-
-function equals_all(value, t)
-  for _, value_ in pairs(t) do
-    if value ~= value_ then
-      return false
-    end
-  end
-  return true
+  return key, max
 end
 
 local function reversedipairsiter(t, i)
@@ -113,23 +99,6 @@ function take_object_from_zone_deck(zone, params)
   end
 end
 
-function put_object_into_zone_deck(zone, object)
-  -- GOT ERROR HERE ON EXIT
-  local zone_objects = zone:getObjects()
-  if not zone_objects then return end
-  -- Get first object in zone as the zone deck
-  local zone_deck = zone_objects[1]
-
-  if not zone_deck then
-    object:setPositionSmooth(zone:getPosition(), false, true)
-    object:setRotationSmooth(zone:getRotation(), false, true)
-  elseif zone_deck.type == "Card" or zone_deck.type == "Deck" then
-    object:setPosition(zone_deck:getPosition() + Vector(0, 5, 0))
-    object:setRotation(zone_deck:getRotation())
-    zone_deck:putObject(object)
-  end
-end
-
 function get_biome_tag(tags)
   for _, tag in pairs(tags) do
     if contains(BIOME_TAGS, tag) then
@@ -155,26 +124,8 @@ function get_encounter_tag(tags)
   end
 end
 
-function add_tags(object, tags)
-  for _, tag in pairs(tags) do
-    object:addTag(tag)
-  end
-end
-
-function remove_tags(object, tags)
-  for _, tag in pairs(tags) do
-    object:removeTag(tag)
-  end
-end
-
 function brief_pause()
   for i = 0, 25 do
-    coroutine.yield(0)
-  end
-end
-
-function motion_pause()
-  for i = 0, 100 do
     coroutine.yield(0)
   end
 end
@@ -205,10 +156,6 @@ function round(value)
   return math.floor(value + 0.5)
 end
 
-function capitalise(str)
-    return str:gsub("^%l", string.upper)
-end
-
 function get_trainer_token(player_colour)
   local trainer_tokens = getObjectsWithTag(TRAINER_TOKEN_TAG)
   for _, trainer_token in pairs(trainer_tokens) do
@@ -226,3 +173,7 @@ function get_object(zone)
     return object
   end
 end
+
+--
+-- UTILS END
+--

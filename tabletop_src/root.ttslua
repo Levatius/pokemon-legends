@@ -4,22 +4,12 @@
 function onload()
   print("Root Loaded")
   math.randomseed(os.time())
-
-  init_models()
-end
-
---
---
---
-
--- Model Handling
-function init_models()
-  -- Do not allow players to mess with any models
-  for _, object in pairs(getObjectsWithTag(POKEMON_MODEL_TAG)) do
-    object.interactable = false
-  end
   deduplicate_models()
 end
+
+--
+--
+--
 
 function deduplicate_models()
   -- This method should not be necessary, but good to have just in case
@@ -93,7 +83,7 @@ function move_objects_between_zones(source_zone, target_zone)
   for _, object_in_zone in pairs(source_zone:getObjects()) do
     if not object_in_zone:hasTag(BALL_TOKEN_TAG) then
       local rotation_delta = target_zone:getRotation() - source_zone:getRotation()
-      local position_delta = object_in_zone:getPosition() - source_zone:getPosition()
+      local position_delta = object_in_zone:getPosition() + Vector(0, 0.5, 0) - source_zone:getPosition()
       position_delta:rotateOver("y", rotation_delta.y)
       object_in_zone:setPosition(target_zone:getPosition() + position_delta)
       object_in_zone:setRotation(object_in_zone:getRotation() + rotation_delta)
@@ -108,7 +98,7 @@ function onObjectEnterZone(zone, object)
     update_panels(zone)
   end
   -- Hand Zones
-  if zone.type == "Hand" and object:hasTag(VILLAGE_CARD_TAG) then
+  if zone.type == "Hand" and object:hasTag(VILLAGE_CARD_TAG) and not object:hasTag(BREACH_CARD_TAG) then
     if #zone:getObjects() > 1 then
       print("Remove any objects from hand if trying to change hand colour.")
       return

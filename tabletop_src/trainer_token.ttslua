@@ -16,48 +16,23 @@ function onLoad()
     click_function = "dummy_button",
     function_owner = self,
     rotation       = {270, 0, 0},
+    scale          = {2, 2, 2},
     width          = 0,
     height         = 0
   }
-  -- Title Button
-  button_params.label = ""
+  -- Exclaimation
   button_params.position = {0, 4.5, 0}
-  button_params.font_size = 500
+  button_params.font_size = 1000
   button_params.font_color = DARK_COLOUR
   self:createButton(button_params)
-  button_params.position = {0, 4.55, 0}
+  button_params.position = {0, 4.6, 0}
   button_params.font_color = WHITE_COLOUR
   self:createButton(button_params)
-  -- Description Button
-  button_params.label = ""
-  button_params.position = {0, 3.5, 0}
-  button_params.font_size = 400
-  button_params.font_color = DARK_COLOUR
-  self:createButton(button_params)
-  button_params.position = {0, 3.55, 0}
-  button_params.font_color = WHITE_COLOUR
-  self:createButton(button_params)
-  -- Exclaimation Button
-  button_params.label = ""
-  button_params.position = {0, 4, 0}
-  button_params.font_size = 5000
-  button_params.font_color = DARK_COLOUR
-  self:createButton(button_params)
-  button_params.position = {0, 4.05, 0}
-  button_params.font_color = WHITE_COLOUR
-  self:createButton(button_params)
-  update_panel()
-end
-
-function reset_text()
-  title = ""
-  description = ""
-  exclaimation = ""
 end
 
 function onPickUp()
-  reset_text()
-  update_panel()
+  self:editButton({index=0, label=""})
+  self:editButton({index=1, label=""})
 end
 
 function search_area()
@@ -71,62 +46,29 @@ function search_area()
 
   for _, hit_info in pairs(hit_list) do
     local hit_object = hit_info.hit_object
-
-    biome = get_biome_tag(hit_object:getTags())
-    climate = get_climate_tag(hit_object:getTags())
-    encounter = get_encounter_tag(hit_object:getTags())
-
-    if hit_object:hasTag(ENCOUNTER_TOKEN_TAG) then
-      exclaimation = "!"
+    if hit_object:hasTag(CAMPAIGN_TOKEN_TAG) then
       break
-    elseif hit_object:hasTag(HIDDEN_TOKEN_TAG) or hit_object:hasTag(ARTIFACT_TOKEN_TAG) then
-      exclaimation = "?"
-      break
-    elseif hit_object:hasTag(WORLD_TOKEN_TAG) then
-      title = hit_object:getName()
-      break
-    elseif hit_object:hasTag(WILD_AREA_TAG) then
-      title = hit_object:getName()
-      if title == "" then
-        title = hit_object:getDescription()
-      end
-      description = biome .. " · " .. climate
+    elseif hit_object:hasTag(ENCOUNTER_TOKEN_TAG) and not hit_object.is_face_down then
+      exclaim()
       break
     end
   end
+end
+
+function exclaim()
+  function exclaim_coroutine()
+    -- Enter
+    self:editButton({index=0, label="!"})
+    self:editButton({index=1, label="!"})
+    for i = 0, 250 do coroutine.yield(0) end
+    -- Exit
+    self:editButton({index=0, label=""})
+    self:editButton({index=1, label=""})
+    return 1
+  end
+  startLuaCoroutine(self, "exclaim_coroutine")
 end
 
 function onDrop()
-  do_text_reset = not do_text_reset
-
-  Wait.frames(
-    function()
-      search_area()
-      update_panel()
-    end, 50)
-  Wait.frames(
-  function()
-    if do_text_reset then
-      reset_text()
-      update_panel()
-      do_text_reset = false
-    else
-      do_text_reset = true
-    end
-  end, 500)
-end
-
-function update_panel()
-  if title then
-    self:editButton({index=0, label=title})
-    self:editButton({index=1, label=title})
-  end
-  if biome or climate then
-    self:editButton({index=2, label=description})
-    self:editButton({index=3, label=description})
-  end
-  if exclaimation then
-    self:editButton({index=4, label=exclaimation})
-    self:editButton({index=5, label=exclaimation})
-  end
+  search_area()
 end

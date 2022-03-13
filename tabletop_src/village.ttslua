@@ -7,7 +7,6 @@ nesburgh:setVar("fly_coroutine_running", false)
 
 
 function onLoad()
-  bird.interactable = false
   bird.AssetBundle:playLoopingEffect(2)
   bird:setInvisibleTo(Player:getColors())
   self.createButton({
@@ -46,7 +45,6 @@ function fly(_, player_colour)
     bird:setPositionSmooth(target_pos, false, false)
     trainer_token:setPositionSmooth(target_pos, false, false)
     while bird:isSmoothMoving() do coroutine.yield(0) end
-    trainer_token:call("onDrop")
     -- Dropoff
     bird:setRotationSmooth(Vector(0, (nesburgh_pos - target_pos):heading("y"), 0), false, true)
     while bird:isSmoothMoving() do coroutine.yield(0) end
