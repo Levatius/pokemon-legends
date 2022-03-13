@@ -24,9 +24,9 @@ def run():
         health_text = f':attr_health:: {new_row.health}'
         initiative_text = f':attr_initiative:: {new_row.initiative}'
         move_text = f':crossed_swords:: {new_row.move_name}'
-        location_text = f':map:: {new_row.biome}/{new_row.climate}'
-        evolve_cost_text = f':attr_evolve_cost:: {new_row.evolve_cost}' if not pd.isnull(new_row.evolve_cost) else None
-        texts = ', '.join([text for text in [health_text, initiative_text, move_text, location_text, evolve_cost_text] if text])
+        #location_text = f':map:: {new_row.biome}/{new_row.climate}'
+        #evolve_cost_text = f':attr_evolve_cost:: {new_row.evolve_cost}' if not pd.isnull(new_row.evolve_cost) else None
+        texts = ', '.join([text for text in [health_text, initiative_text, move_text] if text])
         print(f':small_blue_diamond: **{new_row.internal_name}**: {texts}')
     print('\n**Modified Pokémon**')
     for _, new_row in new_df_pokemon.iterrows():

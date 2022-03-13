@@ -165,7 +165,7 @@ function handle_object_interactions(objects_in_chosen_offset)
 end
 
 function move_ultra_beasts()
-  local total_move_count_limit = 2 + len(Player.getPlayers()) + math.floor(measure_breach_strength() / 10)
+  local total_move_count_limit = 3 + math.ceil(len(Player:getPlayers()) / 2) + math.floor(measure_breach_strength() / 10)
 
   function move_ultra_beasts_coroutine()
     move_ultra_beasts_in_progress = true

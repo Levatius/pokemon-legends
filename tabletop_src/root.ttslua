@@ -83,7 +83,7 @@ function move_objects_between_zones(source_zone, target_zone)
   for _, object_in_zone in pairs(source_zone:getObjects()) do
     if not object_in_zone:hasTag(BALL_TOKEN_TAG) then
       local rotation_delta = target_zone:getRotation() - source_zone:getRotation()
-      local position_delta = object_in_zone:getPosition() + Vector(0, 0.5, 0) - source_zone:getPosition()
+      local position_delta = object_in_zone:getPosition() - source_zone:getPosition()
       position_delta:rotateOver("y", rotation_delta.y)
       object_in_zone:setPosition(target_zone:getPosition() + position_delta)
       object_in_zone:setRotation(object_in_zone:getRotation() + rotation_delta)

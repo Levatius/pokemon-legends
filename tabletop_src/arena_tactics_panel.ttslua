@@ -23,33 +23,38 @@ end
 --
 
 function update_panel()
-  local pokemon = get_object(active_zone)
-  local held_item = get_held_item()
-  if pokemon and (pokemon:hasTag(GALACTIC_GRUNT_TAG) or pokemon:hasTag(GALACTIC_COMMANDER_TAG) or pokemon:hasTag(GALACTIC_BOSS_TAG)) then
-    self:setPosition(Vector(self:getPosition().x, 2.07, self:getPosition().z))
-    self:setRotation(Vector(self:getRotation().x, active_zone:getRotation().y, 180))
-    -- Play music only when no music event is playing
-    local is_music_event_playing = music_box:call("is_music_event_playing")
-    if not is_music_event_playing then
-      if pokemon:hasTag(GALACTIC_GRUNT_TAG) then
-        Wait.frames(function() music_box:call("music_event_button_3") end, 100)
-      elseif pokemon:hasTag(GALACTIC_COMMANDER_TAG) then
-        Wait.frames(function() music_box:call("music_event_button_4") end, 100)
-      elseif pokemon:hasTag(GALACTIC_BOSS_TAG) then
-        Wait.frames(function() music_box:call("music_event_button_5") end, 100)
+  function update_panel_coroutine()
+    coroutine.yield(0)
+    local pokemon = get_object(active_zone)
+    local held_item = get_held_item()
+    if pokemon and (pokemon:hasTag(GALACTIC_GRUNT_TAG) or pokemon:hasTag(GALACTIC_COMMANDER_TAG) or pokemon:hasTag(GALACTIC_BOSS_TAG)) then
+      self:setPosition(Vector(self:getPosition().x, 2.07, self:getPosition().z))
+      self:setRotation(Vector(self:getRotation().x, active_zone:getRotation().y, 180))
+      -- Play music only when no music event is playing
+      local is_music_event_playing = music_box:call("is_music_event_playing")
+      if not is_music_event_playing then
+        if pokemon:hasTag(GALACTIC_GRUNT_TAG) then
+          Wait.frames(function() music_box:call("music_event_button_3") end, 100)
+        elseif pokemon:hasTag(GALACTIC_COMMANDER_TAG) then
+          Wait.frames(function() music_box:call("music_event_button_4") end, 100)
+        elseif pokemon:hasTag(GALACTIC_BOSS_TAG) then
+          Wait.frames(function() music_box:call("music_event_button_5") end, 100)
+        end
       end
+    elseif pokemon and (pokemon:hasTag(LEGENDARY_CARD_TAG) or pokemon:hasTag(NOBLE_CARD_TAG) or pokemon:hasTag(ULTRA_BEAST_CARD_TAG) or pokemon:hasTag(ULTRA_BURST_CARD_TAG) or (held_item and held_item:getName() == "Alpha Pokémon")) then
+      self:setPosition(Vector(self:getPosition().x, 2.07, self:getPosition().z))
+      self:setRotation(Vector(self:getRotation().x, active_zone:getRotation().y + 180, 180))
+    elseif pokemon and pokemon:hasTag(SECRET_CARD_TAG) then
+      local current_audio_clip = MusicPlayer:getCurrentAudioclip()
+      if not current_audio_clip or current_audio_clip["title"] ~= SECRET_ENCOUNTER_MUSIC["title"] then
+        MusicPlayer:setCurrentAudioclip(SECRET_ENCOUNTER_MUSIC)
+        MusicPlayer.repeat_track = true
+      end
+    else
+      self:setPosition(Vector(self:getPosition().x, 1.97, self:getPosition().z))
+      self:setRotation(Vector(self:getRotation().x, active_zone:getRotation().y, 0))
     end
-  elseif pokemon and (pokemon:hasTag(LEGENDARY_CARD_TAG) or pokemon:hasTag(NOBLE_CARD_TAG) or pokemon:hasTag(ULTRA_BEAST_CARD_TAG) or pokemon:hasTag(ULTRA_BURST_CARD_TAG) or (held_item and held_item:getName() == "Alpha Pokémon")) then
-    self:setPosition(Vector(self:getPosition().x, 2.07, self:getPosition().z))
-    self:setRotation(Vector(self:getRotation().x, active_zone:getRotation().y + 180, 180))
-  elseif pokemon and pokemon:hasTag(SECRET_CARD_TAG) then
-    local current_audio_clip = MusicPlayer:getCurrentAudioclip()
-    if not current_audio_clip or current_audio_clip["title"] ~= SECRET_ENCOUNTER_MUSIC["title"] then
-      MusicPlayer:setCurrentAudioclip(SECRET_ENCOUNTER_MUSIC)
-      MusicPlayer.repeat_track = true
-    end
-  else
-    self:setPosition(Vector(self:getPosition().x, 1.97, self:getPosition().z))
-    self:setRotation(Vector(self:getRotation().x, active_zone:getRotation().y, 0))
+    return 1
   end
+  startLuaCoroutine(self, "update_panel_coroutine")
 end
