@@ -44,6 +44,16 @@ function update_panel()
     elseif pokemon and (pokemon:hasTag(LEGENDARY_CARD_TAG) or pokemon:hasTag(NOBLE_CARD_TAG) or pokemon:hasTag(ULTRA_BEAST_CARD_TAG) or pokemon:hasTag(ULTRA_BURST_CARD_TAG) or (held_item and held_item:getName() == "Alpha Pokémon")) then
       self:setPosition(Vector(self:getPosition().x, 2.07, self:getPosition().z))
       self:setRotation(Vector(self:getRotation().x, active_zone:getRotation().y + 180, 180))
+      local is_music_event_playing = music_box:call("is_music_event_playing")
+      if not is_music_event_playing then
+        if pokemon:hasTag(NOBLE_CARD_TAG) then
+          Wait.frames(function() music_box:call("music_event_button_6") end, 100)
+        elseif pokemon:hasTag(ULTRA_BEAST_CARD_TAG) then
+          Wait.frames(function() music_box:call("music_event_button_7") end, 100)
+        elseif pokemon:hasTag(ULTRA_BURST_CARD_TAG) then
+          Wait.frames(function() music_box:call("music_event_button_8") end, 100)
+        end
+      end
     elseif pokemon and pokemon:hasTag(SECRET_CARD_TAG) then
       local current_audio_clip = MusicPlayer:getCurrentAudioclip()
       if not current_audio_clip or current_audio_clip["title"] ~= SECRET_ENCOUNTER_MUSIC["title"] then

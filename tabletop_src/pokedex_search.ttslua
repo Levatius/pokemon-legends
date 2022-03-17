@@ -196,8 +196,13 @@ function get_encounter_guid(biome, climate, zone, gm_notes)
     else
       local card_biome = get_biome_tag(info.tags)
       local card_climate = get_climate_tag(info.tags)
+      -- Apricorn Trees/Reefs
       if card_biome == biome and card_climate == climate then
         return info.guid
+      -- Distortion Gates
+      elseif (card_biome == biome and not climate) or (biome and not climate and not card_biome and not card_climate) then
+        return info.guid
+      -- Warped Apricorn Trees
       elseif not biome and not climate then
         return info.guid
       end

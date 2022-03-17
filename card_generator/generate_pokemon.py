@@ -22,7 +22,7 @@ def get_moves(stats):
 # Functions
 
 def compose_base(stats):
-    card_base = 'standard' if stats.encounter_tier not in ('grunt', 'commander', 'boss') else 'team_galactic'
+    card_base = 'standard' if stats.encounter_tier not in ('grunt', 'commander', 'boss', 'ultra_burst') else 'team_galactic'
     base_img = Image.open(ASSETS_DIR / 'card_bases' / f'{card_base}.png').convert('RGBA').resize(xy(16, 28))
 
     try:

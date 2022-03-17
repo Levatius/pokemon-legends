@@ -80,12 +80,6 @@ function send_to_arena(index)
           Wait.frames(function() music_box:call("music_event_button_2") end, 100)
         elseif pokemon:hasTag(LEGENDARY_CARD_TAG) then
           Wait.frames(function() music_box:call("music_event_button_1") end, 100)
-        elseif pokemon:hasTag(NOBLE_CARD_TAG) then
-          Wait.frames(function() music_box:call("music_event_button_6") end, 100)
-        elseif pokemon:hasTag(ULTRA_BEAST_CARD_TAG) then
-          Wait.frames(function() music_box:call("music_event_button_7") end, 100)
-        elseif pokemon:hasTag(ULTRA_BURST_CARD_TAG) then
-          Wait.frames(function() music_box:call("music_event_button_8") end, 100)
         else
           Wait.frames(function() music_box:call("music_event_button_0") end, 100)
         end

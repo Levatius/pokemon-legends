@@ -164,14 +164,62 @@ function handle_object_interactions(objects_in_chosen_offset)
   end
 end
 
+function ultra_necrozma_attacks()
+  local ultra_burst_token = getObjectsWithTag(ULTRA_BURST_TAG)[1]
+  local original_pos = ultra_burst_token:getPosition()
+  local original_rot = ultra_burst_token:getRotation()
+
+  ultra_burst_token:setLock(true)
+  -- Ascend
+  ultra_burst_token:setPositionSmooth(original_pos + Vector(0, 1, 0), false, false)
+  while ultra_burst_token:isSmoothMoving() do coroutine.yield(0) end
+
+  local target_tokens = getObjectsWithAnyTags({APRICORN_TREE_TOKEN_TAG, SHRINE_TOKEN_TAG})
+  local total_move_count = 0
+  for _, token in pairs(shuffle(target_tokens)) do
+    if not token:hasTag(BREACH_CLAIMED_TAG) then
+      -- Spin
+      for _ = 1, 36 do
+        ultra_burst_token:setRotation(ultra_burst_token:getRotation() + Vector(0, 10, 0))
+        coroutine.yield(0)
+      end
+
+      handle_object_interactions({token})
+      update_panel()
+
+      total_move_count = total_move_count + 1
+      if total_move_count >= math.ceil(len(Player:getPlayers()) / 2) then break end
+      brief_pause()
+    end
+  end
+  -- Descend
+  ultra_burst_token:setPositionSmooth(original_pos, false, false)
+  ultra_burst_token:setRotationSmooth(original_rot, false, false)
+  while ultra_burst_token:isSmoothMoving() do coroutine.yield(0) end
+  ultra_burst_token:setLock(false)
+end
+
+function handle_breach_cards(initial_breach_strength)
+  local breach_strength = measure_breach_strength()
+  if breach_strength < BREACH_STRENGTH_LIMIT and math.floor(breach_strength / 10) ~= math.floor(initial_breach_strength / 10) then
+    local dots = ""
+    for i = 1, math.floor(breach_strength / 10) do dots = dots .. "." end
+    printToAll("The breach is growing stronger" .. dots, {1, 100/255, 100/255})
+    local breach_deck = get_object(breach_zone)
+    if breach_deck then
+      breach_deck:deal(1)
+    end
+  end
+end
+
 function move_ultra_beasts()
-  local total_move_count_limit = 3 + math.ceil(len(Player:getPlayers()) / 2) + math.floor(measure_breach_strength() / 10)
+  local total_move_count_limit = 4 + math.floor(measure_breach_strength() / 10)
 
   function move_ultra_beasts_coroutine()
     move_ultra_beasts_in_progress = true
     local ultra_beast_tokens = getObjectsWithTag(ULTRA_BEAST_TAG)
     local total_move_count = 0
-    local breach_strength = measure_breach_strength()
+    local initial_breach_strength = measure_breach_strength()
 
     while total_move_count < total_move_count_limit do
       local previous_total_move_count = total_move_count
@@ -192,31 +240,21 @@ function move_ultra_beasts()
 
         handle_object_interactions(objects_in_chosen_offset)
         update_panel()
-
         -- Stop moving once the limit is hit
-        if total_move_count >= total_move_count_limit then
-          break
-        end
+        if total_move_count >= total_move_count_limit then break end
       end
-
-      -- Check to see if movement has stagnated
-      if total_move_count == previous_total_move_count then
-        break
-      end
+      -- Stop the loop if movement has stagnated
+      if total_move_count == previous_total_move_count then break end
     end
-
+    ultra_necrozma_attacks()
     reset_already_visited_tags()
     -- Deal out breach cards if breach strength passes a threshold
-    local new_breach_strength = measure_breach_strength()
-    if new_breach_strength < BREACH_STRENGTH_LIMIT and math.floor(new_breach_strength / 10) ~= math.floor(breach_strength / 10) then
-      local dots = ""
-      for i = 1, math.floor(new_breach_strength / 10) do dots = dots .. "." end
-      printToAll("The breach is growing stronger" .. dots, {1, 100/255, 100/255})
-      local breach_deck = get_object(breach_zone)
-      if breach_deck then
-        breach_deck:deal(1)
-      end
+    handle_breach_cards(initial_breach_strength)
+
+    if measure_breach_strength() >= BREACH_STRENGTH_LIMIT then
+      startLuaCoroutine(self, "game_over_coroutine")
     end
+
     move_ultra_beasts_in_progress = false
     return 1
   end
@@ -292,6 +330,5 @@ function update_panel()
       click_function = "dummy_button",
       font_color = {1, 100/255, 100/255}
     })
-    startLuaCoroutine(self, "game_over_coroutine")
   end
 end
