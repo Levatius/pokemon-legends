@@ -33,7 +33,9 @@ def run():
         if not pd.isnull(new_row.trainer):
             continue
 
-        old_row_df = old_df_pokemon.loc[old_df_pokemon['internal_name'] == new_row.internal_name]
+        old_row_match_condition = (old_df_pokemon['internal_name'] == new_row.internal_name) & \
+                                  (old_df_pokemon['pokedex_number'] == new_row.pokedex_number)
+        old_row_df = old_df_pokemon.loc[old_row_match_condition]
         if old_row_df.empty:
             continue
 
@@ -49,9 +51,9 @@ def run():
         if new_row.move_name != old_row.move_name:
             move_text = f':crossed_swords:: {old_row.move_name} → {new_row.move_name}'
             texts.append(move_text)
-        if not pd.isnull(new_row.biome) and (new_row.biome != old_row.biome or new_row.climate != old_row.climate):
-            location_text = f':map:: {old_row.biome}/{old_row.climate} → {new_row.biome}/{new_row.climate}'
-            texts.append(location_text)
+        # if not pd.isnull(new_row.biome) and (new_row.biome != old_row.biome or new_row.climate != old_row.climate):
+        #     location_text = f':map:: {old_row.biome}/{old_row.climate} → {new_row.biome}/{new_row.climate}'
+        #     texts.append(location_text)
         if not pd.isnull(new_row.evolve_cost) and new_row.evolve_cost != old_row.evolve_cost:
             evolve_cost_text = f':attr_evolve_cost:: {int(old_row.evolve_cost)} → {int(new_row.evolve_cost)}'
             texts.append(evolve_cost_text)

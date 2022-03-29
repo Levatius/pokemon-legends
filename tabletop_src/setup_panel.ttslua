@@ -245,6 +245,7 @@ function toggle_campaign()
       scale_distortion_world_base()
     else
       slide_ultra_control_panel()
+      for _, blessing_token in pairs(getObjectsWithTag(BLESSING_TOKEN_TAG)) do blessing_token:setLock(true) end
     end
 
     local offset = Vector(0, (is_expansion_enabled() and 1 or -1) * 5, 0)
@@ -260,6 +261,7 @@ function toggle_campaign()
 
     if is_expansion_enabled() then
       slide_ultra_control_panel()
+      for _, blessing_token in pairs(getObjectsWithTag(BLESSING_TOKEN_TAG)) do blessing_token:setLock(false) end
     else
       scale_distortion_world_base()
     end

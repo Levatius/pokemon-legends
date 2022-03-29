@@ -10,7 +10,7 @@ function onLoad()
     width          = 2000,
     height         = 2000,
     color          = {0, 0, 0, 0},
-    tooltip        = "Toggle Interactable"
+    tooltip        = "MODDING TOOL: Toggle Interactable"
   }
   self:createButton(button_params)
   update_panel()

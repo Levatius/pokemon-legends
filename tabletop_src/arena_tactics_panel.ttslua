@@ -4,8 +4,22 @@
 local active_zone = getObjectFromGUID(active_zone_guid)
 local pokemon_zone = getObjectFromGUID(pokemon_zone_guid)
 local music_box = getObjectFromGUID(MUSIC_BOX_GUID)
+local ultra_burst_prism_armour_zone = getObjectFromGUID(ULTRA_BURST_PRISM_ARMOUR_ZONE_GUID)
+local ultra_beast_prism_armour_zone = getObjectFromGUID(ULTRA_BEAST_PRISM_ARMOUR_ZONE_GUID)
 
 function onLoad()
+  button_params = {
+    click_function = "dummy_button",
+    function_owner = self,
+    position       = {0.195, -0.03, 0.365},
+    rotation       = {0, 180, 180},
+    scale          = {0.25, 1, 0.25},
+    width          = 0,
+    height         = 0,
+    font_size      = 200,
+    font_color     = {225/255, 150/255, 250/255}
+  }
+  self:createButton(button_params)
   update_panel()
 end
 
@@ -15,6 +29,16 @@ function get_held_item()
     if object:hasTag(HELD_ITEM_TAG) then
       return object
     end
+  end
+end
+
+function update_prism_armour(zone)
+  if zone then
+    local prism_armour_count = len(zone:getObjects())
+    local prism_armour_label = "-" .. math.floor(prism_armour_count / 2)
+    self:editButton({index=0, label=prism_armour_label})
+  else
+    self:editButton({index=0, label=""})
   end
 end
 
@@ -54,15 +78,21 @@ function update_panel()
           Wait.frames(function() music_box:call("music_event_button_8") end, 100)
         end
       end
+      -- Update Prism Armour
+      if pokemon:hasTag(ULTRA_BEAST_CARD_TAG) then
+        update_prism_armour(ultra_beast_prism_armour_zone)
+      elseif pokemon:hasTag(ULTRA_BURST_CARD_TAG) then
+        update_prism_armour(ultra_burst_prism_armour_zone)
+      end
     elseif pokemon and pokemon:hasTag(SECRET_CARD_TAG) then
-      local current_audio_clip = MusicPlayer:getCurrentAudioclip()
-      if not current_audio_clip or current_audio_clip["title"] ~= SECRET_ENCOUNTER_MUSIC["title"] then
-        MusicPlayer:setCurrentAudioclip(SECRET_ENCOUNTER_MUSIC)
-        MusicPlayer.repeat_track = true
+      local is_music_event_playing = music_box:call("is_music_event_playing")
+      if not is_music_event_playing then
+        Wait.frames(function() music_box:call("music_event_button_9") end, 100)
       end
     else
       self:setPosition(Vector(self:getPosition().x, 1.97, self:getPosition().z))
       self:setRotation(Vector(self:getRotation().x, active_zone:getRotation().y, 0))
+      update_prism_armour()
     end
     return 1
   end

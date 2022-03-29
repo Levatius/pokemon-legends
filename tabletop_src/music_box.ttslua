@@ -58,6 +58,7 @@ function music_event_button_5() music_event_button(6) end
 function music_event_button_6() music_event_button(7) end
 function music_event_button_7() music_event_button(8) end
 function music_event_button_8() music_event_button(9) end
+function music_event_button_9() music_event_button(10) end
 
 function music_event_button(index)
   if index == selected_music_event_index then

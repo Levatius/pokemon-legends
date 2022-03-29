@@ -14,6 +14,8 @@ BOSS_CAMPAIGN_TOKEN_ZONE_GUID = "2c6ace"
 HIDDEN_SPOT_DISCARD_ZONE_GUID = "02b565"
 SECRET_ENCOUNTER_ZONE_GUID = "f0666d"
 BREACH_ZONE_GUID = "f596eb"
+ULTRA_BURST_PRISM_ARMOUR_ZONE_GUID = "3fdea1"
+ULTRA_BEAST_PRISM_ARMOUR_ZONE_GUID = "bfb371"
 
 -- Tags
 NOT_INTERACTABLE_TAG = "Not Interactable"
@@ -62,7 +64,7 @@ ARTIFACT_TOKEN_TAG = "Artifact Token"
 CAMPAIGN_TOKEN_TAG = "Campaign Token"
 VILLAGE_TOKEN_TAG = "Village Token"
 WORLD_TOKEN_TAG = "World Token"
-
+BLESSING_TOKEN_TAG = "Blessing Token"
 
 WILD_AREA_TAG = "Wild Area"
 CLIMATE_TAGS = {"Cold", "Temperate", "Warm"}
@@ -179,11 +181,10 @@ MUSIC_EVENTS = {
     title = "Ultra Burst",
     url = "http://cloud-3.steamusercontent.com/ugc/1826778010514749776/1EEE0518C48AC64E3D23536119E25E3F1771F76F/"
   },
-}
-
-SECRET_ENCOUNTER_MUSIC = {
-  title = "???",
-  url = "http://cloud-3.steamusercontent.com/ugc/1826778296327117226/C5B6D20BC92E4C96D3328669E36DE9372AF97E14/"
+  {
+    title = "???",
+    url = "http://cloud-3.steamusercontent.com/ugc/1822276167119344543/9753230C854D916164DBBB2705CD6472F9989632/"
+  }
 }
 
 --

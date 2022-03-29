@@ -13,13 +13,15 @@ def get_base():
 def add_header(img, stats):
     d = ImageDraw.Draw(img)
 
+    # Type
     type_img = get_img(ASSETS_DIR / 'types' / f'{stats.type}.png', xy(2, 2))
     img.paste(type_img, xy(0.25, 0.25), type_img)
 
-    font = BARLOW_80
-    if len(stats.move_name) > 16:
-        font = BARLOW_64
-    d.text(xy(7.25, 1.25), stats.move_name, fill=DARK_COLOUR, font=font, anchor='mm')
+    # Name
+    name, font_used = wrap_text(str(stats.move_name), d, BARLOW_80, max_width=9.5, max_lines=1)
+    d.text(xy(7.25, 1.25), name, fill=DARK_COLOUR, font=font_used, anchor='mm')
+
+    # Attack Strength
     if not pd.isnull(stats.damage):
         d.text(xy(13.25, 1.25), str(stats.damage), fill=DARK_COLOUR, font=ORIENTAL_96, anchor='mm')
 
@@ -29,32 +31,8 @@ def add_description(img, stats):
         return
     d = ImageDraw.Draw(img)
 
-    description = wrap_text(str(stats.description), d, BARLOW_64, max_width=13.5)
-    d.multiline_text(xy(7.25, 4.75), description, fill=DARK_COLOUR, font=BARLOW_64, anchor='mm', align='center')
-
-
-def add_effectiveness(img, stats):
-    if stats.type not in TYPE_CHART:
-        return
-
-    d = ImageDraw.Draw(img)
-
-    offset = 14.5
-    for effectiveness, types in TYPE_CHART[stats.type].items():
-        if not types:
-            continue
-        offset -= 0.5 + len(types) * 1
-    offset = offset / 2
-
-    for effectiveness, types in TYPE_CHART[stats.type].items():
-        if not types:
-            continue
-        new_offset = offset + 0.5 + len(types) * 1
-        d.rectangle((xy(offset, 7.25), xy(new_offset, 7.5)), fill=EFFECTIVENESS_COLOURS[effectiveness])
-        for i, type_ in enumerate(types):
-            type_img = get_img(ASSETS_DIR / 'types' / f'{type_}.png', xy(1, 1))
-            img.paste(type_img, xy(offset + 0.25 + i * 1, 6.25), type_img)
-        offset = new_offset
+    description, font_used = wrap_text(str(stats.description), d, BARLOW_64, max_width=13.5, max_lines=4)
+    d.multiline_text(xy(7.25, 4.75), description, fill=DARK_COLOUR, font=font_used, anchor='mm', align='center')
 
 
 def run(overwrite=False):
@@ -70,7 +48,6 @@ def run(overwrite=False):
         img = get_base()
         add_header(img, stats)
         add_description(img, stats)
-        # add_effectiveness(img, stats)
         img.save(output_path)
 
     print('Generating card backs:')

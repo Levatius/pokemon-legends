@@ -121,8 +121,12 @@ def add_bases(img, stats):
             uncapturable_base_img = Image.open(ASSETS_DIR / 'uncapturable_base.png').convert('RGBA').resize(xy(3.5, 3.5))
             img.paste(uncapturable_base_img, xy(1.75, 12.75), uncapturable_base_img)
 
-        map_base_img = Image.open(ASSETS_DIR / 'map_base.png').convert('RGBA').resize(xy(3.5, 3.5))
-        img.paste(map_base_img, xy(10.75, 12.75), map_base_img)
+        if stats.encounter_tier in ('ultra_beast', 'ultra_burst'):
+            prism_armour_base_img = get_img(ASSETS_DIR / 'prism_armour_base.png', xy(3.5, 4))
+            img.paste(prism_armour_base_img, xy(10.75, 12.5), prism_armour_base_img)
+        else:
+            map_base_img = get_img(ASSETS_DIR / 'map_base.png', xy(3.5, 3.5))
+            img.paste(map_base_img, xy(10.75, 12.75), map_base_img)
 
     health_base_img = Image.open(ASSETS_DIR / 'health_base.png').convert('RGBA').resize(xy(3.5, 2))
     img.paste(health_base_img, xy(11.75, 7.75), health_base_img)
@@ -163,6 +167,8 @@ def add_location(img, stats):
     elif stats.encounter_tier == 'noble':
         village_name = stats.description.split(' ')[1].lower()
         location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'noble_{village_name}.png', xy(3, 3))
+    elif stats.encounter_tier in ('ultra_beast', 'ultra_burst'):
+        location_icon_img = None
     else:
         try:
             location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'{stats.climate.lower()}_{stats.biome.lower()}.png',
@@ -170,7 +176,8 @@ def add_location(img, stats):
         except (FileNotFoundError, AttributeError):
             location_icon_img = get_img(ASSETS_DIR / 'map_icons' / f'unknown.png', xy(3, 3))
 
-    img.paste(location_icon_img, xy(11, 13), location_icon_img)
+    if location_icon_img:
+        img.paste(location_icon_img, xy(11, 13), location_icon_img)
 
 
 def add_evolution_cost(img, stats):
