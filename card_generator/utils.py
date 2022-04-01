@@ -39,4 +39,4 @@ def get_multiline_text_list_and_font(text, draw, font, max_width, max_lines):
 
 def wrap_text(text, draw, font, max_width, max_lines):
     multiline_text_list, font_used = get_multiline_text_list_and_font(text, draw, font, max_width, max_lines)
-    return '\n'.join(multiline_text_list), font_used
+    return '\n'.join(multiline_text_list).strip(), font_used
