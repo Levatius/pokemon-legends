@@ -1,4 +1,3 @@
-#include config
 #include utils
 
 local biome
@@ -12,6 +11,8 @@ local exclaimation
 local do_text_reset = false
 
 function onLoad()
+  config_vars = load_module(MODULE_CONFIG_TAG)
+
   button_params = {
     click_function = "dummy_button",
     function_owner = self,
@@ -23,10 +24,10 @@ function onLoad()
   -- Exclaimation
   button_params.position = {0, 4.5, 0}
   button_params.font_size = 1000
-  button_params.font_color = DARK_COLOUR
+  button_params.font_color = config_vars.colours.DARK
   self:createButton(button_params)
   button_params.position = {0, 4.6, 0}
-  button_params.font_color = WHITE_COLOUR
+  button_params.font_color = config_vars.colours.WHITE
   self:createButton(button_params)
 end
 
@@ -46,9 +47,9 @@ function search_area()
 
   for _, hit_info in pairs(hit_list) do
     local hit_object = hit_info.hit_object
-    if hit_object:hasTag(CAMPAIGN_TOKEN_TAG) then
+    if hit_object:hasTag(config_vars.tags.world.CAMPAIGN) then
       break
-    elseif (hit_object:hasTag(ENCOUNTER_TOKEN_TAG) and not hit_object.is_face_down) or (hit_object:hasTag(ENCOUNTER_TOKEN_TAG) and hit_object:getName() ~= "Alpha Pokémon") then
+    elseif (hit_object:hasTag(config_vars.tags.world.ENCOUNTER) and not hit_object.is_face_down) or (hit_object:hasTag(config_vars.tags.world.ENCOUNTER) and hit_object:getName() ~= "Alpha Pokémon") then
       exclaim()
       break
     end

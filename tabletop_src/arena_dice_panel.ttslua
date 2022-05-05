@@ -1,4 +1,3 @@
-#include config
 #include utils
 
 local active_zone = getObjectFromGUID(active_zone_guid)
@@ -11,7 +10,7 @@ local dice_button_state = 1
 local type_button_state = 1
 local type_range_button_state = 1
 
-FATIGUE_LEVEL = 5
+FATIGUE_STATE_LEVEL = 6
 FATIGUE_ROTATIONS = {
   Vector(270, 180, 0),
   Vector(0, 180, 0),
@@ -22,13 +21,16 @@ FATIGUE_ROTATIONS = {
 }
 
 function onLoad()
-  button_params = {
+  config_vars = load_module(MODULE_CONFIG_TAG)
+  language_vars = load_module(MODULE_LANGUAGE_TAG)
+
+  local button_params = {
     function_owner = self,
     scale          = {0.5, 1, 0.5},
-    color          = WOOD_COLOUR,
-    font_color     = WHITE_COLOUR,
-    hover_color    = LIGHT_WOOD_COLOUR,
-    press_color    = LIGHT_WOOD_COLOUR
+    color          = config_vars.colours.WOOD,
+    font_color     = config_vars.colours.WHITE,
+    hover_color    = config_vars.colours.LIGHT_WOOD,
+    press_color    = config_vars.colours.LIGHT_WOOD
   }
   -- Roll Button
   button_params.click_function = "roll_button"
@@ -36,7 +38,7 @@ function onLoad()
   button_params.height = 920
   button_params.position = {0, 0.1, -0.4125}
   button_params.font_size = 400
-  button_params.label = "Roll"
+  button_params.label = language_vars.arena_dice_roller.ROLL_BUTTON_LABEL
   self:createButton(button_params)
   -- Dice Button
   button_params.click_function = "dice_button_toggle"
@@ -44,7 +46,7 @@ function onLoad()
   button_params.height = 680
   button_params.position = {-0.465, 0.1, 0.525}
   button_params.font_size = 200
-  button_params.tooltip = "Toggle Attack Strength"
+  button_params.tooltip = language_vars.arena_dice_roller.DICE_BUTTON_TOOLTIP
   self:createButton(button_params)
   -- Type Button
   button_params.click_function = "type_button_toggle"
@@ -52,7 +54,7 @@ function onLoad()
   button_params.height = 680
   button_params.position = {0.465, 0.1, 0.525}
   button_params.font_size = 200
-  button_params.tooltip = "Toggle Attack Type"
+  button_params.tooltip = language_vars.arena_dice_roller.TYPE_BUTTON_TOOLTIP
   self:createButton(button_params)
   -- Type Range Button
   button_params.click_function = "type_range_button_toggle"
@@ -61,8 +63,9 @@ function onLoad()
   button_params.height = 130
   button_params.position = {0.9025, 0.1, 0.125}
   button_params.label = ""
-  button_params.tooltip = "Toggle All Types"
+  button_params.tooltip = language_vars.arena_dice_roller.TYPE_RANGE_BUTTON_TOOLTIP
   self:createButton(button_params)
+
   update_panel()
 end
 
@@ -71,7 +74,7 @@ end
 --
 
 function clean_up_dice()
-  local dice_list = getObjectsWithTag(ATTACK_DICE_TAG)
+  local dice_list = getObjectsWithTag(config_vars.tags.objects.ATTACK_DICE)
   for _, dice in pairs(dice_list) do
     dice:destroyObject()
   end
@@ -91,7 +94,7 @@ end
 
 function increment_fatigue_dice()
   local current_state = fatigue_dice:getValue()
-  if current_state < 6 then
+  if current_state < FATIGUE_STATE_LEVEL then
     fatigue_dice:setPositionSmooth(fatigue_dice:getPosition() + Vector(0, 0.1, 0))
     fatigue_dice:setRotationSmooth(FATIGUE_ROTATIONS[current_state + 1] + Vector(0, self:getRotation().y, 0))
   end
@@ -110,15 +113,15 @@ function roll_button()
       smooth   = false,
       callback_function = function(dice) Wait.frames(function() if not dice:isDestroyed() then roll_callback(dice, direction) end end, 50) end
     })
-    spawned_dice:addTag(ATTACK_DICE_TAG)
+    spawned_dice:addTag(config_vars.tags.objects.ATTACK_DICE)
 
     -- Colour the attack dice
     local active_pokemon = get_active_pokemon()
     local move_types = get_move_types(active_pokemon)
     local type_name = move_types[type_button_state]
     if type_name ~= "Typeless" then
-      spawned_dice:setColorTint(TYPE_COLOURS[type_name])
-      spawned_dice:highlightOn(TYPE_COLOURS[type_name])
+      spawned_dice:setColorTint(config_vars.colours.TYPE[type_name])
+      spawned_dice:highlightOn(config_vars.colours.TYPE[type_name])
     end
 
     x_offset = x_offset + direction * 1
@@ -182,7 +185,7 @@ function get_effectiveness(type_name, enemy_base_types)
 
   if enemy_base_types then
     for _, enemy_base_type in pairs(enemy_base_types) do
-      effectiveness = effectiveness + (TYPE_CHART[type_name][enemy_base_type] and TYPE_CHART[type_name][enemy_base_type] or 0)
+      effectiveness = effectiveness + (config_vars.type_chart[type_name][enemy_base_type] and config_vars.type_chart[type_name][enemy_base_type] or 0)
     end
   end
   return effectiveness
@@ -212,8 +215,8 @@ function get_active_pokemon(is_enemy)
   end
 
   if active_pokemon and active_pokemon:getLuaScript() == "" then
-    active_pokemon:setName("Missing Data")
-    active_pokemon:setDescription("Internal data for this card has been deleted. It can no longer be used in the arena. Try rewinding time.")
+    active_pokemon:setName(language_vars.errors.MISSING_DATA_NAME)
+    active_pokemon:setDescription(language_vars.errors.MISSING_DATA_DESCRIPTION)
     active_pokemon:highlightOn({250/255, 100/255, 100/255})
     return
   end
@@ -229,7 +232,7 @@ function get_move_types(pokemon)
       end
     end
   else
-    move_types = get_keys(TYPE_CHART)
+    move_types = get_keys(config_vars.type_chart)
   end
   return move_types
 end
@@ -266,14 +269,14 @@ function update_panel()
   end
 
   local font_colour
-  if fatigue_dice:getValue() == 6 then
-    colour = DARK_COLOUR
+  if fatigue_dice:getValue() == FATIGUE_STATE_LEVEL then
+    colour = config_vars.colours.DARK
     font_colour = {250/255, 125/255, 100/255}
-    tooltip = "Fatigued: Take 3 damage after each roll"
+    tooltip = language_vars.arena_dice_roller.FATIGUED_TOOLTIP
     fatigue_dice:highlightOn({250/255, 125/255, 100/255})
   else
-    colour = WOOD_COLOUR
-    font_colour = WHITE_COLOUR
+    colour = config_vars.colours.WOOD
+    font_colour = config_vars.colours.WHITE
     tooltip = nil
     fatigue_dice:highlightOff()
   end
@@ -285,14 +288,14 @@ function update_panel()
   })
   self:editButton({
     index = 1,
-    label = dice_button_state .. " Dice"
+    label = dice_button_state .. language_vars.arena_dice_roller.DICE_BUTTON_LABEL
   })
   self:editButton({
     index = 2,
-    label = type_name .. "\n" .. signed_label(effectiveness),
-    color = TYPE_COLOURS[type_name]
+    label = language_vars.types[type_name] .. "\n" .. signed_label(effectiveness),
+    color = config_vars.colours.TYPE[type_name]
   })
-  local type_range_button_colours = {WOOD_COLOUR, {100/255, 200/255, 100/255}}
+  local type_range_button_colours = {config_vars.colours.WOOD, {100/255, 200/255, 100/255}}
   self:editButton({
     index = 3,
     color = type_range_button_colours[type_range_button_state]

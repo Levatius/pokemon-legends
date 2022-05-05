@@ -2,6 +2,26 @@
 -- UTILS START
 --
 
+MODULE_CONFIG_TAG = "Module Config"
+MODULE_LANGUAGE_TAG = "Module Language"
+
+CLIMATE_TAGS = {"Cold", "Temperate", "Warm"}
+BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean"}
+ENCOUNTER_TAGS = {"Weak", "Moderate", "Strong", "Legendary", "Distortion", "Secret"}
+
+function load_module(module_tag)
+  local modules = getObjectsWithTag(module_tag)
+  if len(modules) > 1 then
+    print('More than one module with tag "' .. module_tag .. '".')
+    return
+  elseif len(modules) == 0 then
+    print('Missing a module with tag "' .. module_tag .. '".')
+    return
+  end
+  local module = modules[1]
+  return module:getTable("vars")
+end
+
 function dummy_button() end
 
 function len(t)
@@ -157,7 +177,7 @@ function round(value)
 end
 
 function get_trainer_token(player_colour)
-  local trainer_tokens = getObjectsWithTag(TRAINER_TOKEN_TAG)
+  local trainer_tokens = getObjectsWithTag("Trainer Token")
   for _, trainer_token in pairs(trainer_tokens) do
     local trainer_colour = trainer_token:getGMNotes()
     if trainer_colour == player_colour then

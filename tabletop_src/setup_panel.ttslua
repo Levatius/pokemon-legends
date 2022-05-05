@@ -1,4 +1,3 @@
-#include config
 #include utils
 
 local claimed_wild_area_descriptions = {}
@@ -12,18 +11,23 @@ local weak_zone = getObjectFromGUID(weak_zone_guid)
 STEPS = 50
 
 function onLoad()
-  button_params = {
+  config_vars = load_module(MODULE_CONFIG_TAG)
+  language_vars = load_module(MODULE_LANGUAGE_TAG)
+
+  local button_params = {
     function_owner = self,
     scale          = {0.5, 1, 0.5},
-    color          = WOOD_COLOUR,
-    font_color     = WHITE_COLOUR
+    color          = config_vars.colours.WOOD,
+    font_color     = config_vars.colours.WHITE
   }
+  -- Debug Button
   button_params["click_function"] = "debug_game"
   button_params["position"]       = {-1.85, 0, 0.85}
   button_params["rotation"]       = {0, 180, 180}
   button_params["width"]          = 150
   button_params["height"]         = 150
   self:createButton(button_params)
+  -- Toggle Campaign Button
   button_params["click_function"] = "toggle_campaign"
   button_params["position"]       = {0, 0.2, -0.5}
   button_params["rotation"]       = {0, 0, 0}
@@ -31,8 +35,9 @@ function onLoad()
   button_params["height"]         = 500
   button_params["font_size"]      = 250
   self:createButton(button_params)
+  -- Start Game Button
   button_params["click_function"] = "setup_game"
-  button_params["label"]          = "Start Game"
+  button_params["label"]          = language_vars.setup_panel.START_GAME_LABEL
   button_params["position"]       = {0, 0.2, 0.25}
   button_params["rotation"]       = {0, 0, 0}
   button_params["width"]          = 3400
@@ -40,6 +45,7 @@ function onLoad()
   button_params["font_size"]      = 550
   button_params["color"]          = {75/255, 75/255, 100/255}
   self:createButton(button_params)
+
   update_panel()
 end
 
@@ -65,12 +71,12 @@ function _get_compatible_wild_areas(hidden_token)
   local hidden_token_biome = get_biome_tag(hidden_token:getTags())
   local hidden_token_climate = get_climate_tag(hidden_token:getTags())
 
-  return getObjectsWithAllTags({WILD_AREA_TAG, hidden_token_biome, hidden_token_climate})
+  return getObjectsWithAllTags({config_vars.tags.world.WILD_AREA, hidden_token_biome, hidden_token_climate})
 end
 
 function _check_wild_area_is_safe(wild_area)
   -- Skip wild area on these conditions
-  if contains(claimed_wild_area_descriptions, wild_area:getDescription()) or wild_area:hasTag(DISTORTION_WORLD_TAG) then
+  if contains(claimed_wild_area_descriptions, wild_area:getDescription()) or wild_area:hasTag(config_vars.tags.world.DISTORTION_WORLD) then
     return false
   end
 
@@ -84,7 +90,7 @@ function _check_wild_area_is_safe(wild_area)
 
   for _, hit_info in pairs(hit_list) do
     local hit_object = hit_info.hit_object
-    if hit_object:hasTag(WORLD_TOKEN_TAG) or hit_object:hasTag(ENCOUNTER_TOKEN_TAG) or hit_object:hasTag(TRAINER_TOKEN_TAG) or contains(claimed_wild_area_guids, hit_object:getGUID()) then
+    if hit_object:hasTag(config_vars.tags.world.WORLD) or hit_object:hasTag(config_vars.tags.world.ENCOUNTER) or hit_object:hasTag(config_vars.tags.objects.TRAINER) or contains(claimed_wild_area_guids, hit_object:getGUID()) then
       return false
     end
   end
@@ -94,7 +100,7 @@ end
 function setup_items(hidden_tokens, flip)
   for _, hidden_token in pairs(hidden_tokens) do
     -- Remove biome and climate tags from Alpha Pokémon
-    if hidden_token:getName() == "Alpha Pokémon" then
+    if hidden_token:hasTag(config_vars.tags.items.ARTIFACT) and hidden_token:hasTag(config_vars.tags.world.ENCOUNTER) then
       _reset_habitat_tags(hidden_token)
     end
 
@@ -151,24 +157,24 @@ function _move_starters_coroutine()
 end
 
 function _expansion_setup()
-  local ultra_beast_tokens = shuffle(getObjectsWithTag(ULTRA_BEAST_TAG))
+  local ultra_beast_tokens = shuffle(getObjectsWithTag(config_vars.tags.objects.ULTRA_BEAST))
   setup_items(ultra_beast_tokens, false)
 
-  local ultra_burst_token = getObjectsWithTag(ULTRA_BURST_TAG)[1]
+  local ultra_burst_token = getObjectsWithTag(config_vars.tags.objects.ULTRA_BURST)[1]
   ultra_burst_token:setPositionSmooth(distortion_world_base:getPosition() + Vector(0, 3, 0), false, false)
   ultra_burst_token:setRotationSmooth(distortion_world_base:getRotation(), false, false)
 
   claimed_wild_area_descriptions = {}
   -- Remove Heart of Sinnoh campaign tokens
-  local commander_campaign_tokens = getObjectsWithAllTags({GALACTIC_COMMANDER_TAG, CAMPAIGN_TOKEN_TAG})
+  local commander_campaign_tokens = getObjectsWithAllTags({config_vars.tags.encounters.GALACTIC_COMMANDER, config_vars.tags.world.CAMPAIGN})
   for _, commander_campaign_token in pairs(commander_campaign_tokens) do
-    commander_campaign_token:setPositionSmooth(getObjectFromGUID(COMMANDER_CAMPAIGN_TOKEN_ZONE_GUID):getPosition() + Vector(0, 2.5, 0), false, false)
-    commander_campaign_token:setRotationSmooth(getObjectFromGUID(COMMANDER_CAMPAIGN_TOKEN_ZONE_GUID):getRotation(), false, false)
+    commander_campaign_token:setPositionSmooth(getObjectFromGUID(config_vars.guids.COMMANDER_CAMPAIGN_TOKEN_ZONE):getPosition() + Vector(0, 2.5, 0), false, false)
+    commander_campaign_token:setRotationSmooth(getObjectFromGUID(config_vars.guids.COMMANDER_CAMPAIGN_TOKEN_ZONE):getRotation(), false, false)
   end
-  local boss_campaign_tokens = getObjectsWithAllTags({GALACTIC_BOSS_TAG, CAMPAIGN_TOKEN_TAG})
+  local boss_campaign_tokens = getObjectsWithAllTags({config_vars.tags.encounters.GALACTIC_BOSS, config_vars.tags.world.CAMPAIGN})
   for _, boss_campaign_token in pairs(boss_campaign_tokens) do
-    boss_campaign_token:setPositionSmooth(getObjectFromGUID(BOSS_CAMPAIGN_TOKEN_ZONE_GUID):getPosition() + Vector(0, 2.5, 0), false, false)
-    boss_campaign_token:setRotationSmooth(getObjectFromGUID(BOSS_CAMPAIGN_TOKEN_ZONE_GUID):getRotation(), false, false)
+    boss_campaign_token:setPositionSmooth(getObjectFromGUID(config_vars.guids.BOSS_CAMPAIGN_TOKEN_ZONE):getPosition() + Vector(0, 2.5, 0), false, false)
+    boss_campaign_token:setRotationSmooth(getObjectFromGUID(config_vars.guids.BOSS_CAMPAIGN_TOKEN_ZONE):getRotation(), false, false)
   end
 end
 
@@ -180,7 +186,7 @@ function setup_game()
   startLuaCoroutine(self, "_move_starters_coroutine")
 
   -- Unlock all campaign tokens
-  local campaign_tokens = getObjectsWithTag(CAMPAIGN_TOKEN_TAG)
+  local campaign_tokens = getObjectsWithTag(config_vars.tags.world.CAMPAIGN)
   for _, campaign_token in pairs(campaign_tokens) do
     campaign_token:setLock(false)
   end
@@ -190,13 +196,13 @@ function setup_game()
   end
 
   -- Shuffle hidden spots
-  local artifact_tokens = shuffle(getObjectsWithTag(ARTIFACT_TOKEN_TAG))
+  local artifact_tokens = shuffle(getObjectsWithTag(config_vars.tags.items.ARTIFACT))
   setup_items(artifact_tokens, true)
-  local hidden_tokens = shuffle(getObjectsWithTag(HIDDEN_TOKEN_TAG))
+  local hidden_tokens = shuffle(getObjectsWithTag(config_vars.tags.items.HIDDEN))
   setup_items(hidden_tokens, true)
 
   -- Shuffle shrine event and distortion breach cards
-  local card_objects = getObjectsWithAnyTags({SHRINE_CARD_TAG, BREACH_CARD_TAG})
+  local card_objects = getObjectsWithAnyTags({config_vars.tags.cards.SHRINE, config_vars.tags.cards.BREACH})
   for _, card_object in pairs(card_objects) do
     if card_object.type == "Deck" then
       card_object:randomize()
@@ -235,7 +241,7 @@ function toggle_campaign()
     update_panel()
     distortion_world_coroutine_running = true
 
-    local distortion_gates = getObjectsWithTag(DISTORTION_GATE_TAG)
+    local distortion_gates = getObjectsWithTag(config_vars.tags.world.DISTORTION_GATE)
     for _, distortion_gate in pairs(distortion_gates) do
       distortion_gate:setRotation(distortion_gate:getRotation() + Vector(0, 0, 180))
       distortion_gate:setPosition(distortion_gate:getPosition() + Vector(0, (is_expansion_enabled() and -1 or 1) * 0.1, 0))
@@ -245,12 +251,12 @@ function toggle_campaign()
       scale_distortion_world_base()
     else
       slide_ultra_control_panel()
-      for _, blessing_token in pairs(getObjectsWithTag(BLESSING_TOKEN_TAG)) do blessing_token:setLock(true) end
+      for _, blessing_token in pairs(getObjectsWithTag(config_vars.tags.items.BLESSING)) do blessing_token:setLock(true) end
     end
 
     local offset = Vector(0, (is_expansion_enabled() and 1 or -1) * 5, 0)
 
-    local distortion_world_components = getObjectsWithTag(DISTORTION_WORLD_TAG)
+    local distortion_world_components = getObjectsWithTag(config_vars.tags.world.DISTORTION_WORLD)
     for _, distortion_world_component in pairs(distortion_world_components) do
       distortion_world_component:setPositionSmooth(distortion_world_component:getPosition() + offset, false, false)
       distortion_world_component.tooltip = is_expansion_enabled()
@@ -261,7 +267,7 @@ function toggle_campaign()
 
     if is_expansion_enabled() then
       slide_ultra_control_panel()
-      for _, blessing_token in pairs(getObjectsWithTag(BLESSING_TOKEN_TAG)) do blessing_token:setLock(false) end
+      for _, blessing_token in pairs(getObjectsWithTag(config_vars.tags.items.BLESSING)) do blessing_token:setLock(false) end
     else
       scale_distortion_world_base()
     end
@@ -280,7 +286,7 @@ function debug_game(_, _, alt_click)
     self:flip()
   else
     -- Count encounter tokens
-    local encounter_tokens = getObjectsWithTag(ENCOUNTER_TOKEN_TAG)
+    local encounter_tokens = getObjectsWithTag(config_vars.tags.world.ENCOUNTER)
     local encounter_tokens_count = {}
     for _, encounter_token in pairs(encounter_tokens) do
       local name = encounter_token:getName()
@@ -292,7 +298,7 @@ function debug_game(_, _, alt_click)
     end
 
     -- Flip over hidden tokens
-    local hidden_tokens = getObjectsWithAnyTags({ARTIFACT_TOKEN_TAG, HIDDEN_TOKEN_TAG})
+    local hidden_tokens = getObjectsWithAnyTags({config_vars.tags.items.ARTIFACT, config_vars.tags.items.HIDDEN})
     for _, hidden_token in pairs(hidden_tokens) do
       hidden_token:setRotationSmooth(Vector(0, 180, 0))
     end
@@ -304,10 +310,10 @@ end
 --
 
 function update_panel()
-  local label = "Heart of Sinnoh Campaign"
+  local label = language_vars.setup_panel.HOS_CAMPAIGN_LABEL
   local color = {200/255, 100/255, 100/255}
   if is_expansion_enabled() then
-    label = "Ultra Burst Campaign"
+    label = language_vars.setup_panel.UB_CAMPAIGN_LABEL
     color = {150/255, 100/255, 200/255}
   end
   self:editButton({index=1, label=label, color=color})

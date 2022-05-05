@@ -1,9 +1,13 @@
-#include config
 #include utils
 
 local bag = getObjectFromGUID(bag_guid)
 
+JOURNEY_POINT_TOKEN_NAME = "Journey Point"
+APRICORN_NAMES = {"Red", "Blue", "Yellow", "Black", "Pink", "Green", "White"}
+
 function onLoad()
+  config_vars = load_module(MODULE_CONFIG_TAG)
+
   button_params = {
     function_owner = self,
     width          = 150,
@@ -17,7 +21,7 @@ function onLoad()
     width          = 0,
     height         = 0,
     font_size      = 200,
-    font_color     = WHITE_COLOUR
+    font_color     = config_vars.colours.WHITE
   }
   -- Resource Buttons
   for i = 0, 7 do
@@ -57,7 +61,7 @@ function resource_button_6(_, _, alt_click) apricorn_button(7, alt_click) end
 function resource_button_7(_, _, alt_click) journey_point_button(alt_click) end
 
 function apricorn_button(index, alt_click)
-  local apricorn_bag = getObjectFromGUID(APRICORN_BAG_GUIDS[index])
+  local apricorn_bag = getObjectFromGUID(config_vars.guids.APRICORN_BAGS[index])
   if not alt_click then
     local apricorn = apricorn_bag:takeObject({rotation=bag:getRotation()})
     bag:putObject(apricorn)
@@ -72,7 +76,7 @@ function apricorn_button(index, alt_click)
 end
 
 function journey_point_button(alt_click)
-  local journey_point_bag = getObjectFromGUID(JOURNEY_POINT_BAG_GUID)
+  local journey_point_bag = getObjectFromGUID(config_vars.guids.JOURNEY_POINT_BAG)
   if not alt_click then
     local journey_point = journey_point_bag:takeObject({rotation=bag:getRotation()})
     bag:putObject(journey_point)

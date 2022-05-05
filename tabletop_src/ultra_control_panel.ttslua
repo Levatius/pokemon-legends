@@ -1,32 +1,35 @@
-#include config
 #include utils
 
-BREACH_CLAIMED_TAG = "Breach Claimed"
 SEARCH_OFFSETS = {Vector(0, 0, 1.91), Vector(1.65, 0, 0.95), Vector(1.65, 0, -0.95), Vector(0, 0, -1.91), Vector(-1.65, 0, -0.95), Vector(-1.65, 0, 0.95)}
-TARGET_PRIORITIES = {
-  [ALREADY_VISITED_TAG] = -200,
-  [ULTRA_BEAST_TAG] = -100,
-  [TRAINER_TOKEN_TAG] = -100,
-  [LEGENDARY_CARD_TAG] = -100,
-  [VILLAGE_TOKEN_TAG] = -100,
-  [BREACH_CLAIMED_TAG] = -20,
-  [HIDDEN_TOKEN_TAG] = 10,
-  [ARTIFACT_TOKEN_TAG] = 10,
-  [SHRINE_TOKEN_TAG] = 10,
-  [APRICORN_TREE_TOKEN_TAG] = 10,
-  [WILD_AREA_TAG] = 1000
-}
 BREACH_STRENGTH_LIMIT = 70
 END_MUSIC = {
   title = "The End",
   url = "http://cloud-3.steamusercontent.com/ugc/1826778207093629013/525A638121F264E791BF90D2B0DCFFA7FCD3C924/"
 }
 
-local hidden_spot_discard_zone = getObjectFromGUID(HIDDEN_SPOT_DISCARD_ZONE_GUID)
-local breach_zone = getObjectFromGUID(BREACH_ZONE_GUID)
 local move_ultra_beasts_in_progress = false
 
 function onLoad()
+  config_vars = load_module(MODULE_CONFIG_TAG)
+  language_vars = load_module(MODULE_LANGUAGE_TAG)
+
+  hidden_spot_discard_zone = getObjectFromGUID(config_vars.guids.HIDDEN_SPOT_DISCARD_ZONE)
+  breach_zone = getObjectFromGUID(config_vars.guids.BREACH_ZONE)
+
+  target_priorities = {
+    [config_vars.tags.property.ALREADY_VISITED] = -200,
+    [config_vars.tags.objects.ULTRA_BEAST] = -100,
+    [config_vars.tags.objects.TRAINER] = -100,
+    [config_vars.tags.encounters.LEGENDARY] = -100,
+    [config_vars.tags.world.VILLAGE] = -100,
+    [config_vars.tags.property.BREACH_CLAIMED] = -20,
+    [config_vars.tags.items.HIDDEN] = 10,
+    [config_vars.tags.items.ARTIFACT] = 10,
+    [config_vars.tags.world.SHRINE] = 10,
+    [config_vars.tags.world.APRICORN_TREE] = 10,
+    [config_vars.tags.world.WILD_AREA] = 1000
+  }
+
   button_params = {
     click_function = "move_ultra_beasts",
     function_owner = self,
@@ -36,10 +39,11 @@ function onLoad()
     height         = 700,
     font_size      = 550,
     color          = {50/255, 50/255, 150/255},
-    font_color     = WHITE_COLOUR,
-    tooltip        = "Move Ultra Beasts"
+    font_color     = config_vars.colours.WHITE,
+    tooltip        = language_vars.ub_control_panel.BREACH_STRENGTH_TOOLTIP
   }
   self:createButton(button_params)
+
   update_panel()
 end
 
@@ -49,20 +53,20 @@ end
 
 function reset_already_visited_tags()
   local guids_to_keep = {}
-  local ultra_beast_tokens = getObjectsWithTag(ULTRA_BEAST_TAG)
+  local ultra_beast_tokens = getObjectsWithTag(config_vars.tags.objects.ULTRA_BEAST)
   for _, ultra_beast_token in pairs(ultra_beast_tokens) do
     local objects_on_tile = get_objects_in_search_offsets(ultra_beast_token, {Vector(0, 0, 0)})[1]
     for _, object_on_tile in pairs(objects_on_tile) do
-      if object_on_tile:hasTag(ALREADY_VISITED_TAG) then
+      if object_on_tile:hasTag(config_vars.tags.property.ALREADY_VISITED) then
         table.insert(guids_to_keep, object_on_tile:getGUID())
       end
     end
   end
 
-  local already_visited_areas = getObjectsWithTag(ALREADY_VISITED_TAG)
+  local already_visited_areas = getObjectsWithTag(config_vars.tags.property.ALREADY_VISITED)
   for _, already_visited_area in pairs(already_visited_areas) do
     if not contains(guids_to_keep, already_visited_area:getGUID()) then
-      already_visited_area:removeTag(ALREADY_VISITED_TAG)
+      already_visited_area:removeTag(config_vars.tags.property.ALREADY_VISITED)
     end
   end
 end
@@ -97,7 +101,7 @@ function calculate_priority(objects_in_search_offset)
   local priority = 0
   for _, object in pairs(objects_in_search_offset) do
     for _, tag in pairs(object:getTags()) do
-      local priority_delta = TARGET_PRIORITIES[tag]
+      local priority_delta = target_priorities[tag]
       if priority_delta then
         priority = priority + priority_delta
       end
@@ -129,7 +133,7 @@ function is_wild_area_safe(wild_area)
 
   for _, hit_info in pairs(hit_list) do
     local hit_object = hit_info.hit_object
-    if hit_object:hasTag(WORLD_TOKEN_TAG) or hit_object:hasTag(TRAINER_TOKEN_TAG) or hit_object:hasTag(HIDDEN_TOKEN_TAG) or hit_object:hasTag(ARTIFACT_TOKEN_TAG) then
+    if hit_object:hasTag(config_vars.tags.world.WORLD) or hit_object:hasTag(config_vars.tags.objects.TRAINER) or hit_object:hasTag(config_vars.tags.items.HIDDEN) or hit_object:hasTag(config_vars.tags.items.ARTIFACT) then
       return false
     end
   end
@@ -137,7 +141,7 @@ function is_wild_area_safe(wild_area)
 end
 
 function get_safe_wild_area()
-  local distortion_world_wild_areas = getObjectsWithAllTags({WILD_AREA_TAG, DISTORTION_WORLD_TAG})
+  local distortion_world_wild_areas = getObjectsWithAllTags({config_vars.tags.world.WILD_AREA, config_vars.tags.world.DISTORTION_WORLD})
 
   for _, wild_area in pairs(shuffle(distortion_world_wild_areas)) do
     if is_wild_area_safe(wild_area) then
@@ -148,7 +152,7 @@ end
 
 function handle_object_interactions(objects_in_chosen_offset)
   for _, object in pairs(objects_in_chosen_offset) do
-    if object:hasTag(HIDDEN_TOKEN_TAG) or object:hasTag(ARTIFACT_TOKEN_TAG) then
+    if object:hasTag(config_vars.tags.items.HIDDEN) or object:hasTag(config_vars.tags.items.ARTIFACT) then
       local target_area = get_safe_wild_area()
       if not target_area then
         target_area = hidden_spot_discard_zone
@@ -156,16 +160,16 @@ function handle_object_interactions(objects_in_chosen_offset)
       end
       object:setPositionSmooth(target_area:getPosition() + Vector(0, 1, 0), false, true)
       while object:isSmoothMoving() do coroutine.yield(0) end
-    elseif object:hasTag(SHRINE_TOKEN_TAG) or object:hasTag(APRICORN_TREE_TOKEN_TAG) then
-      object:removeTag(ENCOUNTER_TOKEN_TAG)
-      object:addTag(BREACH_CLAIMED_TAG)
+    elseif object:hasTag(config_vars.tags.world.SHRINE) or object:hasTag(config_vars.tags.world.APRICORN_TREE) then
+      object:removeTag(config_vars.tags.world.ENCOUNTER)
+      object:addTag(config_vars.tags.property.BREACH_CLAIMED)
       object:setColorTint({0.5, 0.5, 0.5, 1})
     end
   end
 end
 
 function ultra_necrozma_attacks()
-  local ultra_burst_token = getObjectsWithTag(ULTRA_BURST_TAG)[1]
+  local ultra_burst_token = getObjectsWithTag(config_vars.tags.objects.ULTRA_BURST)[1]
   local original_pos = ultra_burst_token:getPosition()
   local original_rot = ultra_burst_token:getRotation()
 
@@ -174,10 +178,10 @@ function ultra_necrozma_attacks()
   ultra_burst_token:setPositionSmooth(original_pos + Vector(0, 1, 0), false, false)
   while ultra_burst_token:isSmoothMoving() do coroutine.yield(0) end
 
-  local target_tokens = getObjectsWithAnyTags({APRICORN_TREE_TOKEN_TAG, SHRINE_TOKEN_TAG})
+  local target_tokens = getObjectsWithAnyTags({config_vars.tags.world.APRICORN_TREE, config_vars.tags.world.SHRINE})
   local total_move_count = 0
   for _, token in pairs(shuffle(target_tokens)) do
-    if not token:hasTag(BREACH_CLAIMED_TAG) then
+    if not token:hasTag(config_vars.tags.property.BREACH_CLAIMED) then
       -- Spin
       for _ = 1, 36 do
         ultra_burst_token:setRotation(ultra_burst_token:getRotation() + Vector(0, 10, 0))
@@ -204,7 +208,7 @@ function handle_breach_cards(initial_breach_strength)
   if breach_strength < BREACH_STRENGTH_LIMIT and math.floor(breach_strength / 10) ~= math.floor(initial_breach_strength / 10) then
     local dots = ""
     for i = 1, math.floor(breach_strength / 10) do dots = dots .. "." end
-    printToAll("The breach is growing stronger" .. dots, {1, 100/255, 100/255})
+    printToAll(language_vars.ub_control_panel.BREACH_STRENGTH_INCREASES_MESSAGE .. dots, {1, 100/255, 100/255})
     local breach_deck = get_object(breach_zone)
     if breach_deck then
       breach_deck:deal(1)
@@ -217,7 +221,7 @@ function move_ultra_beasts()
 
   function move_ultra_beasts_coroutine()
     move_ultra_beasts_in_progress = true
-    local ultra_beast_tokens = getObjectsWithTag(ULTRA_BEAST_TAG)
+    local ultra_beast_tokens = getObjectsWithTag(config_vars.tags.objects.ULTRA_BEAST)
     local total_move_count = 0
     local initial_breach_strength = measure_breach_strength()
 
@@ -229,9 +233,9 @@ function move_ultra_beasts()
         local objects_in_chosen_offset = get_objects_in_chosen_offset(objects_in_search_offsets)
 
         for _, object in pairs(objects_in_chosen_offset) do
-          if object:hasTag(WILD_AREA_TAG) then
+          if object:hasTag(config_vars.tags.world.WILD_AREA) then
             ultra_beast_token:setPositionSmooth(object:getPosition() + Vector(0, 2, 0), false, true)
-            object:addTag(ALREADY_VISITED_TAG)
+            object:addTag(config_vars.tags.property.ALREADY_VISITED)
             total_move_count = total_move_count + 1
             while ultra_beast_token:isSmoothMoving() do coroutine.yield(0) end
             break
@@ -262,7 +266,7 @@ function move_ultra_beasts()
   if not move_ultra_beasts_in_progress then
     startLuaCoroutine(self, "move_ultra_beasts_coroutine")
   else
-    print("Ultra Beasts already moving.")
+    print(language_vars.ub_control_panel.ALREADY_MOVING_MESSAGE)
   end
 end
 
@@ -271,14 +275,14 @@ end
 --
 
 function measure_breach_strength()
-  local shrine_token_number = len(getObjectsWithTag(SHRINE_TOKEN_TAG))
-  local apricorn_tree_token_number = len(getObjectsWithTag(APRICORN_TREE_TOKEN_TAG))
-  local breach_claimed_number = len(getObjectsWithTag(BREACH_CLAIMED_TAG))
+  local shrine_token_number = len(getObjectsWithTag(config_vars.tags.world.SHRINE))
+  local apricorn_tree_token_number = len(getObjectsWithTag(config_vars.tags.world.APRICORN_TREE))
+  local breach_claimed_number = len(getObjectsWithTag(config_vars.tags.property.BREACH_CLAIMED))
   return round(100 * breach_claimed_number / (shrine_token_number + apricorn_tree_token_number))
 end
 
 function game_over_coroutine()
-  local ultra_burst_token = getObjectsWithTag(ULTRA_BURST_TAG)[1]
+  local ultra_burst_token = getObjectsWithTag(config_vars.tags.objects.ULTRA_BURST)[1]
 
   if ultra_burst_token:getLock() then
     return 1

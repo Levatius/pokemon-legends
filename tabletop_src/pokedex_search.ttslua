@@ -1,4 +1,3 @@
-#include config
 #include utils
 
 local starter_zone = getObjectFromGUID(starter_zone_guid)
@@ -12,18 +11,22 @@ local layout_zone = getObjectFromGUID(layout_zone_guid)
 local galactic_grunt_zone = getObjectFromGUID(galactic_grunt_zone_guid)
 local galactic_commander_zone = getObjectFromGUID(galactic_commander_zone_guid)
 local galactic_boss_zone = getObjectFromGUID(galactic_boss_zone_guid)
-local secret_zone = getObjectFromGUID(SECRET_ENCOUNTER_ZONE_GUID)
 
 local return_coroutine_running = false
 
 function onLoad()
+  config_vars = load_module(MODULE_CONFIG_TAG)
+  language_vars = load_module(MODULE_LANGUAGE_TAG)
+
+  secret_zone = getObjectFromGUID(config_vars.guids.SECRET_ENCOUNTER_ZONE)
+
   button_params = {
     function_owner = self,
     scale          = {0.5, 1, 0.5},
     width          = 810,
     height         = 270,
     font_size      = 150,
-    font_color     = WHITE_COLOUR
+    font_color     = config_vars.colours.WHITE
   }
   -- Search Button
   button_params.click_function = "search_button"
@@ -33,6 +36,7 @@ function onLoad()
   button_params.click_function = "evolve_button"
   button_params.position = {0.77, 0.2, 0.77}
   self:createButton(button_params)
+
   update_panel()
 end
 
@@ -60,17 +64,17 @@ end
 
 function evolve_button()
   if not pokemon_in_preevolution_zone() then
-    print("Place a Pokémon in the slot above.")
+    print(language_vars.pokedex.EVOLVE_SLOT_MESSAGE)
     return
   elseif pokemon_in_layout_zone() then
-    print("Return the currently searched Pokémon.")
+    print(language_vars.pokedex.EVOLVE_RETURN_MESSAGE)
     return
   end
 
   local preevolution = get_object(preevolution_zone)
   local evolution_names = preevolution:getVar("evolve_into")
   if not evolution_names then
-    print("This Pokémon does not evolve.")
+    print(language_vars.pokedex.EVOLVE_INVALID_MESSAGE)
     return
   end
 
@@ -100,25 +104,25 @@ end
 --
 
 function get_zone_from_tags(tags)
-  if contains(tags, GALACTIC_GRUNT_TAG) then
+  if contains(tags, config_vars.tags.encounters.GALACTIC_GRUNT) then
     return galactic_grunt_zone
-  elseif contains(tags, GALACTIC_COMMANDER_TAG) then
+  elseif contains(tags, config_vars.tags.encounters.GALACTIC_COMMANDER) then
     return galactic_commander_zone
-  elseif contains(tags, GALACTIC_BOSS_TAG) then
+  elseif contains(tags, config_vars.tags.encounters.GALACTIC_BOSS) then
     return galactic_boss_zone
-  elseif contains(tags, STARTER_CARD_TAG) then
+  elseif contains(tags, config_vars.tags.encounters.STARTER) then
     return starter_zone
-  elseif contains(tags, WEAK_CARD_TAG) then
+  elseif contains(tags, config_vars.tags.encounters.WEAK) then
     return weak_zone
-  elseif contains(tags, MODERATE_CARD_TAG) then
+  elseif contains(tags, config_vars.tags.encounters.MODERATE) then
     return moderate_zone
-  elseif contains(tags, STRONG_CARD_TAG) then
+  elseif contains(tags, config_vars.tags.encounters.STRONG) then
     return strong_zone
-  elseif contains(tags, LEGENDARY_CARD_TAG) or contains(tags, ULTRA_BEAST_CARD_TAG) or contains(tags, ULTRA_BURST_CARD_TAG) or contains(tags, NOBLE_CARD_TAG) then
+  elseif contains(tags, config_vars.tags.encounters.LEGENDARY) or contains(tags, config_vars.tags.encounters.ULTRA_BEAST) or contains(tags, config_vars.tags.encounters.ULTRA_BURST) or contains(tags, config_vars.tags.encounters.NOBLE) then
     return legendary_zone
-  elseif contains(tags, EVOLUTION_CARD_TAG) then
+  elseif contains(tags, config_vars.tags.encounters.EVOLUTION) then
     return evolution_zone
-  elseif contains(tags, SECRET_CARD_TAG) then
+  elseif contains(tags, config_vars.tags.encounters.SECRET) then
     return secret_zone
   end
 end
@@ -146,7 +150,7 @@ function return_cards()
   if not return_coroutine_running then
     startLuaCoroutine(self, "return_coroutine")
   else
-    print("Return cards method currently running (if it is not, reloading the game should fix it).")
+    print(language_vars.pokedex.RETURN_ALREADY_RUNNING_MESSAGE)
   end
 end
 
@@ -157,7 +161,7 @@ function get_evolution_guid(evolution_name)
       return info.guid
     end
   end
-  print('Evolution "' ..evolution_name.. '" not found in the evolution deck.')
+  print('"' .. evolution_name .. '"' .. language_vars.pokedex.EVOLVE_NOT_FOUND_MESSAGE)
 end
 
 function get_search_params(player_colour)
@@ -176,14 +180,14 @@ function get_search_params(player_colour)
 
   for _, hit_info in pairs(hit_list) do
     local hit_object = hit_info.hit_object
-    if hit_object:hasTag(CAMPAIGN_TOKEN_TAG) then
+    if hit_object:hasTag(config_vars.tags.world.CAMPAIGN) then
       break
-    elseif hit_object:hasTag(ENCOUNTER_TOKEN_TAG) then
+    elseif hit_object:hasTag(config_vars.tags.world.ENCOUNTER) then
       local encounter_token_tags = hit_object:getTags()
       return get_biome_tag(encounter_token_tags), get_climate_tag(encounter_token_tags), get_encounter_tag(encounter_token_tags), hit_object:getGMNotes()
     end
   end
-  print('Trainer token for player colour "' .. player_colour ..  '" not on an encounter token.')
+  print('"' .. player_colour ..  '"' .. language_vars.pokedex.SEARCH_NOT_ON_ENCOUNTER_MESSAGE)
 end
 
 function get_encounter_guid(biome, climate, zone, gm_notes)
@@ -214,22 +218,22 @@ function search_for_encounter(biome, climate, encounter, gm_notes)
   local search_count
   local search_zone
 
-  if encounter == "Weak Encounter Card" then
+  if encounter == config_vars.tags.encounters.WEAK then
     search_count = 3
     search_zone = weak_zone
-  elseif encounter == "Moderate Encounter Card" then
+  elseif encounter == config_vars.tags.encounters.MODERATE then
     search_count = 2
     search_zone = moderate_zone
-  elseif encounter == "Strong Encounter Card" then
+  elseif encounter == config_vars.tags.encounters.STRONG then
     search_count = 1
     search_zone = strong_zone
-  elseif encounter == LEGENDARY_CARD_TAG or encounter == ULTRA_BEAST_CARD_TAG or encounter == ULTRA_BURST_CARD_TAG or encounter == NOBLE_CARD_TAG then
+  elseif encounter == config_vars.tags.encounters.LEGENDARY or encounter == config_vars.tags.encounters.ULTRA_BEAST or encounter == config_vars.tags.encounters.ULTRA_BURST or encounter == config_vars.tags.encounters.NOBLE then
     search_count = 1
     search_zone = legendary_zone
-  elseif encounter == "Distortion Encounter Card" then
+  elseif encounter == config_vars.tags.encounters.DISTORTION then
     search_count = 3
     search_zone = strong_zone
-  elseif encounter == "Secret Encounter Card" then
+  elseif encounter == config_vars.tags.encounters.SECRET then
     search_count = 6
     search_zone = secret_zone
   else
@@ -240,7 +244,7 @@ function search_for_encounter(biome, climate, encounter, gm_notes)
     for i = 1, search_count do
       local encounter_guid = get_encounter_guid(biome, climate, search_zone, gm_notes)
       if not encounter_guid and i == 1 then
-        print("Out of Pokémon for this biome, climate and encounter tier. You may claim any Apricorns here but your turn ends.")
+        print(language_vars.pokedex.SEARCH_OUT_OF_POKEMON_MESSAGE)
         break
       end
       take_object_from_zone_deck(search_zone, {
@@ -251,7 +255,7 @@ function search_for_encounter(biome, climate, encounter, gm_notes)
       })
       brief_pause()
 
-      if encounter == "Distortion Encounter Card" then
+      if encounter == config_vars.tags.encounters.DISTORTION then
         if search_zone == strong_zone then
           search_zone = moderate_zone
         elseif search_zone == moderate_zone then
@@ -272,15 +276,15 @@ end
 --
 
 function update_panel()
-  local search_button_label = "Search"
+  local search_button_label = language_vars.pokedex.SEARCH_BUTTON_LABEL
   local search_button_colour = {100/255, 100/255, 250/255}
   if pokemon_in_layout_zone() then
-    search_button_label = "Return"
+    search_button_label = language_vars.pokedex.RETURN_BUTTON_LABEL
     search_button_colour = {250/255, 100/255, 100/255}
   end
   self:editButton({index=0, label=search_button_label, color=search_button_colour})
 
-  local evolve_button_label = "Evolve"
+  local evolve_button_label = language_vars.pokedex.EVOLVE_BUTTON_LABEL
   local evolve_button_colour = {200/255, 100/255, 250/255}
   if not pokemon_in_preevolution_zone() or pokemon_in_layout_zone() then
     evolve_button_colour = {50/255, 75/255, 100/255}

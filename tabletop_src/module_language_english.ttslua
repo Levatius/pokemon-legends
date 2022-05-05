@@ -1,0 +1,79 @@
+vars = {
+  types = {
+    Typeless = "Typeless",
+    Normal = "Normal",
+    Fire = "Fire",
+    Water = "Water",
+    Electric = "Electric",
+    Grass = "Grass",
+    Ice = "Ice",
+    Fighting = "Fighting",
+    Poison = "Poison",
+    Ground = "Ground",
+    Flying = "Flying",
+    Psychic = "Psychic",
+    Bug = "Bug",
+    Rock = "Rock",
+    Ghost = "Ghost",
+    Dragon = "Dragon",
+    Dark = "Dark",
+    Steel = "Steel",
+    Fairy = "Fairy"
+  },
+  type_chart = {
+    FLIP_BUTTON_TOOLTIP = "Flip"
+  },
+  setup_panel = {
+    HOS_CAMPAIGN_LABEL = "Heart of Sinnoh Campaign",
+    UB_CAMPAIGN_LABEL = "Ultra Burst Campaign",
+    START_GAME_LABEL = "Start Game"
+  },
+  music_box = {
+    OFFLINE_LABEL = "Music Box",
+    NOW_PLAYING_LABEL = "Now Playing: ",
+    NOW_PLAYING_PLAYLIST_LABEL = "Now Playing Playlist: ",
+    PLAY_BUTTON_TOOLTIP = "Play Music",
+    STOP_BUTTON_TOOLTIP = "Stop Music"
+  },
+  pokedex = {
+    SEARCH_BUTTON_LABEL = "Search",
+    RETURN_BUTTON_LABEL = "Return",
+    EVOLVE_BUTTON_LABEL = "Evolve",
+    BATTLE_BUTTON_LABEL = "Battle!",
+    CLOSE_BUTTON_LABEL = "Close Pokédex",
+    OPEN_BUTTON_LABEL = "Open Pokédex",
+
+    SEARCH_NOT_ON_ENCOUNTER_MESSAGE = " trainer token not on an encounter token.",
+    SEARCH_OUT_OF_POKEMON_MESSAGE = "Out of Pokémon for this biome, climate and encounter tier. You may claim any Apricorns here but your turn ends.",
+    RETURN_ALREADY_RUNNING_MESSAGE = "Return cards method currently running (if it is not, reloading the game should fix it).",
+    EVOLVE_SLOT_MESSAGE = "Place a Pokémon in the slot above.",
+    EVOLVE_RETURN_MESSAGE = "Return the currently searched Pokémon.",
+    EVOLVE_INVALID_MESSAGE = "This Pokémon does not evolve.",
+    EVOLVE_NOT_FOUND_MESSAGE = " evolution card not found in the evolution deck.",
+    EMPTY_SLOT_MESSAGE = "The arena needs an empty slot."
+  },
+  arena_dice_roller = {
+    ROLL_BUTTON_LABEL = "Roll",
+    DICE_BUTTON_LABEL = " Dice",
+    DICE_BUTTON_TOOLTIP = "Toggle Attack Strength",
+    TYPE_BUTTON_TOOLTIP = "Toggle Attack Type",
+    TYPE_RANGE_BUTTON_TOOLTIP = "Toggle All Types",
+    FATIGUED_TOOLTIP = "Fatigued: Take 3 damage after each roll"
+  },
+  ub_control_panel = {
+    BREACH_STRENGTH_TOOLTIP = "Move Ultra Beasts",
+    BREACH_STRENGTH_INCREASES_MESSAGE = "The breach is growing stronger",
+    ALREADY_MOVING_MESSAGE = "Ultra Beasts already moving."
+  },
+  distortion_gate = {
+    TELEPORT_BUTTON_TOOLTIP = "Teleport Here"
+  },
+  village = {
+    FLY_BUTTON_TOOLTIP = "Fly to ",
+    ALREADY_FLYING_MESSAGE = "Someone is already flying (if they are not, reloading the game should fix it)."
+  },
+  errors = {
+    MISSING_DATA_NAME = "Missing Data",
+    MISSING_DATA_DESCRIPTION = "Internal data for this card has been deleted. It can no longer be used in the arena. Try rewinding time."
+  }
+}

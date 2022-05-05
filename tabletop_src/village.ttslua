@@ -1,14 +1,16 @@
-#include config
 #include utils
 
-local bird = getObjectFromGUID(BIRD_GUID)
-local nesburgh = getObjectFromGUID(NESBURGH_GUID)
-nesburgh:setVar("fly_coroutine_running", false)
-
-
 function onLoad()
+  config_vars = load_module(MODULE_CONFIG_TAG)
+  language_vars = load_module(MODULE_LANGUAGE_TAG)
+
+  nesburgh = getObjectFromGUID(config_vars.guids.NESBURGH)
+  nesburgh:setVar("fly_coroutine_running", false)
+
+  bird = getObjectFromGUID(config_vars.guids.BIRD)
   bird.AssetBundle:playLoopingEffect(2)
   bird:setInvisibleTo(Player:getColors())
+
   self.createButton({
     click_function = "fly",
     function_owner = self,
@@ -16,7 +18,7 @@ function onLoad()
     width          = 600,
     height         = 600,
     color          = {0, 0, 0, 0},
-    tooltip        = "Fly to " .. self:getName()
+    tooltip        = language_vars.village.FLY_BUTTON_TOOLTIP .. self:getName()
   })
 end
 
@@ -57,6 +59,6 @@ function fly(_, player_colour)
   if not nesburgh:getVar("fly_coroutine_running") then
     startLuaCoroutine(self, "fly_coroutine")
   else
-    print("Someone is already flying (if they are not, reloading the game should fix it).")
+    print(language_vars.village.ALREADY_FLYING_MESSAGE)
   end
 end

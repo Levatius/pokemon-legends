@@ -1,8 +1,8 @@
-#include config
 #include utils
 
 function onload()
-  print("Root Loaded")
+  config_vars = load_module(MODULE_CONFIG_TAG)
+
   math.randomseed(os.time())
   deduplicate_models()
 end
@@ -13,7 +13,7 @@ end
 
 function deduplicate_models()
   -- This method should not be necessary, but good to have just in case
-  for _, object in pairs(getObjectsWithTag(POKEMON_MODEL_TAG)) do
+  for _, object in pairs(getObjectsWithTag(config_vars.tags.objects.POKEMON_MODEL)) do
     if object.type == "Bag" then
       local models_in_bag = {}
       for _, model in pairs(object:getObjects()) do
@@ -43,7 +43,7 @@ end
 
 function set_balls_in_zone_to_pokemon(zone, pokemon)
   for _, object_in_zone in pairs(zone:getObjects()) do
-    if object_in_zone:hasTag(BALL_TOKEN_TAG) then
+    if object_in_zone:hasTag(config_vars.tags.items.BALL) then
       object_in_zone:setName(pokemon:getName())
     end
   end
@@ -51,7 +51,7 @@ end
 
 function reset_balls_in_zone(zone)
   for _, object_in_zone in pairs(zone:getObjects()) do
-    if object_in_zone:hasTag(BALL_TOKEN_TAG) then
+    if object_in_zone:hasTag(config_vars.tags.items.BALL) then
       object_in_zone:setName(object_in_zone:getGMNotes())
       object_in_zone:setVar("registered_zone", nil)
     end
@@ -63,7 +63,7 @@ function register_zone_to_ball(zone, ball)
   ball:setVar("registered_zone", zone)
   -- Set Name
   for _, object_in_zone in pairs(zone:getObjects()) do
-    if object_in_zone:hasTag(POKEMON_CARD_TAG) and not object_in_zone.is_face_down then
+    if object_in_zone:hasTag(config_vars.tags.cards.POKEMON) and not object_in_zone.is_face_down then
       ball:setName(object_in_zone:getName())
       break
     end
@@ -72,7 +72,7 @@ end
 
 function is_zone_occupied(zone)
   for _, object_in_zone in pairs(zone:getObjects()) do
-    if not object_in_zone:hasTag(BALL_TOKEN_TAG) then
+    if not object_in_zone:hasTag(config_vars.tags.items.BALL) then
       return true
     end
   end
@@ -81,7 +81,7 @@ end
 
 function move_objects_between_zones(source_zone, target_zone)
   for _, object_in_zone in pairs(source_zone:getObjects()) do
-    if not object_in_zone:hasTag(BALL_TOKEN_TAG) then
+    if not object_in_zone:hasTag(config_vars.tags.items.BALL) then
       local rotation_delta = target_zone:getRotation() - source_zone:getRotation()
       local position_delta = object_in_zone:getPosition() - source_zone:getPosition()
       position_delta:rotateOver("y", rotation_delta.y)
@@ -94,11 +94,11 @@ end
 function onObjectEnterZone(zone, object)
   if not zone or not object then return end
   -- Update Zones
-  if zone:hasTag(UPDATE_PANELS_TAG) then
+  if zone:hasTag(config_vars.tags.property.UPDATE_PANELS) then
     update_panels(zone)
   end
   -- Hand Zones
-  if zone.type == "Hand" and object:hasTag(VILLAGE_CARD_TAG) and not object:hasTag(BREACH_CARD_TAG) then
+  if zone.type == "Hand" and object:hasTag(config_vars.tags.cards.MOVE) and not object:hasTag(config_vars.tags.cards.BREACH) then
     if #zone:getObjects() > 1 then
       print("Remove any objects from hand if trying to change hand colour.")
       return
@@ -118,8 +118,8 @@ function onObjectEnterZone(zone, object)
     zone:setValue(card_colour)
   end
   -- Pokemon Zones
-  if zone:hasTag(POKEMON_ZONE_TAG) then
-    if object:hasTag(BALL_TOKEN_TAG) then
+  if zone:hasTag(config_vars.tags.zones.POKEMON) then
+    if object:hasTag(config_vars.tags.items.BALL) then
       zone = get_pokemon_zone(zone)
       local registered_zone = object:getVar("registered_zone")
 
@@ -129,7 +129,7 @@ function onObjectEnterZone(zone, object)
       end
       move_objects_between_zones(registered_zone, zone)
 
-    elseif object:hasTag(POKEMON_CARD_TAG) and not object.is_face_down then
+    elseif object:hasTag(config_vars.tags.cards.POKEMON) and not object.is_face_down then
       set_balls_in_zone_to_pokemon(zone, object)
     end
   end
@@ -138,15 +138,15 @@ end
 function onObjectLeaveZone(zone, object)
   if not zone or not object then return end
   -- Update Zones
-  if zone:hasTag(UPDATE_PANELS_TAG) then
+  if zone:hasTag(config_vars.tags.property.UPDATE_PANELS) then
     update_panels(zone)
   end
   -- Pokemon Zones
-  if zone:hasTag(POKEMON_ZONE_TAG) then
-    if object:hasTag(BALL_TOKEN_TAG) then
+  if zone:hasTag(config_vars.tags.zones.POKEMON) then
+    if object:hasTag(config_vars.tags.items.BALL) then
       zone = get_pokemon_zone(zone)
       register_zone_to_ball(zone, object)
-    elseif object:hasTag(POKEMON_CARD_TAG) and not object.is_face_down then
+    elseif object:hasTag(config_vars.tags.cards.POKEMON) and not object.is_face_down then
       reset_balls_in_zone(zone)
     end
   end
@@ -154,25 +154,25 @@ end
 
 -- Container Events
 function tryObjectEnterContainer(container, object)
-  if container:hasTag(POKEMON_MODEL_TAG) then
-    return object:hasTag(POKEMON_MODEL_TAG)
-  elseif container:hasTag(APRICORN_TOKEN_TAG) and container:hasTag(JOURNEY_POINT_TOKEN_TAG) then
-    return object:hasTag(APRICORN_TOKEN_TAG) or object:hasTag(JOURNEY_POINT_TOKEN_TAG)
+  if container:hasTag(config_vars.tags.objects.POKEMON_MODEL) then
+    return object:hasTag(config_vars.tags.objects.POKEMON_MODEL)
+  elseif container:hasTag(config_vars.tags.items.APRICORN) and container:hasTag(config_vars.tags.items.JOURNEY_POINT) then
+    return object:hasTag(config_vars.tags.items.APRICORN) or object:hasTag(config_vars.tags.items.JOURNEY_POINT)
   end
   return true
 end
 
 function onObjectEnterContainer(container, object)
-  if container:hasTag(APRICORN_TOKEN_TAG) and container:hasTag(JOURNEY_POINT_TOKEN_TAG) then
-    for _, bag_panel in pairs(getObjectsWithTag(BAG_PANEL_TAG)) do
+  if container:hasTag(config_vars.tags.items.APRICORN) and container:hasTag(config_vars.tags.items.JOURNEY_POINT) then
+    for _, bag_panel in pairs(getObjectsWithTag(config_vars.tags.panels.BAG)) do
       bag_panel:call("update_panel")
     end
   end
 end
 
 function onObjectLeaveContainer(container, object)
-  if container:hasTag(APRICORN_TOKEN_TAG) and container:hasTag(JOURNEY_POINT_TOKEN_TAG) then
-    for _, bag_panel in pairs(getObjectsWithTag(BAG_PANEL_TAG)) do
+  if container:hasTag(config_vars.tags.items.APRICORN) and container:hasTag(config_vars.tags.items.JOURNEY_POINT) then
+    for _, bag_panel in pairs(getObjectsWithTag(config_vars.tags.panels.BAG)) do
       bag_panel:call("update_panel")
     end
   end

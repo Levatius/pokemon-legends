@@ -1,7 +1,8 @@
-#include config
 #include utils
 
 function onLoad()
+  language_vars = load_module(MODULE_LANGUAGE_TAG)
+
   self.createButton({
     click_function = "teleport",
     function_owner = self,
@@ -9,7 +10,7 @@ function onLoad()
     width          = 600,
     height         = 600,
     color          = {0, 0, 0, 0},
-    tooltip        = "Teleport Here"
+    tooltip        = language_vars.distortion_gate.TELEPORT_BUTTON_TOOLTIP
   })
 end
 

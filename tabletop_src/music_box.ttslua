@@ -1,4 +1,3 @@
-#include config
 #include utils
 
 local music_cartridge_zone = getObjectFromGUID(music_cartridge_zone_guid)
@@ -10,16 +9,18 @@ function onLoad()
   for _, arena_active_zone_guid in pairs(arena_active_zone_guids) do
     table.insert(arena_active_zones, getObjectFromGUID(arena_active_zone_guid))
   end
+  config_vars = load_module(MODULE_CONFIG_TAG)
+  language_vars = load_module(MODULE_LANGUAGE_TAG)
 
-  button_params = {
+  local button_params = {
     function_owner = self,
     scale          = {0.5, 1, 0.5},
     font_size      = 80,
-    font_color     = WHITE_COLOUR,
-    hover_color    = LIGHT_WOOD_COLOUR,
-    press_color    = LIGHT_WOOD_COLOUR
+    font_color     = config_vars.colours.WHITE,
+    hover_color    = config_vars.colours.LIGHT_WOOD,
+    press_color    = config_vars.colours.LIGHT_WOOD
   }
-  text_params = {
+  local text_params = {
     click_function = "dummy_button",
     function_owner = self,
     position       = {0, 0.2, 0},
@@ -27,7 +28,7 @@ function onLoad()
     width          = 0,
     height         = 0,
     font_size      = 100,
-    font_color     = WHITE_COLOUR
+    font_color     = config_vars.colours.WHITE
   }
   -- Music Event Buttons
   for i = 0, 8 do
@@ -67,10 +68,10 @@ function music_event_button(index)
     selected_music_event_index = nil
     now_playing = nil
   else
-    MusicPlayer:setCurrentAudioclip(MUSIC_EVENTS[index])
+    MusicPlayer:setCurrentAudioclip(config_vars.music_events[index])
     MusicPlayer.repeat_track = true
     selected_music_event_index = index
-    now_playing = 'Now Playing: "' .. MUSIC_EVENTS[index]["title"] .. '"'
+    now_playing = language_vars.music_box.NOW_PLAYING_LABEL .. '"' .. config_vars.music_events[index]["title"] .. '"'
   end
   update_panel()
 end
@@ -90,7 +91,7 @@ function update_playlist()
   MusicPlayer:setPlaylist(playlist)
   -- The music cartridge is in place and there is not a music event playing
   if not selected_music_event_index then
-    now_playing = 'Now Playing Playlist: "' .. music_cartridge:getName() .. '"'
+    now_playing = language_vars.music_box.NOW_PLAYING_PLAYLIST_LABEL .. '"' .. music_cartridge:getName() .. '"'
     local loaded_playlist = MusicPlayer:getPlaylist()
     -- Only start the playlist if something is not already playing
     if MusicPlayer.player_status ~= "Play" then
@@ -134,15 +135,15 @@ function update_panel()
   update_playlist()
 
   for i = 0, 8 do
-    local label = MUSIC_EVENTS[i + 1]["title"]
+    local label = config_vars.music_events[i + 1]["title"]
     local width = 750
     local height = 200
-    local color = WOOD_COLOUR
-    local tooltip = "Play Music"
+    local color = config_vars.colours.WOOD
+    local tooltip = language_vars.music_box.PLAY_BUTTON_TOOLTIP
 
     if i + 1 == selected_music_event_index then
       color = {75/255, 200/255, 150/255}
-      tooltip = "Stop Music"
+      tooltip = language_vars.music_box.STOP_BUTTON_TOOLTIP
     elseif is_arena_empty() then
       label = ""
       width = 0
@@ -152,7 +153,7 @@ function update_panel()
   end
 
   if not now_playing then
-    now_playing = "Music Box"
+    now_playing = language_vars.music_box.OFFLINE_LABEL
   end
   self:editButton({index=9, label=now_playing})
 end

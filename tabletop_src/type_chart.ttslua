@@ -1,7 +1,8 @@
-#include config
 #include utils
 
 function onLoad()
+  language_vars = load_module(MODULE_LANGUAGE_TAG)
+
   button_params = {
     click_function = "flip_button",
     function_owner = self,
@@ -9,9 +10,10 @@ function onLoad()
     width          = 450,
     height         = 450,
     color          = {0, 0, 0, 0},
-    tooltip        = "Flip"
+    tooltip        = language_vars.type_chart.FLIP_BUTTON_TOOLTIP
   }
   self:createButton(button_params)
+
   update_panel()
 end
 

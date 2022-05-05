@@ -1,15 +1,17 @@
-#include config
 #include utils
 
 local pokedex_search = getObjectFromGUID(pokedex_search_guid)
 local pokedex_layout_zone = getObjectFromGUID(pokedex_layout_zone_guid)
 local arena_active_zones = {}
-local music_box = getObjectFromGUID(MUSIC_BOX_GUID)
 
 function onLoad()
   for _, arena_active_zone_guid in pairs(arena_active_zone_guids) do
     table.insert(arena_active_zones, getObjectFromGUID(arena_active_zone_guid))
   end
+  config_vars = load_module(MODULE_CONFIG_TAG)
+  language_vars = load_module(MODULE_LANGUAGE_TAG)
+
+  music_box = getObjectFromGUID(config_vars.guids.MUSIC_BOX)
 
   button_params = {
     click_function = "flip_button",
@@ -19,7 +21,7 @@ function onLoad()
     height         = 150,
     font_size      = 80,
     color          = {250/255, 245/255, 240/255},
-    font_color     = DARK_COLOUR
+    font_color     = config_vars.colours.DARK
   }
   self:createButton(button_params)
 
@@ -31,6 +33,10 @@ function onLoad()
 
   update_panel()
 end
+
+--
+--
+--
 
 function get_y_dir(obj)
   return round(math.cos(math.rad(obj:getRotation().y)))
@@ -76,9 +82,9 @@ function send_to_arena(index)
       if pokemon then
         pokemon:setPosition(arena_active_zone:getPosition() + Vector(0, 0.5, get_y_dir(arena_active_zone) * 1.8))
         pokemon:setRotation(arena_active_zone:getRotation())
-        if pokemon:hasTag(LEGENDARY_CARD_TAG) and pokemon:hasTag("Space") then
+        if pokemon:hasTag(config_vars.tags.encounters.LEGENDARY) and pokemon:hasTag("Space") then
           Wait.frames(function() music_box:call("music_event_button_2") end, 100)
-        elseif pokemon:hasTag(LEGENDARY_CARD_TAG) then
+        elseif pokemon:hasTag(config_vars.tags.encounters.LEGENDARY) then
           Wait.frames(function() music_box:call("music_event_button_1") end, 100)
         else
           Wait.frames(function() music_box:call("music_event_button_0") end, 100)
@@ -88,7 +94,7 @@ function send_to_arena(index)
       return
     end
   end
-  print("The arena needs an empty slot.")
+  print(language_vars.pokedex.EMPTY_SLOT_MESSAGE)
 end
 
 --
@@ -98,7 +104,7 @@ end
 function update_send_to_arena_buttons()
   for i = 0, 2 do
     local pokemon = pokedex_layout_zone:getObjects()[i + 1]
-    local label = "Battle!"
+    local label = language_vars.pokedex.BATTLE_BUTTON_LABEL
     local width = 400
     local height = 200
     if not pokemon then
@@ -111,7 +117,7 @@ function update_send_to_arena_buttons()
 end
 
 function update_panel()
-  local label = is_open() and "Close Pokédex" or "Open Pokédex"
+  local label = is_open() and language_vars.pokedex.CLOSE_BUTTON_LABEL or language_vars.pokedex.OPEN_BUTTON_LABEL
   self:editButton({
     index=0,
     label=label,
