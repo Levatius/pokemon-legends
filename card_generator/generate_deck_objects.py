@@ -5,19 +5,6 @@ import pandas as pd
 from config import *
 from utils import read_cube
 
-DECK_OBJECTS = '{j}_deck.json'
-
-
-def get_deck_json(j=0):
-    with open(DECK_OBJECT_TEMPLATE) as f:
-        deck_json = json.load(f)
-    deck_json['ObjectStates'][0]['ColorDiffuse'] = {'r': 150 / 255, 'g': 75 / 255, 'b': 50 / 255}
-    deck_json['ObjectStates'][0]['CustomDeck']['1']['FaceURL'] = input(
-        f'Enter cloud url for {CARD_FRONTS_DECK_IMG.format(j=j)}:\n')
-    deck_json['ObjectStates'][0]['CustomDeck']['1']['BackURL'] = input(
-        f'Enter cloud url for {CARD_BACKS_DECK_IMG.format(j=j)}:\n')
-    return deck_json
-
 
 def get_description(stats):
     if pd.isnull(stats.trainer):
@@ -87,56 +74,85 @@ def get_lua_script(stats):
         'types': get_lua_table_from_fields((stats.type_1, stats.type_2)),
         'moves': get_lua_table_from_fields((stats.move_1, stats.move_2, stats.move_3, stats.move_4)),
         'evolve_into': get_lua_table_from_field(stats.evolve_into),
-        'evolve_cost': int(stats.evolve_cost) if not pd.isnull(stats.evolve_into) else 'nil'
+        'evolve_cost': int(stats.evolve_cost) if not pd.isnull(stats.evolve_into) else 'nil',
+        'encounter_tier': f'"{stats.encounter_tier}"',
+        'move_name': f'"{stats.move_name}"',
+        'move_type': f'"{stats.move_type}"',
+        'move_attack_strength': stats.move_attack_strength,
+        'move_effect': f'"{stats.move_effect}"'
     }
     lua_script_lines = [f'{variable} = {value}' for variable, value in local_variables.items()]
     return '\n'.join(lua_script_lines)
 
 
-def get_card_json(i, j, stats, is_evolution=False):
+def get_card_json(deck_json, i, j, stats, is_evolution=False):
     with open(CARD_OBJECT_TEMPLATE) as f:
         card_json = json.load(f)
 
-    card_json['CardID'] = 100 + i
+    card_json['CardID'] = j * 100 + i
     card_json['Nickname'] = stats.internal_name
     card_json['Description'] = get_description(stats)
     card_json['Tags'] = get_tags(stats, is_evolution)
     card_json['LuaScript'] = get_lua_script(stats)
+    card_json['CustomDeck'][str(j)] = {
+        'FaceURL': deck_json['ObjectStates'][0]['CustomDeck'][str(j)]['FaceURL'],
+        'BackURL': deck_json['ObjectStates'][0]['CustomDeck'][str(j)]['BackURL'],
+        'NumWidth': 10,
+        'NumHeight': 7,
+        'BackIsHidden': True,
+        'UniqueBack': True,
+        'Type': 0
+    }
 
     return card_json
 
 
-def add_card_to_deck(deck_json, i, j, stats, is_evolution=False):
-    card_json = get_card_json(i, j, stats, is_evolution)
-    deck_json['ObjectStates'][0]['DeckIDs'].append(100 + i)
-    deck_json['ObjectStates'][0]['ContainedObjects'].append(card_json)
+def add_card_to_deck(deck_json, i, j, k, stats):
+    card_json = get_card_json(deck_json, i, j, stats, is_evolution=(k != 0))
+    deck_json['ObjectStates'][0]['DeckIDs'].append(j * 100 + i)
+    if stats.state == 0:
+        deck_json['ObjectStates'][0]['ContainedObjects'].append(card_json)
+    elif stats.state == 1:
+        deck_json['ObjectStates'][0]['ContainedObjects'].append(card_json)
+        deck_json['ObjectStates'][0]['ContainedObjects'][-(k + 1)]['States'] = {}
+    elif stats.state > 1:
+        deck_json['ObjectStates'][0]['ContainedObjects'][-(k + 1)]['States'][str(stats.state)] = card_json
 
 
 def run():
     print('Generating deck objects:')
     DECKS_OBJECTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    i, j = 0, 0
+    with open(DECK_OBJECT_TEMPLATE) as f:
+        deck_json = json.load(f)
+    output_path = DECKS_OBJECTS_OUTPUT_DIR / 'deck.json'
 
-    df = read_cube()
-    deck_json = get_deck_json()
-    output_path = DECKS_OBJECTS_OUTPUT_DIR / DECK_OBJECTS.format(j=j)
-    for _, stats in df.iterrows():
-        if i == 70:
-            with open(output_path, 'w') as f:
-                json.dump(deck_json, f)
+    i, j = 0, 0
+    for _, stats in read_cube().iterrows():
+        if (i == 0 and j == 0) or i == 70:
+            deck_json['ObjectStates'][0]['CustomDeck'][str(j + 1)] = {
+                'NumWidth': 10,
+                'NumHeight': 7,
+                'BackIsHidden': True,
+                'UniqueBack': True,
+                'Type': 0
+            }
+            face_url = input(f'Enter the Cloud URL for {CARD_FRONTS_DECK_IMG.format(j=j)}:\n')
+            deck_json['ObjectStates'][0]['CustomDeck'][str(j + 1)]['FaceURL'] = face_url
+            back_url = input(f'Enter the Cloud URL for {CARD_BACKS_DECK_IMG.format(j=j)}:\n')
+            deck_json['ObjectStates'][0]['CustomDeck'][str(j + 1)]['BackURL'] = back_url
             i = 0
             j += 1
-            deck_json = get_deck_json(j)
-            output_path = DECKS_OBJECTS_OUTPUT_DIR / DECK_OBJECTS.format(j=j)
 
         for k in range(stats.number_in_deck):
-            add_card_to_deck(deck_json, i, j, stats, is_evolution=(k != 0))
+            add_card_to_deck(deck_json, i, j, k, stats)
 
         i += 1
     else:
         with open(output_path, 'w') as f:
             json.dump(deck_json, f)
+    print(
+        'Now place the .json files found in output/deck_objects into your local Documents/My Games/Tabletop Simulator/Saves/Saved Objects folder, you can now import them in Tabletop Simulator by going to Objects -> Saved Objects.')
 
 
 if __name__ == '__main__':

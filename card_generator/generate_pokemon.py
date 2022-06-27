@@ -6,7 +6,7 @@ from PIL import Image, ImageDraw
 from tqdm import tqdm
 
 from config import *
-from utils import xy, read_cube, get_img
+from utils import xy, read_cube, get_img, text_font, title_font, wrapped_text
 
 
 # Utils
@@ -48,11 +48,6 @@ def add_frame(img):
     img.paste(frame_img, xy(0.25, 0.25), frame_img)
 
 
-def add_creator_emblem(img):
-    creator_emblem_img = Image.open(ASSETS_DIR / 'creator_emblem.png').convert('RGBA').resize(xy(1, 1))
-    img.paste(creator_emblem_img, xy(14.75, 15.75), creator_emblem_img)
-
-
 def add_types_and_moves(img, stats):
     types = get_types(stats)
     for i, type_ in enumerate(types):
@@ -65,17 +60,6 @@ def add_types_and_moves(img, stats):
             size = 1.25
             move_img = get_img(ASSETS_DIR / 'types' / f'{move}.png', xy(size, size))
             img.paste(move_img, xy(3.25 - (len(moves) / 2 * size) + (i % 2 * size), 16.75 + i // 2 * size), move_img)
-
-
-def get_variant(stats):
-    variant = ''
-    if stats.pokedex_number in (422, 423) and stats.description == 'East Ocean Form':
-        variant = '-e'
-    elif stats.pokedex_number == 412:
-        variant = '-p'
-    elif stats.pokedex_number == 421:
-        variant = '-s'
-    return variant
 
 
 def get_size(stats):
@@ -94,15 +78,14 @@ def converted_pokedex_number(stats):
 
 
 def get_pokemon_art(stats):
-    variant = get_variant(stats)
     pokemon_art_size = get_size(stats)
     try:
-        pokemon_art_img = get_img(ASSETS_DIR / 'pokemon' / f'{converted_pokedex_number(stats)}{variant}.png',
+        pokemon_art_img = get_img(ASSETS_DIR / 'pokemon' / f'{converted_pokedex_number(stats)}.png',
                                   xy(pokemon_art_size, pokemon_art_size))
     except (FileNotFoundError, AttributeError):
-        response = requests.get(f'{ART_FORM_URL}/{converted_pokedex_number(stats)}{variant}.png')
+        response = requests.get(f'{ART_FORM_URL}/{converted_pokedex_number(stats)}.png')
         pokemon_art_img = get_img(BytesIO(response.content), xy(pokemon_art_size, pokemon_art_size))
-        pokemon_art_img.save(ASSETS_DIR / 'pokemon' / f'{converted_pokedex_number(stats)}{variant}.png')
+        pokemon_art_img.save(ASSETS_DIR / 'pokemon' / f'{converted_pokedex_number(stats)}.png')
     return pokemon_art_img
 
 
@@ -188,7 +171,7 @@ def add_evolution_cost(img, stats):
         d = ImageDraw.Draw(img)
         evolution_icon_img = get_img(ASSETS_DIR / 'evolution_icon.png', xy(2.5, 2.5))
         img.paste(evolution_icon_img, xy(12.75, 16.75), evolution_icon_img)
-        d.text(xy(14, 18), str(int(stats.evolve_cost)), fill=WHITE_COLOUR, font=ORIENTAL_96, anchor='mm')
+        d.text(xy(14, 18), str(int(stats.evolve_cost)), fill=WHITE_COLOUR, font=title_font(44), anchor='mm')
     else:
         evolution_icon_img = get_img(ASSETS_DIR / 'evolution_final_icon.png', xy(2.5, 2.5))
         img.paste(evolution_icon_img, xy(12.75, 16.75), evolution_icon_img)
@@ -196,10 +179,10 @@ def add_evolution_cost(img, stats):
 
 def get_stats_font_size(stats_value):
     if stats_value < 10:
-        return ORIENTAL_96
+        return title_font(96)
     if stats_value < 20:
-        return ORIENTAL_80
-    return ORIENTAL_64
+        return title_font(80)
+    return title_font(64)
 
 
 def add_text(img, stats):
@@ -208,16 +191,23 @@ def add_text(img, stats):
 
     # Pokémon Name
     d.text(xy(1 + len(types) * 2.5, 1.75 - (0.5 if not pd.isnull(stats.description) else 0)), stats.pokedex_name,
-           fill=DARK_COLOUR, font=BARLOW_96 if pd.isnull(stats.description) else BARLOW_80, anchor='lm')
+           fill=DARK_COLOUR, font=text_font(44) if pd.isnull(stats.description) else text_font(36), anchor='lm')
 
     # Pokémon Description
     if not pd.isnull(stats.description):
-        d.text(xy(1 + len(types) * 2.5, 2.5), stats.description, fill=DARK_COLOUR, font=BARLOW_48, anchor='lm')
+        d.text(xy(1 + len(types) * 2.5, 2.5), stats.description, fill=DARK_COLOUR, font=text_font(22), anchor='lm')
 
     # Pokémon Stats
-    d.text(xy(12.75, 8.75), str(stats.health), fill=DARK_COLOUR, font=get_stats_font_size(stats.health), anchor='mm')
-    d.text(xy(12.75, 11.25), str(stats.initiative), fill=DARK_COLOUR, font=get_stats_font_size(stats.initiative),
-           anchor='mm')
+    # d.text(xy(12.75, 8.75), str(stats.health), fill=DARK_COLOUR, font=get_stats_font_size(stats.health), anchor='mm')
+    # d.text(xy(12.75, 11.25), str(stats.initiative), fill=DARK_COLOUR, font=get_stats_font_size(stats.initiative),
+    #        anchor='mm')
+    wrapped_text(d, str(stats.health), title_font(44), boundaries=(1.5, 1.5), xy=xy(12.75, 8.75), fill=DARK_COLOUR,
+                 anchor='mm')
+    wrapped_text(d, str(stats.initiative), title_font(44), boundaries=(1.5, 1.5), xy=xy(12.75, 11.25), fill=DARK_COLOUR,
+                 anchor='mm')
+
+    # Metadata
+    d.text(xy(8, 27.5), f'{EXPANSION_NAME} - {GAME_VERSION}', fill=WHITE_COLOUR, font=text_font(12), anchor='mm')
 
 
 def add_move(img, stats):
@@ -238,7 +228,6 @@ def run(overwrite=False):
         base_img = compose_base(stats)
         img = Image.new('RGBA', xy(16, 28))
         add_frame(img)
-        add_creator_emblem(img)
         add_pokemon_art(img, stats)
         add_trainer(img, stats)
         add_bases(img, stats)

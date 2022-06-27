@@ -55,7 +55,7 @@ vars = {
   arena_dice_roller = {
     ROLL_BUTTON_LABEL = "Roll",
     DICE_BUTTON_LABEL = " Dice",
-    DICE_BUTTON_TOOLTIP = "Toggle Attack Strength",
+    DICE_BUTTON_TOOLTIP = "Toggle Attack Strength (min 1, max 9)",
     TYPE_BUTTON_TOOLTIP = "Toggle Attack Type",
     TYPE_RANGE_BUTTON_TOOLTIP = "Toggle All Types",
     FATIGUED_TOOLTIP = "Fatigued: Take 3 damage after each roll"
@@ -65,7 +65,7 @@ vars = {
     BREACH_STRENGTH_INCREASES_MESSAGE = "The breach is growing stronger",
     ALREADY_MOVING_MESSAGE = "Ultra Beasts already moving."
   },
-  distortion_gate = {
+  teleport = {
     TELEPORT_BUTTON_TOOLTIP = "Teleport Here"
   },
   village = {

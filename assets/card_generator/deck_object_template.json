@@ -17,16 +17,8 @@
       "Hands": false,
       "DeckIDs": [],
       "CustomDeck": {
-        "1": {
-          "FaceURL": "",
-          "BackURL": "",
-          "NumWidth": 10,
-          "NumHeight": 7,
-          "BackIsHidden": true,
-          "UniqueBack": true,
-          "Type": 0
-        }
       },
+      "ColorDiffuse": {"r": 0.6, "g": 0.3, "b": 0.2},
       "ContainedObjects": []
     }
   ]

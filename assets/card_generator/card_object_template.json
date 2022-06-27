@@ -18,6 +18,7 @@
   "Tags": null,
   "LuaScript": null,
   "Hands": false,
+  "CustomDeck": {},
   "AttachedSnapPoints": [
     {
       "Position": {

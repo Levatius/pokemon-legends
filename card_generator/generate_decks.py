@@ -1,4 +1,3 @@
-import pandas as pd
 from PIL import Image
 from tqdm import tqdm
 
@@ -45,7 +44,7 @@ def run():
     else:
         card_fronts_deck_img.save(DECKS_OUTPUT_DIR / CARD_FRONTS_DECK_IMG.format(j=j))
         card_backs_deck_img.save(DECKS_OUTPUT_DIR / CARD_BACKS_DECK_IMG.format(j=j))
-    input('Now upload your deck images to Steam Cloud in TTS, press enter to continue...')
+    input('Now upload the images under output/decks using the Modding -> Cloud Manager in Tabletop Simulator, then press enter to continue...')
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@ from PIL import ImageDraw
 from tqdm import tqdm
 
 from config import *
-from utils import xy, read_cube, get_img, wrap_text
+from utils import xy, read_cube, get_img, wrapped_text, text_font, title_font
 
 
 def get_base():
@@ -14,25 +14,31 @@ def add_header(img, stats):
     d = ImageDraw.Draw(img)
 
     # Type
-    type_img = get_img(ASSETS_DIR / 'types' / f'{stats.type}.png', xy(2, 2))
+    type_img = get_img(ASSETS_DIR / 'types' / f'{stats.move_type}.png', xy(2, 2))
     img.paste(type_img, xy(0.25, 0.25), type_img)
 
     # Name
-    name, font_used = wrap_text(str(stats.move_name), d, BARLOW_80, max_width=9.5, max_lines=1)
-    d.text(xy(7.25, 1.25), name, fill=DARK_COLOUR, font=font_used, anchor='mm')
+    # name, font_used = wrap_text(str(stats.move_name), d, text_font(80), max_width=9.5, max_lines=1)
+    # d.text(xy(7.25, 1.25), name, fill=DARK_COLOUR, font=font_used, anchor='mm')
+
+    wrapped_text(d, stats.move_name, text_font(36), boundaries=(9.5, 1.75), xy=xy(7.25, 1.25), fill=DARK_COLOUR,
+                 anchor='mm', align='center')
 
     # Attack Strength
-    if not pd.isnull(stats.damage):
-        d.text(xy(13.25, 1.25), str(stats.damage), fill=DARK_COLOUR, font=ORIENTAL_96, anchor='mm')
+    if not pd.isnull(stats.move_attack_strength):
+        d.text(xy(13.25, 1.25), str(stats.move_attack_strength), fill=DARK_COLOUR, font=title_font(44), anchor='mm')
 
 
 def add_description(img, stats):
-    if pd.isnull(stats.description):
+    if pd.isnull(stats.move_effect):
         return
     d = ImageDraw.Draw(img)
 
-    description, font_used = wrap_text(str(stats.description), d, BARLOW_64, max_width=13.5, max_lines=4)
-    d.multiline_text(xy(7.25, 4.75), description, fill=DARK_COLOUR, font=font_used, anchor='mm', align='center')
+    # description, font_used = wrap_text(str(stats.move_effect), d, text_font(64), max_width=13.5, max_lines=4)
+    # d.multiline_text(xy(7.25, 4.75), description, fill=DARK_COLOUR, font=font_used, anchor='mm', align='center')
+
+    wrapped_text(d, stats.move_effect, text_font(28), boundaries=(13.5, 4.5), xy=xy(7.25, 4.75), fill=DARK_COLOUR,
+                 anchor='mm', align='center')
 
 
 def run(overwrite=False):

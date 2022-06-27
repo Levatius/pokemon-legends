@@ -1,6 +1,10 @@
 from pathlib import Path
-from PIL import ImageFont
 
+# Metadata
+GAME_VERSION = 'v1.4'
+EXPANSION_NAME = 'Vanilla'
+
+# Paths
 COMPONENT_DIR = Path(__file__).parent
 ROOT_DIR = COMPONENT_DIR.parent
 ASSETS_DIR = COMPONENT_DIR.parent / 'assets' / 'card_generator'
@@ -19,17 +23,8 @@ ART_FORM_URL = 'https://www.serebii.net/pokemon/art'
 
 # Fonts
 FONT_DIR = ASSETS_DIR / 'fonts'
-
 ORIENTAL_PATH = str(FONT_DIR / 'la_oriental.otf')
-ORIENTAL_64 = ImageFont.truetype(ORIENTAL_PATH, size=64)
-ORIENTAL_80 = ImageFont.truetype(ORIENTAL_PATH, size=80)
-ORIENTAL_96 = ImageFont.truetype(ORIENTAL_PATH, size=96)
-
 BARLOW_PATH = str(FONT_DIR / 'barlow.ttf')
-BARLOW_48 = ImageFont.truetype(BARLOW_PATH, size=48)
-BARLOW_64 = ImageFont.truetype(BARLOW_PATH, size=64)
-BARLOW_80 = ImageFont.truetype(BARLOW_PATH, size=80)
-BARLOW_96 = ImageFont.truetype(BARLOW_PATH, size=96)
 
 # Colours
 DARK_COLOUR = (37, 37, 50)
