@@ -33,29 +33,6 @@ def get_img(file_path, size):
     return Image.open(file_path).convert('RGBA').resize(size)
 
 
-# TODO: Deprecate these next two methods in favour of wrapped_text
-
-def get_multiline_text_list_and_font(text, draw, font, max_width, max_lines):
-    text_list = text.split(' ')
-    multiline_text_list = []
-    for text_ in text_list:
-        if not multiline_text_list or draw.textsize(f'{multiline_text_list[-1]} {text_}', font)[0] >= 64 * max_width:
-            multiline_text_list.append('')
-        multiline_text_list[-1] += text_ + ' '
-
-    # If there are too many lines, decrease the font size and try again:
-    if len(multiline_text_list) > max_lines:
-        smaller_font = ImageFont.truetype(font.path, size=font.size - 2)
-        multiline_text_list, font = get_multiline_text_list_and_font(text, draw, smaller_font, max_width, max_lines)
-
-    return multiline_text_list, font
-
-
-def wrap_text(text, draw, starting_font, max_width, max_lines):
-    multiline_text_list, font_used = get_multiline_text_list_and_font(text, draw, starting_font, max_width, max_lines)
-    return '\n'.join(multiline_text_list).strip(), font_used
-
-
 def wrapped_text(d, text, font, boundaries, *args, **kwargs):
     words = text.split(' ')
     multiline_text_list = []

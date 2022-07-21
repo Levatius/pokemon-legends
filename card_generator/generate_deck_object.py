@@ -78,7 +78,7 @@ def get_lua_script(stats):
         'encounter_tier': f'"{stats.encounter_tier}"',
         'move_name': f'"{stats.move_name}"',
         'move_type': f'"{stats.move_type}"',
-        'move_attack_strength': stats.move_attack_strength,
+        'move_attack_strength': f'"{stats.move_attack_strength}"',
         'move_effect': f'"{stats.move_effect}"'
     }
     lua_script_lines = [f'{variable} = {value}' for variable, value in local_variables.items()]
@@ -109,23 +109,24 @@ def get_card_json(deck_json, i, j, stats, is_evolution=False):
 
 def add_card_to_deck(deck_json, i, j, k, stats):
     card_json = get_card_json(deck_json, i, j, stats, is_evolution=(k != 0))
-    deck_json['ObjectStates'][0]['DeckIDs'].append(j * 100 + i)
     if stats.state == 0:
+        deck_json['ObjectStates'][0]['DeckIDs'].append(j * 100 + i)
         deck_json['ObjectStates'][0]['ContainedObjects'].append(card_json)
     elif stats.state == 1:
+        deck_json['ObjectStates'][0]['DeckIDs'].append(j * 100 + i)
         deck_json['ObjectStates'][0]['ContainedObjects'].append(card_json)
-        deck_json['ObjectStates'][0]['ContainedObjects'][-(k + 1)]['States'] = {}
+        deck_json['ObjectStates'][0]['ContainedObjects'][-1]['States'] = {}
     elif stats.state > 1:
         deck_json['ObjectStates'][0]['ContainedObjects'][-(k + 1)]['States'][str(stats.state)] = card_json
 
 
 def run():
-    print('Generating deck objects:')
-    DECKS_OBJECTS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    print('Generating deck object:')
+    DECK_OBJECT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     with open(DECK_OBJECT_TEMPLATE) as f:
         deck_json = json.load(f)
-    output_path = DECKS_OBJECTS_OUTPUT_DIR / 'deck.json'
+    output_path = DECK_OBJECT_OUTPUT_DIR / 'deck.json'
 
     i, j = 0, 0
     for _, stats in read_cube().iterrows():
@@ -152,7 +153,7 @@ def run():
         with open(output_path, 'w') as f:
             json.dump(deck_json, f)
     print(
-        'Now place the .json files found in output/deck_objects into your local Documents/My Games/Tabletop Simulator/Saves/Saved Objects folder, you can now import them in Tabletop Simulator by going to Objects -> Saved Objects.')
+        'Now place the deck.json file found in output/deck_object into your local Documents/My Games/Tabletop Simulator/Saves/Saved Objects folder, you can now import them in Tabletop Simulator by going to Objects -> Saved Objects.')
 
 
 if __name__ == '__main__':

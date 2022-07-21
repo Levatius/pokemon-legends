@@ -18,7 +18,7 @@ function onLoad()
     width          = 600,
     height         = 600,
     color          = {0, 0, 0, 0},
-    tooltip        = language_vars.village.FLY_BUTTON_TOOLTIP .. self:getName()
+    tooltip        = language_vars.village.FLY_BUTTON_TOOLTIP_1 .. self:getName() .. "\n" .. language_vars.village.FLY_BUTTON_TOOLTIP_2
   })
 end
 

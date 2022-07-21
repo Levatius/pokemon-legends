@@ -69,7 +69,8 @@ vars = {
     TELEPORT_BUTTON_TOOLTIP = "Teleport Here"
   },
   village = {
-    FLY_BUTTON_TOOLTIP = "Fly to ",
+    FLY_BUTTON_TOOLTIP_1 = "Fly to ",
+    FLY_BUTTON_TOOLTIP_2 = "[Costs 1 Apricorn]",
     ALREADY_FLYING_MESSAGE = "Someone is already flying (if they are not, reloading the game should fix it)."
   },
   errors = {

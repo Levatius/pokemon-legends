@@ -22,7 +22,8 @@ def get_moves(stats):
 # Functions
 
 def compose_base(stats):
-    card_base = 'standard' if stats.encounter_tier not in ('grunt', 'commander', 'boss', 'ultra_burst') else 'team_galactic'
+    card_base = 'standard' if stats.encounter_tier not in (
+        'grunt', 'commander', 'boss', 'ultra_burst') else 'team_galactic'
     base_img = Image.open(ASSETS_DIR / 'card_bases' / f'{card_base}.png').convert('RGBA').resize(xy(16, 28))
 
     try:
@@ -71,10 +72,9 @@ def get_size(stats):
 
 
 def converted_pokedex_number(stats):
-    if isinstance(stats.pokedex_number, int):
-        return f'{stats.pokedex_number:03}'
-    else:
-        return stats.pokedex_number
+    split_pokedex_number = str(stats.pokedex_number).split('-')
+    split_pokedex_number[0] = f'{int(split_pokedex_number[0]):03}'
+    return '-'.join(split_pokedex_number)
 
 
 def get_pokemon_art(stats):
@@ -97,12 +97,18 @@ def add_pokemon_art(img, stats):
 
 def add_bases(img, stats):
     if pd.isnull(stats.trainer):
-        if not stats.uncapturable:
-            held_item_base_img = Image.open(ASSETS_DIR / 'held_item_base.png').convert('RGBA').resize(xy(3.5, 3.5))
-            img.paste(held_item_base_img, xy(1.75, 12.75), held_item_base_img)
-        else:
-            uncapturable_base_img = Image.open(ASSETS_DIR / 'uncapturable_base.png').convert('RGBA').resize(xy(3.5, 3.5))
-            img.paste(uncapturable_base_img, xy(1.75, 12.75), uncapturable_base_img)
+        img_name = 'base.png'
+        if stats.uncapturable:
+            img_name = 'uncapturable.png'
+        elif stats.description == 'Noble Form':
+            img_name = 'scroll_of_nobility.png'
+        elif stats.description in ('Fan Form', 'Frost Form', 'Heat Form', 'Mow Form', 'Wash Form'):
+            img_name = 'sweet_gateau.png'
+        elif stats.description == 'Sky Form':
+            img_name = 'gracidea_flower.png'
+
+        held_item_base_img = get_img(ASSETS_DIR / 'held_item_bases' / img_name, xy(3.5, 3.5))
+        img.paste(held_item_base_img, xy(1.75, 12.75), held_item_base_img)
 
         if stats.encounter_tier in ('ultra_beast', 'ultra_burst'):
             prism_armour_base_img = get_img(ASSETS_DIR / 'prism_armour_base.png', xy(3.5, 4))
@@ -177,14 +183,6 @@ def add_evolution_cost(img, stats):
         img.paste(evolution_icon_img, xy(12.75, 16.75), evolution_icon_img)
 
 
-def get_stats_font_size(stats_value):
-    if stats_value < 10:
-        return title_font(96)
-    if stats_value < 20:
-        return title_font(80)
-    return title_font(64)
-
-
 def add_text(img, stats):
     d = ImageDraw.Draw(img)
     types = get_types(stats)
@@ -198,21 +196,20 @@ def add_text(img, stats):
         d.text(xy(1 + len(types) * 2.5, 2.5), stats.description, fill=DARK_COLOUR, font=text_font(22), anchor='lm')
 
     # Pokémon Stats
-    # d.text(xy(12.75, 8.75), str(stats.health), fill=DARK_COLOUR, font=get_stats_font_size(stats.health), anchor='mm')
-    # d.text(xy(12.75, 11.25), str(stats.initiative), fill=DARK_COLOUR, font=get_stats_font_size(stats.initiative),
-    #        anchor='mm')
     wrapped_text(d, str(stats.health), title_font(44), boundaries=(1.5, 1.5), xy=xy(12.75, 8.75), fill=DARK_COLOUR,
                  anchor='mm')
     wrapped_text(d, str(stats.initiative), title_font(44), boundaries=(1.5, 1.5), xy=xy(12.75, 11.25), fill=DARK_COLOUR,
                  anchor='mm')
 
-    # Metadata
-    d.text(xy(8, 27.5), f'{EXPANSION_NAME} - {GAME_VERSION}', fill=WHITE_COLOUR, font=text_font(12), anchor='mm')
-
 
 def add_move(img, stats):
     move_img = get_img(MOVES_OUTPUT_DIR / f'{stats.move_name}.png', xy(14.5, 7.5))
     img.paste(move_img, xy(0.75, 19.75), move_img)
+
+
+def add_vanilla_icon(img, stats):
+    vanilla_icon_img = get_img(ASSETS_DIR / 'vanilla_icon.png', xy(0.5, 0.5))
+    img.paste(vanilla_icon_img, xy(15, 27), vanilla_icon_img)
 
 
 def run(overwrite=False):
@@ -237,6 +234,7 @@ def run(overwrite=False):
         add_move(img, stats)
         add_encounter_icon(img, stats)
         add_evolution_cost(img, stats)
+        add_vanilla_icon(img, stats)
 
         base_img.paste(img, xy(0, 0), img)
         base_img.save(output_path)

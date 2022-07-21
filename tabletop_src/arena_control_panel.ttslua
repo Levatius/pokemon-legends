@@ -14,13 +14,13 @@ end
 
 function handle_models(pokemon)
   local models = field_zone:getObjects()
-  if pokemon and #models == 0 then
+  if not pokemon and #models > 0 then
+    undeploy_models(models)
+  elseif pokemon then
     local model_guid = find_model_guid(pokemon)
     if model_guid then
       deploy_model(model_guid, pokemon)
     end
-  elseif not pokemon and #models > 0 then
-    undeploy_models(models)
   end
 end
 

@@ -68,7 +68,7 @@ def run():
         old_row_df = old_df_moves.loc[old_df_moves['move_name'] == new_row.move_name]
         if old_row_df.empty:
             print(
-                f':small_blue_diamond: **{new_row.move_name}**: ({str(new_row.type).capitalize()}) [{new_row.damage}] {new_row.description}')
+                f':small_blue_diamond: **{new_row.move_name}**: ({str(new_row.move_type).capitalize()}) [{new_row.move_attack_strength}] {new_row.move_effect}')
 
     print('\n**Modified Moves**')
     for _, new_row in new_df_moves.iterrows():
@@ -76,19 +76,19 @@ def run():
         if not old_row_df.empty:
             old_row = old_row_df.iloc[0]
 
-            damage_text = f'{old_row.damage} → {new_row.damage}' if new_row.damage != old_row.damage else f'{new_row.damage}'
-            description_text = new_row.description if new_row.description != old_row.description else ''
+            damage_text = f'{old_row.move_attack_strength} → {new_row.move_attack_strength}' if new_row.move_attack_strength != old_row.move_attack_strength else f'{new_row.move_attack_strength}'
+            description_text = new_row.move_effect if new_row.move_effect != old_row.move_effect else ''
 
-            if new_row.damage != old_row.damage or new_row.description != old_row.description:
+            if new_row.move_attack_strength != old_row.move_attack_strength or new_row.move_effect != old_row.move_effect:
                 print(
-                    f':small_orange_diamond: **{new_row.move_name}**: ({str(new_row.type).capitalize()}) [{damage_text}] {description_text}')
+                    f':small_orange_diamond: **{new_row.move_name}**: ({str(new_row.move_type).capitalize()}) [{damage_text}] {description_text}')
 
     print('\n**Removed Moves**')
     for _, old_row in old_df_moves.iterrows():
         new_row_df = new_df_moves.loc[new_df_moves['move_name'] == old_row.move_name]
         if new_row_df.empty:
             print(
-                f':small_red_triangle_down: **{old_row.move_name}**: ({str(old_row.type).capitalize()}) [{old_row.damage}] {old_row.description}')
+                f':small_red_triangle_down: **{old_row.move_name}**: ({str(old_row.move_type).capitalize()}) [{old_row.move_attack_strength}] {old_row.move_effect}')
 
 
 if __name__ == '__main__':

@@ -1,9 +1,5 @@
 from pathlib import Path
 
-# Metadata
-GAME_VERSION = 'v1.4'
-EXPANSION_NAME = 'Vanilla'
-
 # Paths
 COMPONENT_DIR = Path(__file__).parent
 ROOT_DIR = COMPONENT_DIR.parent
@@ -13,9 +9,9 @@ MOVES_OUTPUT_DIR = OUTPUT_DIR / 'moves'
 CARD_FRONTS_OUTPUT_DIR = OUTPUT_DIR / 'card_fronts'
 CARD_BACKS_OUTPUT_DIR = OUTPUT_DIR / 'card_backs'
 DECKS_OUTPUT_DIR = OUTPUT_DIR / 'decks'
-CARD_FRONTS_DECK_IMG = '{j}_card_fronts_deck.png'
-CARD_BACKS_DECK_IMG = '{j}_card_backs_deck.png'
-DECKS_OBJECTS_OUTPUT_DIR = OUTPUT_DIR / 'deck_objects'
+CARD_FRONTS_DECK_IMG = '{j}a_deck.png'
+CARD_BACKS_DECK_IMG = '{j}b_deck.png'
+DECK_OBJECT_OUTPUT_DIR = OUTPUT_DIR / 'deck_object'
 CARD_OBJECT_TEMPLATE = ASSETS_DIR / 'card_object_template.json'
 DECK_OBJECT_TEMPLATE = ASSETS_DIR / 'deck_object_template.json'
 
