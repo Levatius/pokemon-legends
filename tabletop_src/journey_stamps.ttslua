@@ -1,6 +1,8 @@
 #include utils
 
 function onLoad()
+  language_vars = load_module(MODULE_LANGUAGE_TAG)
+
   button_params = {
     click_function = "flip_button",
     function_owner = self,
@@ -8,23 +10,14 @@ function onLoad()
     width          = 700,
     height         = 700,
     color          = {0, 0, 0, 0},
-    tooltip        = "Flip"
+    tooltip        = language_vars.tooltips.FLIP
   }
   self:createButton(button_params)
   update_panel()
 end
 
-function get_z_dir()
-  return round(math.cos(math.rad(self:getRotation().z)))
-end
-
---
---
---
-
 function flip_button()
-  self:setPosition(Vector(self:getPosition().x, 1.07 + 0.1 * get_z_dir(), self:getPosition().z))
-  self:setRotation(self:getRotation() + Vector(0, 0, 180))
+  flip_object()
   update_panel()
 end
 

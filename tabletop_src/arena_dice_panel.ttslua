@@ -1,3 +1,4 @@
+#include config
 #include utils
 
 local active_zone = getObjectFromGUID(active_zone_guid)
@@ -21,16 +22,15 @@ FATIGUE_ROTATIONS = {
 }
 
 function onLoad()
-  config_vars = load_module(MODULE_CONFIG_TAG)
   language_vars = load_module(MODULE_LANGUAGE_TAG)
 
   local button_params = {
     function_owner = self,
     scale          = {0.5, 1, 0.5},
-    color          = config_vars.colours.WOOD,
-    font_color     = config_vars.colours.WHITE,
-    hover_color    = config_vars.colours.LIGHT_WOOD,
-    press_color    = config_vars.colours.LIGHT_WOOD
+    color          = config.colours.WOOD,
+    font_color     = config.colours.WHITE,
+    hover_color    = config.colours.LIGHT_WOOD,
+    press_color    = config.colours.LIGHT_WOOD
   }
   -- Roll Button
   button_params.click_function = "roll_button"
@@ -74,7 +74,7 @@ end
 --
 
 function clean_up_dice()
-  local dice_list = getObjectsWithTag(config_vars.tags.objects.ATTACK_DICE)
+  local dice_list = getObjectsWithTag(config.tags.objects.ATTACK_DICE)
   for _, dice in pairs(dice_list) do
     dice:destroyObject()
   end
@@ -113,15 +113,15 @@ function roll_button()
       smooth   = false,
       callback_function = function(dice) Wait.frames(function() if not dice:isDestroyed() then roll_callback(dice, direction) end end, 50) end
     })
-    spawned_dice:addTag(config_vars.tags.objects.ATTACK_DICE)
+    spawned_dice:addTag(config.tags.objects.ATTACK_DICE)
 
     -- Colour the attack dice
     local active_pokemon = get_active_pokemon()
     local move_types = get_move_types(active_pokemon)
     local type_name = move_types[type_button_state]
     if type_name ~= "Typeless" then
-      spawned_dice:setColorTint(config_vars.colours.TYPE[type_name])
-      spawned_dice:highlightOn(config_vars.colours.TYPE[type_name])
+      spawned_dice:setColorTint(config.colours.TYPE[type_name])
+      spawned_dice:highlightOn(config.colours.TYPE[type_name])
     end
 
     x_offset = x_offset + direction * 1
@@ -185,7 +185,7 @@ function get_effectiveness(type_name, enemy_base_types)
 
   if enemy_base_types then
     for _, enemy_base_type in pairs(enemy_base_types) do
-      effectiveness = effectiveness + (config_vars.type_chart[type_name][enemy_base_type] and config_vars.type_chart[type_name][enemy_base_type] or 0)
+      effectiveness = effectiveness + (config.type_chart[type_name][enemy_base_type] and config.type_chart[type_name][enemy_base_type] or 0)
     end
   end
   return effectiveness
@@ -232,7 +232,7 @@ function get_move_types(pokemon)
       end
     end
   else
-    move_types = get_keys(config_vars.type_chart)
+    move_types = get_keys(config.type_chart)
   end
   return move_types
 end
@@ -270,13 +270,13 @@ function update_panel()
 
   local font_colour
   if fatigue_dice:getValue() == FATIGUE_STATE_LEVEL then
-    colour = config_vars.colours.DARK
+    colour = config.colours.DARK
     font_colour = {250/255, 125/255, 100/255}
     tooltip = language_vars.arena_dice_roller.FATIGUED_TOOLTIP
     fatigue_dice:highlightOn({250/255, 125/255, 100/255})
   else
-    colour = config_vars.colours.WOOD
-    font_colour = config_vars.colours.WHITE
+    colour = config.colours.WOOD
+    font_colour = config.colours.WHITE
     tooltip = nil
     fatigue_dice:highlightOff()
   end
@@ -293,9 +293,9 @@ function update_panel()
   self:editButton({
     index = 2,
     label = language_vars.types[type_name] .. "\n" .. signed_label(effectiveness),
-    color = config_vars.colours.TYPE[type_name]
+    color = config.colours.TYPE[type_name]
   })
-  local type_range_button_colours = {config_vars.colours.WOOD, {100/255, 200/255, 100/255}}
+  local type_range_button_colours = {config.colours.WOOD, {100/255, 200/255, 100/255}}
   self:editButton({
     index = 3,
     color = type_range_button_colours[type_range_button_state]

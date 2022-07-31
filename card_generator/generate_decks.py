@@ -2,7 +2,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from config import *
-from utils import xy, pos, read_cube
+from utils import xy, pos, read_cube, get_img
 
 
 def get_card_deck_base_img():
@@ -10,7 +10,7 @@ def get_card_deck_base_img():
 
 
 def add_card_at_pos(base_img, pokemon_card_path, position):
-    img = Image.open(pokemon_card_path).convert('RGBA').resize(xy(8, 14))
+    img = get_img(pokemon_card_path, xy(8, 14))
     base_img.paste(img, position, img)
     return base_img
 
@@ -35,7 +35,7 @@ def run():
             j += 1
 
         pokemon_card_path = CARD_FRONTS_OUTPUT_DIR / f'{row_number}_{stats.pokedex_name}.png'
-        card_back_path = CARD_BACKS_OUTPUT_DIR / f'{stats.move_name}.png' if stats.encounter_tier not in ('grunt', 'commander', 'boss', 'ultra_burst') else ASSETS_DIR / 'card_backs' / f'{stats.encounter_tier}.png'
+        card_back_path = CARD_BACKS_OUTPUT_DIR / f'{stats.move_name}.png' if stats.encounter_tier not in ('grunt', 'commander', 'boss', 'ultra_burst') else CARD_ASSETS_DIR / 'card_backs' / f'{stats.encounter_tier}.png'
         card_pos = pos(i % 10, (i // 10) % 7)
 
         card_fronts_deck_img = add_card_at_pos(card_fronts_deck_img, pokemon_card_path, card_pos)

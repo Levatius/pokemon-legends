@@ -1,3 +1,4 @@
+#include config
 #include utils
 
 local starter_zone = getObjectFromGUID(starter_zone_guid)
@@ -15,10 +16,9 @@ local galactic_boss_zone = getObjectFromGUID(galactic_boss_zone_guid)
 local return_coroutine_running = false
 
 function onLoad()
-  config_vars = load_module(MODULE_CONFIG_TAG)
   language_vars = load_module(MODULE_LANGUAGE_TAG)
 
-  secret_zone = getObjectFromGUID(config_vars.guids.SECRET_ENCOUNTER_ZONE)
+  secret_zone = getObjectFromGUID(config.guids.SECRET_ENCOUNTER_ZONE)
 
   button_params = {
     function_owner = self,
@@ -26,7 +26,7 @@ function onLoad()
     width          = 810,
     height         = 270,
     font_size      = 150,
-    font_color     = config_vars.colours.WHITE
+    font_color     = config.colours.WHITE
   }
   -- Search Button
   button_params.click_function = "search_button"
@@ -104,25 +104,25 @@ end
 --
 
 function get_zone_from_tags(tags)
-  if contains(tags, config_vars.tags.encounters.GALACTIC_GRUNT) then
+  if contains(tags, config.tags.encounters.GALACTIC_GRUNT) then
     return galactic_grunt_zone
-  elseif contains(tags, config_vars.tags.encounters.GALACTIC_COMMANDER) then
+  elseif contains(tags, config.tags.encounters.GALACTIC_COMMANDER) then
     return galactic_commander_zone
-  elseif contains(tags, config_vars.tags.encounters.GALACTIC_BOSS) then
+  elseif contains(tags, config.tags.encounters.GALACTIC_BOSS) then
     return galactic_boss_zone
-  elseif contains(tags, config_vars.tags.encounters.STARTER) then
+  elseif contains(tags, config.tags.encounters.STARTER) then
     return starter_zone
-  elseif contains(tags, config_vars.tags.encounters.WEAK) then
+  elseif contains(tags, config.tags.encounters.WEAK) then
     return weak_zone
-  elseif contains(tags, config_vars.tags.encounters.MODERATE) then
+  elseif contains(tags, config.tags.encounters.MODERATE) then
     return moderate_zone
-  elseif contains(tags, config_vars.tags.encounters.STRONG) then
+  elseif contains(tags, config.tags.encounters.STRONG) then
     return strong_zone
-  elseif contains(tags, config_vars.tags.encounters.LEGENDARY) or contains(tags, config_vars.tags.encounters.ULTRA_BEAST) or contains(tags, config_vars.tags.encounters.ULTRA_BURST) or contains(tags, config_vars.tags.encounters.NOBLE) then
+  elseif contains(tags, config.tags.encounters.LEGENDARY) or contains(tags, config.tags.encounters.ULTRA_BEAST) or contains(tags, config.tags.encounters.ULTRA_BURST) or contains(tags, config.tags.encounters.NOBLE) then
     return legendary_zone
-  elseif contains(tags, config_vars.tags.encounters.EVOLUTION) then
+  elseif contains(tags, config.tags.encounters.EVOLUTION) then
     return evolution_zone
-  elseif contains(tags, config_vars.tags.encounters.SECRET) then
+  elseif contains(tags, config.tags.encounters.SECRET) then
     return secret_zone
   end
 end
@@ -180,9 +180,9 @@ function get_search_params(player_colour)
 
   for _, hit_info in pairs(hit_list) do
     local hit_object = hit_info.hit_object
-    if hit_object:hasTag(config_vars.tags.world.CAMPAIGN) then
+    if hit_object:hasTag(config.tags.world.CAMPAIGN) then
       break
-    elseif hit_object:hasTag(config_vars.tags.world.ENCOUNTER) then
+    elseif hit_object:hasTag(config.tags.world.ENCOUNTER) then
       local encounter_token_tags = hit_object:getTags()
       return get_biome_tag(encounter_token_tags), get_climate_tag(encounter_token_tags), get_encounter_tag(encounter_token_tags), hit_object:getGMNotes()
     end
@@ -218,22 +218,22 @@ function search_for_encounter(biome, climate, encounter, gm_notes)
   local search_count
   local search_zone
 
-  if encounter == config_vars.tags.encounters.WEAK then
+  if encounter == config.tags.encounters.WEAK then
     search_count = 3
     search_zone = weak_zone
-  elseif encounter == config_vars.tags.encounters.MODERATE then
+  elseif encounter == config.tags.encounters.MODERATE then
     search_count = 2
     search_zone = moderate_zone
-  elseif encounter == config_vars.tags.encounters.STRONG then
+  elseif encounter == config.tags.encounters.STRONG then
     search_count = 1
     search_zone = strong_zone
-  elseif encounter == config_vars.tags.encounters.LEGENDARY or encounter == config_vars.tags.encounters.ULTRA_BEAST or encounter == config_vars.tags.encounters.ULTRA_BURST or encounter == config_vars.tags.encounters.NOBLE then
+  elseif encounter == config.tags.encounters.LEGENDARY or encounter == config.tags.encounters.ULTRA_BEAST or encounter == config.tags.encounters.ULTRA_BURST or encounter == config.tags.encounters.NOBLE then
     search_count = 1
     search_zone = legendary_zone
-  elseif encounter == config_vars.tags.encounters.DISTORTION then
+  elseif encounter == config.tags.encounters.DISTORTION then
     search_count = 3
     search_zone = strong_zone
-  elseif encounter == config_vars.tags.encounters.SECRET then
+  elseif encounter == config.tags.encounters.SECRET then
     search_count = 6
     search_zone = secret_zone
   else
@@ -255,7 +255,7 @@ function search_for_encounter(biome, climate, encounter, gm_notes)
       })
       brief_pause()
 
-      if encounter == config_vars.tags.encounters.DISTORTION then
+      if encounter == config.tags.encounters.DISTORTION then
         if search_zone == strong_zone then
           search_zone = moderate_zone
         elseif search_zone == moderate_zone then

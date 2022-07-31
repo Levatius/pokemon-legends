@@ -1,3 +1,4 @@
+#include config
 #include utils
 
 local music_cartridge_zone = getObjectFromGUID(music_cartridge_zone_guid)
@@ -9,16 +10,15 @@ function onLoad()
   for _, arena_active_zone_guid in pairs(arena_active_zone_guids) do
     table.insert(arena_active_zones, getObjectFromGUID(arena_active_zone_guid))
   end
-  config_vars = load_module(MODULE_CONFIG_TAG)
   language_vars = load_module(MODULE_LANGUAGE_TAG)
 
   local button_params = {
     function_owner = self,
     scale          = {0.5, 1, 0.5},
     font_size      = 80,
-    font_color     = config_vars.colours.WHITE,
-    hover_color    = config_vars.colours.LIGHT_WOOD,
-    press_color    = config_vars.colours.LIGHT_WOOD
+    font_color     = config.colours.WHITE,
+    hover_color    = config.colours.LIGHT_WOOD,
+    press_color    = config.colours.LIGHT_WOOD
   }
   local text_params = {
     click_function = "dummy_button",
@@ -28,7 +28,7 @@ function onLoad()
     width          = 0,
     height         = 0,
     font_size      = 100,
-    font_color     = config_vars.colours.WHITE
+    font_color     = config.colours.WHITE
   }
   -- Music Event Buttons
   for i = 0, 8 do
@@ -68,10 +68,10 @@ function music_event_button(index)
     selected_music_event_index = nil
     now_playing = nil
   else
-    MusicPlayer:setCurrentAudioclip(config_vars.music_events[index])
+    MusicPlayer:setCurrentAudioclip(config.music_events[index])
     MusicPlayer.repeat_track = true
     selected_music_event_index = index
-    now_playing = language_vars.music_box.NOW_PLAYING_LABEL .. '"' .. config_vars.music_events[index]["title"] .. '"'
+    now_playing = language_vars.music_box.NOW_PLAYING_LABEL .. '"' .. config.music_events[index]["title"] .. '"'
   end
   update_panel()
 end
@@ -135,10 +135,10 @@ function update_panel()
   update_playlist()
 
   for i = 0, 8 do
-    local label = config_vars.music_events[i + 1]["title"]
+    local label = config.music_events[i + 1]["title"]
     local width = 750
     local height = 200
-    local color = config_vars.colours.WOOD
+    local color = config.colours.WOOD
     local tooltip = language_vars.music_box.PLAY_BUTTON_TOOLTIP
 
     if i + 1 == selected_music_event_index then

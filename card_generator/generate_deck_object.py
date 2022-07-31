@@ -90,7 +90,7 @@ def get_card_json(deck_json, i, j, stats, is_evolution=False):
         card_json = json.load(f)
 
     card_json['CardID'] = j * 100 + i
-    card_json['Nickname'] = stats.internal_name
+    card_json['Nickname'] = stats.pokemon_name + f'({stats.description})' if not pd.isnull(stats.description) else ''
     card_json['Description'] = get_description(stats)
     card_json['Tags'] = get_tags(stats, is_evolution)
     card_json['LuaScript'] = get_lua_script(stats)

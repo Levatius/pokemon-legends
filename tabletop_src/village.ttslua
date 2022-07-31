@@ -1,13 +1,13 @@
+#include config
 #include utils
 
 function onLoad()
-  config_vars = load_module(MODULE_CONFIG_TAG)
   language_vars = load_module(MODULE_LANGUAGE_TAG)
 
-  nesburgh = getObjectFromGUID(config_vars.guids.NESBURGH)
+  nesburgh = getObjectFromGUID(config.guids.NESBURGH)
   nesburgh:setVar("fly_coroutine_running", false)
 
-  bird = getObjectFromGUID(config_vars.guids.BIRD)
+  bird = getObjectFromGUID(config.guids.BIRD)
   bird.AssetBundle:playLoopingEffect(2)
   bird:setInvisibleTo(Player:getColors())
 

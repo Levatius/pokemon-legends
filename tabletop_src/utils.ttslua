@@ -2,7 +2,6 @@
 -- UTILS START
 --
 
-MODULE_CONFIG_TAG = "Module Config"
 MODULE_LANGUAGE_TAG = "Module Language"
 
 CLIMATE_TAGS = {"Cold", "Temperate", "Warm"}
@@ -192,6 +191,22 @@ function get_object(zone)
   for _, object in pairs(objects) do
     return object
   end
+end
+
+function get_y_dir(obj)
+  return round(math.cos(math.rad(obj:getRotation().y)))
+end
+
+function get_z_dir()
+  return round(math.cos(math.rad(self:getRotation().z)))
+end
+
+function flip_object()
+  local height = self:getBounds().size.y
+  local new_pos = Vector(self:getPosition().x, self:getPosition().y + height * get_z_dir(), self:getPosition().z)
+  self:setPosition(new_pos)
+  local new_rot = self:getRotation() + Vector(0, 0, 180)
+  self:setRotation(new_rot)
 end
 
 --

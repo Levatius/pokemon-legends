@@ -20,9 +20,6 @@ vars = {
     Steel = "Steel",
     Fairy = "Fairy"
   },
-  type_chart = {
-    FLIP_BUTTON_TOOLTIP = "Flip"
-  },
   setup_panel = {
     HOS_CAMPAIGN_LABEL = "Heart of Sinnoh Campaign",
     UB_CAMPAIGN_LABEL = "Ultra Burst Campaign",
@@ -55,7 +52,7 @@ vars = {
   arena_dice_roller = {
     ROLL_BUTTON_LABEL = "Roll",
     DICE_BUTTON_LABEL = " Dice",
-    DICE_BUTTON_TOOLTIP = "Toggle Attack Strength (min 1, max 9)",
+    DICE_BUTTON_TOOLTIP = "Toggle Attack Strength",
     TYPE_BUTTON_TOOLTIP = "Toggle Attack Type",
     TYPE_RANGE_BUTTON_TOOLTIP = "Toggle All Types",
     FATIGUED_TOOLTIP = "Fatigued: Take 3 damage after each roll"
@@ -76,5 +73,8 @@ vars = {
   errors = {
     MISSING_DATA_NAME = "Missing Data",
     MISSING_DATA_DESCRIPTION = "Internal data for this card has been deleted. It can no longer be used in the arena. Try rewinding time."
+  },
+  tooltips = {
+    FLIP = "Flip"
   }
 }
