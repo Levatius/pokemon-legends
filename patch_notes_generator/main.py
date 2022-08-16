@@ -43,10 +43,10 @@ def run():
 
         texts = []
         if new_row.health != old_row.health:
-            health_text = f':attr_health:: {old_row.health} → {new_row.health}'
+            health_text = f':attr_health:: {int(old_row.health)} → {new_row.health}'
             texts.append(health_text)
         if new_row.initiative != old_row.initiative:
-            initiative_text = f':attr_initiative:: {old_row.initiative} → {new_row.initiative}'
+            initiative_text = f':attr_initiative:: {int(old_row.initiative)} → {new_row.initiative}'
             texts.append(initiative_text)
         if new_row.move_name != old_row.move_name:
             move_text = f':crossed_swords:: {old_row.move_name} → {new_row.move_name}'

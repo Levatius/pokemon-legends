@@ -75,9 +75,9 @@ def get_lua_script(stats):
         'moves': get_lua_table_from_fields((stats.move_1, stats.move_2, stats.move_3, stats.move_4)),
         'evolve_into': get_lua_table_from_field(stats.evolve_into),
         'evolve_cost': int(stats.evolve_cost) if not pd.isnull(stats.evolve_into) else 'nil',
-        'encounter_tier': f'"{stats.encounter_tier}"',
+        'encounter_tier': f'"{stats.encounter_tier.capitalize()}"',
         'move_name': f'"{stats.move_name}"',
-        'move_type': f'"{stats.move_type}"',
+        'move_type': f'"{stats.move_type.capitalize()}"',
         'move_attack_strength': f'"{stats.move_attack_strength}"',
         'move_effect': f'"{stats.move_effect}"'
     }
@@ -90,7 +90,7 @@ def get_card_json(deck_json, i, j, stats, is_evolution=False):
         card_json = json.load(f)
 
     card_json['CardID'] = j * 100 + i
-    card_json['Nickname'] = stats.pokemon_name + f'({stats.description})' if not pd.isnull(stats.description) else ''
+    card_json['Nickname'] = stats.pokedex_name + (f' ({stats.description})' if not pd.isnull(stats.description) else '')
     card_json['Description'] = get_description(stats)
     card_json['Tags'] = get_tags(stats, is_evolution)
     card_json['LuaScript'] = get_lua_script(stats)
@@ -103,7 +103,6 @@ def get_card_json(deck_json, i, j, stats, is_evolution=False):
         'UniqueBack': True,
         'Type': 0
     }
-
     return card_json
 
 

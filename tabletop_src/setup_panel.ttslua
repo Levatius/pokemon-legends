@@ -22,8 +22,8 @@ function onLoad()
   }
   -- Debug Button
   button_params["click_function"] = "debug_game"
-  button_params["position"]       = {-1.85, 0, 0.85}
-  button_params["rotation"]       = {0, 180, 180}
+  button_params["position"]       = {1.85, 0.2, 0.85}
+  button_params["rotation"]       = {0, 0, 0}
   button_params["width"]          = 150
   button_params["height"]         = 150
   self:createButton(button_params)
@@ -201,11 +201,18 @@ function setup_game()
   local hidden_tokens = shuffle(getObjectsWithTag(config.tags.items.HIDDEN))
   setup_items(hidden_tokens, true)
 
-  -- Shuffle shrine event and distortion breach cards
-  local card_objects = getObjectsWithAnyTags({config.tags.cards.SHRINE, config.tags.cards.BREACH})
+  -- Shuffle decks
+  local card_objects = getObjectsWithAnyTags({config.tags.cards.SHRINE, config.tags.cards.BREACH, config.tags.cards.GINKGO, config.tags.cards.CHANGE_OF_FATE})
   for _, card_object in pairs(card_objects) do
     if card_object.type == "Deck" then
       card_object:randomize()
+    end
+  end
+
+  local ginkgo_objects = getObjectsWithTag(config.tags.cards.GINKGO)
+  for _, ginkgo_object in pairs(ginkgo_objects) do
+    if ginkgo_object.type == "Deck" and ginkgo_object.is_face_down then
+      ginkgo_object:flip()
     end
   end
 
@@ -283,24 +290,18 @@ end
 
 function debug_game(_, _, alt_click)
   if not alt_click then
-    flip_object()
+    claimed_wild_area_descriptions = {}
+    claimed_wild_area_guids = {}
+    -- Shuffle hidden spots
+    local artifact_tokens = shuffle(getObjectsWithTag(config.tags.items.ARTIFACT))
+    setup_items(artifact_tokens, true)
+    local hidden_tokens = shuffle(getObjectsWithTag(config.tags.items.HIDDEN))
+    setup_items(hidden_tokens, true)
   else
-    -- Count encounter tokens
-    local encounter_tokens = getObjectsWithTag(config.tags.world.ENCOUNTER)
-    local encounter_tokens_count = {}
-    for _, encounter_token in pairs(encounter_tokens) do
-      local name = encounter_token:getName()
-      if encounter_tokens_count[name] then
-        encounter_tokens_count[name] = encounter_tokens_count[name] + 1
-      else
-        encounter_tokens_count[name] = 1
-      end
-    end
-
     -- Flip over hidden tokens
     local hidden_tokens = getObjectsWithAnyTags({config.tags.items.ARTIFACT, config.tags.items.HIDDEN})
     for _, hidden_token in pairs(hidden_tokens) do
-      hidden_token:setRotationSmooth(Vector(0, 180, 0))
+      hidden_token:flip()
     end
   end
 end

@@ -1,0 +1,26 @@
+{
+  "Name": "Card",
+  "Transform": {
+    "posX": 0,
+    "posY": 1,
+    "posZ": 0,
+    "rotX": 0,
+    "rotY": 180,
+    "rotZ": 0,
+    "scaleX": 0.85,
+    "scaleY": 1.0,
+    "scaleZ": 0.85
+  },
+  "Grid": false,
+  "Nickname": null,
+  "Description": null,
+  "ColorDiffuse": null,
+  "Tags": ["Trainer Card"],
+  "LuaScript": null,
+  "Hands": true,
+  "CustomDeck": {},
+  "States": {
+    "2": null,
+    "3": null
+  }
+}

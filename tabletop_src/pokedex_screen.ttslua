@@ -11,8 +11,6 @@ function onLoad()
   end
   language_vars = load_module(MODULE_LANGUAGE_TAG)
 
-  music_box = getObjectFromGUID(config.guids.MUSIC_BOX)
-
   button_params = {
     click_function = "flip_button",
     function_owner = self,
@@ -74,13 +72,6 @@ function send_to_arena(index)
       if pokemon then
         pokemon:setPosition(arena_active_zone:getPosition() + Vector(0, 0.5, get_y_dir(arena_active_zone) * 1.8))
         pokemon:setRotation(arena_active_zone:getRotation())
-        if pokemon:hasTag(config.tags.encounters.LEGENDARY) and pokemon:hasTag("Space") then
-          Wait.frames(function() music_box:call("music_event_button_2") end, 100)
-        elseif pokemon:hasTag(config.tags.encounters.LEGENDARY) then
-          Wait.frames(function() music_box:call("music_event_button_1") end, 100)
-        else
-          Wait.frames(function() music_box:call("music_event_button_0") end, 100)
-        end
         Wait.frames(function() pokedex_search:call("return_cards") end, 10)
       end
       return

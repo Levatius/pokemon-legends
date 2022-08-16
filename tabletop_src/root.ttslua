@@ -34,7 +34,7 @@ end
 
 function get_pokemon_zone(zone)
   -- Arena Special Case
-  if zone:getName() == "Arena Pokemon Zone" then
+  if zone:getName() == "Arena Pokeball Zone" then
     zone = getObjectFromGUID(zone:getVar("pokemon_zone_guid"))
   end
   return zone

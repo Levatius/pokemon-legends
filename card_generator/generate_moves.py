@@ -32,7 +32,7 @@ def add_description(img, stats):
                  anchor='mm', align='center')
 
 
-def run(overwrite=False):
+def generate_moves(overwrite):
     print('Generating moves:')
     MOVES_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -47,9 +47,12 @@ def run(overwrite=False):
         add_description(img, stats)
         img.save(output_path)
 
+
+def generate_card_backs(overwrite):
     print('Generating card backs:')
     CARD_BACKS_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+    df = read_cube(sheet_name='moves')
     for _, stats in tqdm(df.iterrows(), total=df.shape[0]):
         output_path = CARD_BACKS_OUTPUT_DIR / f'{stats.move_name}.png'
         if output_path.is_file() and not overwrite:
@@ -59,6 +62,11 @@ def run(overwrite=False):
         move_img = get_img(MOVES_OUTPUT_DIR / f'{stats.move_name}.png', xy(14.5, 7.5))
         img.paste(move_img, xy(0.75, 19.75), move_img)
         img.save(output_path)
+
+
+def run(overwrite=False):
+    generate_moves(overwrite)
+    generate_card_backs(overwrite)
 
 
 if __name__ == '__main__':

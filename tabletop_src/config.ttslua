@@ -38,6 +38,8 @@ config = {
     DARK = {37/255, 37/255, 50/255},
     WOOD = {150/255, 75/255, 50/255},
     LIGHT_WOOD = {200/255, 125/255, 100/255},
+    GREEN = {100/255, 200/255, 100/255},
+    RED = {250/255, 100/255, 100/255},
     TYPE = {
       Typeless = {150/255, 75/255, 50/255},
       Normal = {144/255, 153/255, 161/255},
@@ -58,48 +60,6 @@ config = {
       Dark = {90/255, 83/255, 102/255},
       Steel = {90/255, 142/255, 161/255},
       Fairy = {236/255, 143/255, 230/255}
-    }
-  },
-  music_events = {
-    {
-      title = "Wild Encounter",
-      url = "http://cloud-3.steamusercontent.com/ugc/1778335968028788727/32160068B6C9F2C440610E5EC3658AC4B0374AFE/"
-    },
-    {
-      title = "Legendary Encounter",
-      url = "http://cloud-3.steamusercontent.com/ugc/1787345199297169875/01EEC1DD72DB0E6A54B211EAA69C64B365095379/"
-    },
-    {
-      title = "Spear Pillar",
-      url = "http://cloud-3.steamusercontent.com/ugc/1778335968028788571/D7BB0B5A262B291E2FC29FB8993A185870C13F06/"
-    },
-    {
-      title = "Galactic Grunt",
-      url = "http://cloud-3.steamusercontent.com/ugc/1745700738162462694/87BF4DBD46F952F4986DBD82DAF4094CF60E01C0/"
-    },
-    {
-      title = "Galactic Commander",
-      url = "http://cloud-3.steamusercontent.com/ugc/1745700738162462610/69A62BECD1C4FFB22BF619346306AFCC2661F28F/"
-    },
-    {
-      title = "Galactic Boss",
-      url = "http://cloud-3.steamusercontent.com/ugc/1745700738162462526/40358A4DC482A8FB8174CF21FA2BDB64FE40FCFC/"
-    },
-    {
-      title = "Village Noble",
-      url = "http://cloud-3.steamusercontent.com/ugc/1826778010514749542/1FD7A7C80B45ACC6EEFF669F4BE7755963423F5D/"
-    },
-    {
-      title = "Ultra Beast",
-      url = "http://cloud-3.steamusercontent.com/ugc/1826778010514749667/EADF34F88ADFC2F121D0BC11D2EAE55715C99790/"
-    },
-    {
-      title = "Ultra Burst",
-      url = "http://cloud-3.steamusercontent.com/ugc/1826778010514749776/1EEE0518C48AC64E3D23536119E25E3F1771F76F/"
-    },
-    {
-      title = "???",
-      url = "http://cloud-3.steamusercontent.com/ugc/1822276167119344543/9753230C854D916164DBBB2705CD6472F9989632/"
     }
   },
   tags = {
@@ -125,7 +85,9 @@ config = {
       POKEMON_MODEL = "Pokemon Model",
       ULTRA_BEAST = "Ultra Beast",
       ULTRA_BURST = "Ultra Burst",
-      TRAINER = "Trainer Token"
+      TRAINER = "Trainer Token",
+      FOLLOWER = "Follower Token",
+      SINNOH_GOD = "Sinnoh God Token"
     },
     world = {
       APRICORN_TREE = "Apricorn Tree Token",
@@ -152,7 +114,9 @@ config = {
       SHRINE = "Shrine Card",
       MOVE = "Village Card",
       BREACH = "Breach Card",
-      POKEMON = "Pokemon Card"
+      POKEMON = "Pokemon Card",
+      CHANGE_OF_FATE = "Change of Fate Card",
+      GINKGO = "Ginkgo Card"
     },
     property = {
       NOT_INTERACTABLE = "Not Interactable",
@@ -172,7 +136,6 @@ config = {
     NESBURGH = "83102a",
     APRICORN_BAGS = {"c2d9cc", "5ae126", "926a58", "1d667c", "c7bdb9", "43f641", "76d021"},
     JOURNEY_POINT_BAG = "611d38",
-    MUSIC_BOX = "e829ae",
     COMMANDER_CAMPAIGN_TOKEN_ZONE = "cc2674",
     BOSS_CAMPAIGN_TOKEN_ZONE = "2c6ace",
     HIDDEN_SPOT_DISCARD_ZONE = "02b565",

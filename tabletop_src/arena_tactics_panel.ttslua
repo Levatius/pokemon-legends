@@ -5,7 +5,6 @@ local active_zone = getObjectFromGUID(active_zone_guid)
 local pokemon_zone = getObjectFromGUID(pokemon_zone_guid)
 
 function onLoad()
-  music_box = getObjectFromGUID(config.guids.MUSIC_BOX)
   ultra_burst_prism_armour_zone = getObjectFromGUID(config.guids.ULTRA_BURST_PRISM_ARMOUR_ZONE)
   ultra_beast_prism_armour_zone = getObjectFromGUID(config.guids.ULTRA_BEAST_PRISM_ARMOUR_ZONE)
 
@@ -56,40 +55,14 @@ function update_panel()
     if pokemon and (pokemon:hasTag(config.tags.encounters.GALACTIC_GRUNT) or pokemon:hasTag(config.tags.encounters.GALACTIC_COMMANDER) or pokemon:hasTag(config.tags.encounters.GALACTIC_BOSS)) then
       self:setPosition(Vector(self:getPosition().x, 2.07, self:getPosition().z))
       self:setRotation(Vector(self:getRotation().x, active_zone:getRotation().y, 180))
-      -- Play music only when no music event is playing
-      local is_music_event_playing = music_box:call("is_music_event_playing")
-      if not is_music_event_playing then
-        if pokemon:hasTag(config.tags.encounters.GALACTIC_GRUNT) then
-          Wait.frames(function() music_box:call("music_event_button_3") end, 100)
-        elseif pokemon:hasTag(config.tags.encounters.GALACTIC_COMMANDER) then
-          Wait.frames(function() music_box:call("music_event_button_4") end, 100)
-        elseif pokemon:hasTag(config.tags.encounters.GALACTIC_BOSS) then
-          Wait.frames(function() music_box:call("music_event_button_5") end, 100)
-        end
-      end
-    elseif pokemon and (pokemon:hasTag(config.tags.encounters.LEGENDARY) or pokemon:hasTag(config.tags.encounters.NOBLE) or pokemon:hasTag(config.tags.encounters.ULTRA_BEAST) or pokemon:hasTag(config.tags.encounters.ULTRA_BURST) or (held_item and held_item:getName() == "Alpha Pokémon")) then
+    elseif pokemon and (pokemon:hasTag(config.tags.encounters.LEGENDARY) or pokemon:hasTag(config.tags.encounters.ULTRA_BEAST) or pokemon:hasTag(config.tags.encounters.ULTRA_BURST) or (held_item and held_item:getName() == "Alpha Pokémon")) then
       self:setPosition(Vector(self:getPosition().x, 2.07, self:getPosition().z))
       self:setRotation(Vector(self:getRotation().x, active_zone:getRotation().y + 180, 180))
-      local is_music_event_playing = music_box:call("is_music_event_playing")
-      if not is_music_event_playing then
-        if pokemon:hasTag(config.tags.encounters.NOBLE) then
-          Wait.frames(function() music_box:call("music_event_button_6") end, 100)
-        elseif pokemon:hasTag(config.tags.encounters.ULTRA_BEAST) then
-          Wait.frames(function() music_box:call("music_event_button_7") end, 100)
-        elseif pokemon:hasTag(config.tags.encounters.ULTRA_BURST) then
-          Wait.frames(function() music_box:call("music_event_button_8") end, 100)
-        end
-      end
       -- Update Prism Armour
       if pokemon:hasTag(config.tags.encounters.ULTRA_BEAST) then
         update_prism_armour(ultra_beast_prism_armour_zone)
       elseif pokemon:hasTag(config.tags.encounters.ULTRA_BURST) then
         update_prism_armour(ultra_burst_prism_armour_zone)
-      end
-    elseif pokemon and pokemon:hasTag(config.tags.encounters.SECRET) then
-      local is_music_event_playing = music_box:call("is_music_event_playing")
-      if not is_music_event_playing then
-        Wait.frames(function() music_box:call("music_event_button_9") end, 100)
       end
     else
       self:setPosition(Vector(self:getPosition().x, 1.97, self:getPosition().z))

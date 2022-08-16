@@ -249,9 +249,10 @@ end
 
 function update_panel()
   local active_pokemon = get_active_pokemon(false)
-  if not active_pokemon and fatigue_dice:getValue() ~= 1 then
-    reset_fatigue_dice()
-  end
+
+  -- Check fatigue reset condition
+  local condition = function() return (not get_active_pokemon(false) and fatigue_dice:getValue() ~= 1) end
+  double_check_then(condition, reset_fatigue_dice)
 
   local move_types = get_move_types(active_pokemon)
   if type_button_state > #move_types then
@@ -295,7 +296,7 @@ function update_panel()
     label = language_vars.types[type_name] .. "\n" .. signed_label(effectiveness),
     color = config.colours.TYPE[type_name]
   })
-  local type_range_button_colours = {config.colours.WOOD, {100/255, 200/255, 100/255}}
+  local type_range_button_colours = {config.colours.WOOD, config.colours.GREEN}
   self:editButton({
     index = 3,
     color = type_range_button_colours[type_range_button_state]

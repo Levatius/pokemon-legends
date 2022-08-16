@@ -6,7 +6,10 @@ DARK_BASE_ENCOUNTER_TIERS = GALACTIC_ENCOUNTER_TIERS + ['ultra_burst']
 SPECIFIC_HELD_ITEM_BASE_LOOKUP = {
     'scroll_of_nobility': ['Noble Form'],
     'secret_key': ['Fan Form', 'Frost Form', 'Heat Form', 'Mow Form', 'Wash Form'],
-    'gracidea_flower': ['Sky Form']
+    'gracidea_flower': ['Sky Form'],
+    'adamant_artifact': ['Adamant Form'],
+    'lustrous_artifact': ['Lustrous Form'],
+    'griseous_artifact': ['Griseous Form'],
 }
 
 # File Paths
@@ -22,8 +25,8 @@ DECK_OBJECT_OUTPUT_DIR = OUTPUT_DIR / 'deck_object'
 VANILLA_EMBLEM_PATH = CARD_ASSETS_DIR / 'emblems' / 'vanilla.png'
 CARD_FRONTS_DECK_IMG = '{j}a_deck.png'
 CARD_BACKS_DECK_IMG = '{j}b_deck.png'
-CARD_OBJECT_TEMPLATE = CARD_ASSETS_DIR / 'card_object_template.json'
-DECK_OBJECT_TEMPLATE = CARD_ASSETS_DIR / 'deck_object_template.json'
+CARD_OBJECT_TEMPLATE = CARD_ASSETS_DIR / 'object_templates' / 'card.json'
+DECK_OBJECT_TEMPLATE = CARD_ASSETS_DIR / 'object_templates' / 'deck.json'
 
 # URLs
 ART_FORM_URL = 'https://www.serebii.net/pokemon/art'

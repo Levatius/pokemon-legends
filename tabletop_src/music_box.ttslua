@@ -2,24 +2,30 @@
 #include utils
 
 local music_cartridge_zone = getObjectFromGUID(music_cartridge_zone_guid)
+local music_events_zone = getObjectFromGUID(music_events_zone_guid)
 local arena_active_zones = {}
+local arena_pokeball_zones = {}
+local music_events
 local selected_music_event_index
-local now_playing
 
-function onLoad()
+
+function load_arena_active_zones()
   for _, arena_active_zone_guid in pairs(arena_active_zone_guids) do
     table.insert(arena_active_zones, getObjectFromGUID(arena_active_zone_guid))
   end
+end
+
+function load_arena_pokeball_zones()
+  for _, arena_pokeball_zone_guid in pairs(arena_pokeball_zone_guids) do
+    table.insert(arena_pokeball_zones, getObjectFromGUID(arena_pokeball_zone_guid))
+  end
+end
+
+function onLoad()
+  load_arena_active_zones()
+  load_arena_pokeball_zones()
   language_vars = load_module(MODULE_LANGUAGE_TAG)
 
-  local button_params = {
-    function_owner = self,
-    scale          = {0.5, 1, 0.5},
-    font_size      = 80,
-    font_color     = config.colours.WHITE,
-    hover_color    = config.colours.LIGHT_WOOD,
-    press_color    = config.colours.LIGHT_WOOD
-  }
   local text_params = {
     click_function = "dummy_button",
     function_owner = self,
@@ -30,74 +36,79 @@ function onLoad()
     font_size      = 100,
     font_color     = config.colours.WHITE
   }
-  -- Music Event Buttons
-  for i = 0, 8 do
-    button_params.click_function = "music_event_button_" .. i
-    self:createButton(button_params)
-  end
   self:createButton(text_params)
 
-  self.editButton({index=0, position={-0.8125, 0.2, 0.275}})
-  self.editButton({index=1, position={-0.8125, 0.2, 0.550}})
-  self.editButton({index=2, position={-0.8125, 0.2, 0.825}})
-  self.editButton({index=3, position={0, 0.2, 0.275}})
-  self.editButton({index=4, position={0, 0.2, 0.550}})
-  self.editButton({index=5, position={0, 0.2, 0.825}})
-  self.editButton({index=6, position={0.8125, 0.2, 0.275}})
-  self.editButton({index=7, position={0.8125, 0.2, 0.550}})
-  self.editButton({index=8, position={0.8125, 0.2, 0.825}})
+  local button_params = {
+    click_function = "dummy_button",
+    function_owner = self,
+    position       = {0, 0.2, 0},
+    scale          = {0.5, 1, 0.5},
+    width          = 150,
+    height         = 150,
+    font_size      = 300,
+    color          = config.colours.WOOD,
+    font_color     = config.colours.WHITE
+  }
+  for i = 1, 5 do
+    self:createButton(button_params)
+  end
+  self:editButton({index=1, click_function="toggle_shuffle", position={-1, 0.2, 0.55}, tooltip=language_vars.music_box.SHUFFLE_BUTTON_TOOLTIP})
+  self:editButton({index=2, click_function="back_button", position={-0.5, 0.2, 0.55}, width=300, height=300})
+  self:editButton({index=3, click_function="play_button", position={0, 0.2, 0.55}, width=500, height=500})
+  self:editButton({index=4, click_function="forward_button", position={0.5, 0.2, 0.55}, width=300, height=300})
+  self:editButton({index=5, click_function="toggle_repeat", position={1, 0.2, 0.55}, tooltip=language_vars.music_box.REPEAT_BUTTON_TOOLTIP})
+
+  self:createButton(text_params)
+  self:editButton({index=6, position={0, 0.2, 0.915}})
 
   update_panel()
 end
 
-function music_event_button_0() music_event_button(1) end
-function music_event_button_1() music_event_button(2) end
-function music_event_button_2() music_event_button(3) end
-function music_event_button_3() music_event_button(4) end
-function music_event_button_4() music_event_button(5) end
-function music_event_button_5() music_event_button(6) end
-function music_event_button_6() music_event_button(7) end
-function music_event_button_7() music_event_button(8) end
-function music_event_button_8() music_event_button(9) end
-function music_event_button_9() music_event_button(10) end
+--
+--
+--
 
-function music_event_button(index)
-  if index == selected_music_event_index then
-    MusicPlayer:pause()
-    MusicPlayer.repeat_track = false
-    selected_music_event_index = nil
-    now_playing = nil
-  else
-    MusicPlayer:setCurrentAudioclip(config.music_events[index])
-    MusicPlayer.repeat_track = true
-    selected_music_event_index = index
-    now_playing = language_vars.music_box.NOW_PLAYING_LABEL .. '"' .. config.music_events[index]["title"] .. '"'
+function play_music_event(index)
+  if not music_events then
+    return
   end
-  update_panel()
+
+  local sanitised_music_event = {title = music_events[index].title, url = music_events[index].url}
+  MusicPlayer:setCurrentAudioclip(sanitised_music_event)
+  MusicPlayer.shuffle = false
+  MusicPlayer.repeat_track = true
+  selected_music_event_index = index
+end
+
+function update_music_events()
+  local music_events_object = get_object(music_events_zone)
+  if music_events_object then
+    music_events = music_events_object:getVar("music_events")
+  else
+    music_events = nil
+  end
 end
 
 function update_playlist()
   local music_cartridge = get_object(music_cartridge_zone)
-  -- The music cartridge has been removed
+  -- The music cartridge has been removed and there is not a music event playing
   if not music_cartridge then
-    -- There is no music event playing
-    if not selected_music_event_index then
+    MusicPlayer:setPlaylist({})
+    if not is_music_event_playing() then
       MusicPlayer:pause()
-      now_playing = nil
     end
     return
   end
-  local playlist = music_cartridge:getVar("playlist")
-  MusicPlayer:setPlaylist(playlist)
-  -- The music cartridge is in place and there is not a music event playing
-  if not selected_music_event_index then
-    now_playing = language_vars.music_box.NOW_PLAYING_PLAYLIST_LABEL .. '"' .. music_cartridge:getName() .. '"'
-    local loaded_playlist = MusicPlayer:getPlaylist()
-    -- Only start the playlist if something is not already playing
-    if MusicPlayer.player_status ~= "Play" then
-      local index = math.random(1, len(loaded_playlist))
-      MusicPlayer:setCurrentAudioclip(loaded_playlist[index])
-    end
+
+  local current_playlist = MusicPlayer:getPlaylist()
+  local new_playlist = music_cartridge:getVar("playlist")
+  MusicPlayer:setPlaylist(new_playlist)
+
+  -- Auto play the new playlist if there was no playlist beforehand
+  if len(current_playlist) == 0 then
+    local new_playlist = music_cartridge:getVar("playlist")
+    MusicPlayer:setPlaylist(new_playlist)
+    set_random_playlist_track()
   end
 end
 
@@ -109,51 +120,212 @@ function is_music_event_playing()
   return selected_music_event_index ~= nil
 end
 
-function is_arena_active_zone_empty(arena_active_zone)
-  local pokemon = get_object(arena_active_zone)
-  return pokemon == nil
-end
-
 function is_arena_empty()
   for _, arena_active_zone in pairs(arena_active_zones) do
-    if not is_arena_active_zone_empty(arena_active_zone) then
+    local pokemon = get_object(arena_active_zone)
+    if pokemon then
       return false
     end
   end
   return true
 end
 
-function update_panel()
-  -- Stop any music events when the arena is vacated
-  if is_arena_empty() and selected_music_event_index then
-    MusicPlayer:pause()
-    MusicPlayer.repeat_track = false
-    selected_music_event_index = nil
-    now_playing = nil
+function set_random_playlist_track()
+  if is_music_event_playing() then
+    return
   end
 
+  local loaded_playlist = MusicPlayer:getPlaylist()
+  if len(loaded_playlist) == 0 then
+    return
+  end
+
+  local random_index = math.random(1, len(loaded_playlist))
+  MusicPlayer.shuffle = true
+  MusicPlayer.repeat_track = false
+  MusicPlayer:setCurrentAudioclip(loaded_playlist[random_index])
+  MusicPlayer.playlistIndex = random_index - 1
+  MusicPlayer:play()
+end
+
+function stop_music_event()
+  selected_music_event_index = nil
+  set_random_playlist_track()
+  update_panel()
+end
+
+--
+--
+--
+
+function get_non_player_pokemon()
+  for i = 1, 2 do
+    local arena_active_zone = arena_active_zones[i]
+    local arena_pokeball_zone = arena_pokeball_zones[i]
+
+    local pokemon = get_object(arena_active_zone)
+    local pokeball = get_object(arena_pokeball_zone)
+
+    if pokemon and not pokeball then
+      return pokemon
+    end
+  end
+end
+
+function find_music_event_index(pokemon)
+  local best_match = 0
+  local best_index
+
+  for i, music_event in pairs(music_events) do
+    for _, tag_profile in pairs(music_event.tag_profiles) do
+
+      -- Find the best match amongst all tag profiles
+      local match = 0
+      for _, tag in pairs(tag_profile) do
+        if pokemon:hasTag(tag) then
+          match = match + 1
+        else
+          -- Pokémon does not have a tag in the tag profile, disregard
+          match = 0
+          break
+        end
+      end
+      if match > best_match then
+        best_match = match
+        best_index = i
+      end
+
+    end
+  end
+  return best_index
+end
+
+function auto_play_music_event()
+  local pokemon = get_non_player_pokemon()
+  if not music_events or not pokemon or is_music_event_playing() then
+    return
+  end
+
+  local index = find_music_event_index(pokemon)
+  if index then
+    play_music_event(index)
+  end
+end
+
+--
+--
+--
+
+function toggle_shuffle()
+  MusicPlayer.shuffle = not MusicPlayer.shuffle
+  update_panel()
+end
+
+function back_button()
+  if not is_music_event_playing() and MusicPlayer.playlist_index > 0 then
+    MusicPlayer:skipBack()
+  end
+  update_panel()
+end
+
+function play_button()
+  if MusicPlayer.player_status ~= "Play" then
+    MusicPlayer:play()
+  elseif MusicPlayer.player_status == "Play" then
+    MusicPlayer:pause()
+  end
+  update_panel()
+end
+
+function forward_button()
+  if not is_music_event_playing() and MusicPlayer.playlist_index < len(MusicPlayer.getPlaylist()) - 1 then
+    MusicPlayer:skipForward()
+  end
+  update_panel()
+end
+
+function toggle_repeat()
+  MusicPlayer.repeat_track = not MusicPlayer.repeat_track
+  update_panel()
+end
+
+--
+--
+--
+
+function update_panel()
+  -- Stop any music events when the arena is empty
+  local condition = function() return is_arena_empty() and is_music_event_playing() end
+  double_check_then(condition, stop_music_event)
+
+  update_music_events()
   update_playlist()
 
-  for i = 0, 8 do
-    local label = config.music_events[i + 1]["title"]
-    local width = 750
-    local height = 200
-    local color = config.colours.WOOD
-    local tooltip = language_vars.music_box.PLAY_BUTTON_TOOLTIP
+  auto_play_music_event()
 
-    if i + 1 == selected_music_event_index then
-      color = {75/255, 200/255, 150/255}
-      tooltip = language_vars.music_box.STOP_BUTTON_TOOLTIP
-    elseif is_arena_empty() then
-      label = ""
-      width = 0
-      height = 0
+  function update_panel_coroutine()
+    for i = 0, 10 do coroutine.yield(0) end
+
+    -- Now Playing Text
+    local now_playing_label = language_vars.music_box.OFFLINE_LABEL
+    local music_cartridge = get_object(music_cartridge_zone)
+    if is_music_event_playing() then
+      now_playing_label = language_vars.music_box.BATTLE_LABEL .. music_events[selected_music_event_index].title
+    elseif music_cartridge then
+      now_playing_label = language_vars.music_box.NOW_PLAYING_LABEL .. music_cartridge:getName()
     end
-    self:editButton({index=i, label=label, width=width, height=height, color=color, tooltip=tooltip})
-  end
+    self:editButton({index=0, label=now_playing_label})
 
-  if not now_playing then
-    now_playing = language_vars.music_box.OFFLINE_LABEL
+    -- Shuffle Button
+    local shuffle_button_colour = MusicPlayer.shuffle and config.colours.GREEN or config.colours.WOOD
+    self:editButton({index=1, color=shuffle_button_colour})
+
+    -- Back Button
+    local back_button_label, back_button_tooltip
+    if not is_music_event_playing() and MusicPlayer.playlist_index > 0 then
+      back_button_label = "«"
+      back_button_tooltip = language_vars.music_box.BACK_BUTTON_TOOLTIP
+    else
+      back_button_label = "···"
+      back_button_tooltip = nil
+    end
+    self:editButton({index=2, label=back_button_label, tooltip=back_button_tooltip})
+
+    -- Play/Pause Button
+    local play_button_label, play_button_font_size, play_button_colour, play_button_tooltip
+    if MusicPlayer.player_status == "Pause" then
+      play_button_label = "▶"
+      play_button_font_size = 300
+      play_button_colour = config.colours.WOOD
+      play_button_tooltip = language_vars.music_box.PLAY_BUTTON_TOOLTIP
+    else
+      play_button_label = "▐ ▌"
+      play_button_font_size = 200
+      play_button_colour = config.colours.GREEN
+      play_button_tooltip = language_vars.music_box.PAUSE_BUTTON_TOOLTIP
+    end
+    self:editButton({index=3, label=play_button_label, font_size=play_button_font_size, color=play_button_colour, tooltip=play_button_tooltip})
+
+    -- Forward Button
+    local forward_button_label, forward_button_tooltip
+    if not is_music_event_playing() and MusicPlayer.playlist_index < len(MusicPlayer.getPlaylist()) - 1 then
+      forward_button_label = "»"
+      forward_button_tooltip = language_vars.music_box.FORWARD_BUTTON_TOOLTIP
+    else
+      forward_button_label = "···"
+      forward_button_tooltip = nil
+    end
+    self:editButton({index=4, label=forward_button_label, tooltip=forward_button_tooltip})
+
+    -- Repeat Button
+    local repeat_button_colour = MusicPlayer.repeat_track and config.colours.GREEN or config.colours.WOOD
+    self:editButton({index=5, color=repeat_button_colour})
+
+    -- Track Display Text
+    local track_display_label = (len(MusicPlayer.getPlaylist()) > 0 and not is_music_event_playing()) and MusicPlayer.playlist_index + 1 .. "/" .. len(MusicPlayer.getPlaylist()) or "?/?"
+    self:editButton({index=6, label=track_display_label})
+
+    return 1
   end
-  self:editButton({index=9, label=now_playing})
+  startLuaCoroutine(self, "update_panel_coroutine")
 end

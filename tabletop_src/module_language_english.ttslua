@@ -28,9 +28,13 @@ vars = {
   music_box = {
     OFFLINE_LABEL = "Music Box",
     NOW_PLAYING_LABEL = "Now Playing: ",
-    NOW_PLAYING_PLAYLIST_LABEL = "Now Playing Playlist: ",
-    PLAY_BUTTON_TOOLTIP = "Play Music",
-    STOP_BUTTON_TOOLTIP = "Stop Music"
+    BATTLE_LABEL = "Battle! ",
+    PLAY_BUTTON_TOOLTIP = "Play",
+    PAUSE_BUTTON_TOOLTIP = "Pause",
+    BACK_BUTTON_TOOLTIP = "Back",
+    FORWARD_BUTTON_TOOLTIP = "Forward",
+    SHUFFLE_BUTTON_TOOLTIP = "Toggle Shuffle",
+    REPEAT_BUTTON_TOOLTIP = "Toggle Repeat"
   },
   pokedex = {
     SEARCH_BUTTON_LABEL = "Search",

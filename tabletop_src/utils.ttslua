@@ -209,6 +209,20 @@ function flip_object()
   self:setRotation(new_rot)
 end
 
+function double_check_then(condition, f)
+  if not condition() then
+    return false
+  end
+  function double_check_coroutine()
+    brief_pause()
+    if condition() then
+      f()
+    end
+    return 1
+  end
+  startLuaCoroutine(self, "double_check_coroutine")
+end
+
 --
 -- UTILS END
 --
