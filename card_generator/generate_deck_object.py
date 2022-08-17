@@ -90,6 +90,7 @@ def get_card_json(deck_json, i, j, stats, is_evolution=False):
         card_json = json.load(f)
 
     card_json['CardID'] = j * 100 + i
+    # TODO: This needs a long term solution for handling evolution
     card_json['Nickname'] = stats.pokedex_name + (f' ({stats.description})' if not pd.isnull(stats.description) else '')
     card_json['Description'] = get_description(stats)
     card_json['Tags'] = get_tags(stats, is_evolution)

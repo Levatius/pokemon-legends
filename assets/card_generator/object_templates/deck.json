@@ -1,0 +1,25 @@
+{
+  "ObjectStates": [
+    {
+      "Name": "Deck",
+      "Transform": {
+        "posX": 0,
+        "posY": 1,
+        "posZ": 0,
+        "rotX": 0,
+        "rotY": 180,
+        "rotZ": 0,
+        "scaleX": 1.5,
+        "scaleY": 1.0,
+        "scaleZ": 1.5
+      },
+      "Grid": false,
+      "Hands": false,
+      "DeckIDs": [],
+      "CustomDeck": {
+      },
+      "ColorDiffuse": {"r": 0.6, "g": 0.3, "b": 0.2},
+      "ContainedObjects": []
+    }
+  ]
+}

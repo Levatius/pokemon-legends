@@ -157,7 +157,8 @@ end
 function get_evolution_guid(evolution_name)
   local infos = get_object_infos_from_zone_deck(evolution_zone)
   for _, info in pairs(infos) do
-    if info.name == evolution_name then
+    local _, _, internal_name = string.find(info.lua_script, 'internal_name = "([%w%p%s]+)"')
+    if internal_name and internal_name == evolution_name then
       return info.guid
     end
   end
@@ -194,7 +195,8 @@ function get_encounter_guid(biome, climate, zone, gm_notes)
   local infos = get_object_infos_from_zone_deck(zone, true)
   for _, info in pairs(infos) do
     if zone == legendary_zone then
-      if info.name == gm_notes then
+      local _, _, pokedex_name = string.find(info.lua_script, 'pokedex_name = "([%w%p%s]+)"')
+      if pokedex_name and pokedex_name == gm_notes then
         return info.guid
       end
     else

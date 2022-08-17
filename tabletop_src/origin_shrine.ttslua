@@ -1,0 +1,28 @@
+#include config
+#include utils
+
+local origin_shrine_zone = getObjectFromGUID(origin_shrine_zone_guid)
+
+function update_panel()
+  local follower_tokens = getObjectsWithTag(config.tags.objects.FOLLOWER)
+  local sinnoh_god_tokens = getObjectsWithTag(config.tags.objects.SINNOH_GOD)
+  local sinnoh_god_token = get_object(origin_shrine_zone)
+
+  if sinnoh_god_token then
+    sinnoh_god_token:highlightOn(sinnoh_god_token:getColorTint())
+
+    for _, follower_token in pairs(follower_tokens) do
+      if follower_token:getGMNotes() == sinnoh_god_token:getGMNotes() and not follower_token.is_face_down then
+        follower_token:highlightOn(sinnoh_god_token:getColorTint())
+      end
+    end
+  else
+    for _, sinnoh_god_token in pairs(sinnoh_god_tokens) do
+      sinnoh_god_token:highlightOff()
+    end
+
+    for _, follower_token in pairs(follower_tokens) do
+      follower_token:highlightOff()
+    end
+  end
+end

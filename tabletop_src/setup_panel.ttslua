@@ -191,6 +191,12 @@ function setup_game()
     campaign_token:setLock(false)
   end
 
+  -- Unlock all follower tokens
+  local follower_tokens = getObjectsWithTag(config.tags.objects.FOLLOWER)
+  for _, follower_token in pairs(follower_tokens) do
+    follower_token:setLock(false)
+  end
+
   if is_expansion_enabled() then
     _expansion_setup()
   end
