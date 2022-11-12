@@ -8,7 +8,7 @@ function onLoad()
   ultra_burst_prism_armour_zone = getObjectFromGUID(config.guids.ULTRA_BURST_PRISM_ARMOUR_ZONE)
   ultra_beast_prism_armour_zone = getObjectFromGUID(config.guids.ULTRA_BEAST_PRISM_ARMOUR_ZONE)
 
-  button_params = {
+  text_params = {
     click_function = "dummy_button",
     function_owner = self,
     position       = {0.195, -0.03, 0.365},
@@ -19,10 +19,39 @@ function onLoad()
     font_size      = 200,
     font_color     = {225/255, 150/255, 250/255}
   }
-  self:createButton(button_params)
+  self:createButton(text_params)
+
+  button_params = {
+    function_owner = self,
+    scale          = {0.25, 1, 0.25},
+    width          = 500,
+    height         = 500,
+    font_size      = 200,
+    font_color     = {1, 1, 1}
+  }
+  -- SHELVED
+  -- -- Return Button
+  -- button_params.click_function = "return_button"
+  -- button_params.color = {0, 1, 0}
+  -- self:createButton(button_params)
+  -- -- Discard Button
+  -- button_params.click_function = "discard_button"
+  -- button_params.color = {1, 0, 0}
+  -- self:createButton(button_params)
 
   update_panel()
 end
+
+--
+--
+--
+
+-- SHELVED
+-- function return_button()
+-- end
+--
+-- function discard_button()
+-- end
 
 function get_held_item()
   local objects = pokemon_zone:getObjects()
@@ -42,6 +71,21 @@ function update_prism_armour(zone)
     self:editButton({index=0, label=""})
   end
 end
+
+-- SHELVED
+-- function update_buttons()
+--   print(get_y_dir(self) .. ", " .. get_z_dir(self))
+--   self:editButton({
+--     index     = 1,
+--     position  = {get_y_dir(self) * get_z_dir(self) * 0.5, 0, get_y_dir(self) * 0.5},
+--     rotation  = {0, 0, 180}
+--   })
+--   self:editButton({
+--     index     = 2,
+--     position  = {get_y_dir(self) * get_z_dir(self) * 0.5, 0, get_y_dir(self) * 0.25},
+--     rotation  = {0, 0, 180}
+--   })
+-- end
 
 --
 --
@@ -69,6 +113,10 @@ function update_panel()
       self:setRotation(Vector(self:getRotation().x, active_zone:getRotation().y, 0))
       update_prism_armour()
     end
+
+    -- SHELVED
+    --update_buttons()
+
     return 1
   end
   startLuaCoroutine(self, "update_panel_coroutine")

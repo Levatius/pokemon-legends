@@ -17,14 +17,14 @@ function onLoad()
 end
 
 function flip_button()
-  flip_object()
+  flip_object(self)
   update_panel()
 end
 
 function update_panel()
   self:editButton({
     index=0,
-    position={0, 0.1 + 0.1 * get_z_dir(), 0.75},
+    position={0, 0.1 + 0.1 * get_z_dir(self), 0.75},
     rotation={0, 0, self:getRotation().z}
   })
 end

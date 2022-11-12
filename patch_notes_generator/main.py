@@ -4,6 +4,9 @@ from pathlib import Path
 COMPONENT_DIR = Path(__file__).parent
 ROOT_DIR = COMPONENT_DIR.parent
 
+# def get_pokemon_name(df):
+#     return df[]
+
 
 def run():
     old_df_pokemon = pd.read_excel(ROOT_DIR / f'old_sinnoh_cube.xlsx', sheet_name='pokemon')
@@ -12,29 +15,32 @@ def run():
     old_df_moves = pd.read_excel(ROOT_DIR / f'old_sinnoh_cube.xlsx', sheet_name='moves')
     new_df_moves = pd.read_excel(ROOT_DIR / f'sinnoh_cube.xlsx', sheet_name='moves')
 
+    old_df_trainer_cards = pd.read_excel(ROOT_DIR / f'old_sinnoh_cube.xlsx', sheet_name='trainer_cards')
+    new_df_trainer_cards = pd.read_excel(ROOT_DIR / f'sinnoh_cube.xlsx', sheet_name='trainer_cards')
+
     print('**New Pokémon**')
     for _, new_row in new_df_pokemon.iterrows():
         if not pd.isnull(new_row.trainer):
             continue
 
-        old_row_df = old_df_pokemon.loc[old_df_pokemon['internal_name'] == new_row.internal_name]
+        old_row_df = old_df_pokemon.loc[old_df_pokemon.internal_name == new_row.internal_name]
         if not old_row_df.empty:
             continue
 
         health_text = f':attr_health:: {new_row.health}'
         initiative_text = f':attr_initiative:: {new_row.initiative}'
         move_text = f':crossed_swords:: {new_row.move_name}'
-        #location_text = f':map:: {new_row.biome}/{new_row.climate}'
-        #evolve_cost_text = f':attr_evolve_cost:: {new_row.evolve_cost}' if not pd.isnull(new_row.evolve_cost) else None
+
         texts = ', '.join([text for text in [health_text, initiative_text, move_text] if text])
         print(f':small_blue_diamond: **{new_row.internal_name}**: {texts}')
+
     print('\n**Modified Pokémon**')
     for _, new_row in new_df_pokemon.iterrows():
         if not pd.isnull(new_row.trainer):
             continue
 
-        old_row_match_condition = (old_df_pokemon['internal_name'] == new_row.internal_name) & \
-                                  (old_df_pokemon['pokedex_number'] == new_row.pokedex_number)
+        old_row_match_condition = (old_df_pokemon.internal_name == new_row.internal_name) & \
+                                  (old_df_pokemon.pokedex_number == new_row.pokedex_number)
         old_row_df = old_df_pokemon.loc[old_row_match_condition]
         if old_row_df.empty:
             continue
@@ -43,25 +49,20 @@ def run():
 
         texts = []
         if new_row.health != old_row.health:
-            health_text = f':attr_health:: {int(old_row.health)} → {new_row.health}'
+            health_text = f':attr_health:: {old_row.health} → {new_row.health}'
             texts.append(health_text)
         if new_row.initiative != old_row.initiative:
-            initiative_text = f':attr_initiative:: {int(old_row.initiative)} → {new_row.initiative}'
+            initiative_text = f':attr_initiative:: {old_row.initiative} → {new_row.initiative}'
             texts.append(initiative_text)
         if new_row.move_name != old_row.move_name:
             move_text = f':crossed_swords:: {old_row.move_name} → {new_row.move_name}'
             texts.append(move_text)
-        # if not pd.isnull(new_row.biome) and (new_row.biome != old_row.biome or new_row.climate != old_row.climate):
-        #     location_text = f':map:: {old_row.biome}/{old_row.climate} → {new_row.biome}/{new_row.climate}'
-        #     texts.append(location_text)
-        if not pd.isnull(new_row.evolve_cost) and new_row.evolve_cost != old_row.evolve_cost:
-            evolve_cost_text = f':attr_evolve_cost:: {int(old_row.evolve_cost)} → {int(new_row.evolve_cost)}'
-            texts.append(evolve_cost_text)
 
         if not texts:
             continue
         texts = ', '.join(texts)
-        print(f':small_orange_diamond: **{new_row.internal_name}**: {texts}')
+        pokemon_description = '' if pd.isnull(new_row.description) else f' ({new_row.description})'
+        print(f':small_orange_diamond: **{new_row.pokedex_name}{pokemon_description}**: {texts}')
 
     print('\n**New Moves**')
     for _, new_row in new_df_moves.iterrows():
@@ -79,6 +80,12 @@ def run():
             damage_text = f'{old_row.move_attack_strength} → {new_row.move_attack_strength}' if new_row.move_attack_strength != old_row.move_attack_strength else f'{new_row.move_attack_strength}'
             description_text = new_row.move_effect if new_row.move_effect != old_row.move_effect else ''
 
+            # v1.4a Language Adjustments
+            if '1 or more' in old_row.move_effect and 'any' in new_row.move_effect:
+                continue
+            elif 'Use a second' in old_row.move_effect and 'The user may use a second' in new_row.move_effect:
+                continue
+
             if new_row.move_attack_strength != old_row.move_attack_strength or new_row.move_effect != old_row.move_effect:
                 print(
                     f':small_orange_diamond: **{new_row.move_name}**: ({str(new_row.move_type).capitalize()}) [{damage_text}] {description_text}')
@@ -89,6 +96,17 @@ def run():
         if new_row_df.empty:
             print(
                 f':small_red_triangle_down: **{old_row.move_name}**: ({str(old_row.move_type).capitalize()}) [{old_row.move_attack_strength}] {old_row.move_effect}')
+
+
+    print('\n**Modified Trainer Cards**')
+    for _, new_row in new_df_trainer_cards.iterrows():
+        old_row_df = old_df_trainer_cards.loc[old_df_trainer_cards['trainer_class'] == new_row.trainer_class]
+        if not old_row_df.empty:
+            old_row = old_row_df.iloc[0]
+
+            if new_row.ability_1_description != old_row.ability_1_description or new_row.ability_2_description != old_row.ability_2_description:
+                print(f':small_orange_diamond: **{new_row.trainer_class}**')
+
 
 
 if __name__ == '__main__':

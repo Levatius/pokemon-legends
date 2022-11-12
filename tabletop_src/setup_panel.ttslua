@@ -223,7 +223,7 @@ function setup_game()
   end
 
   -- Disable setup panel
-  flip_object()
+  flip_object(self)
 end
 
 --
@@ -231,7 +231,9 @@ end
 --
 
 function is_expansion_enabled()
-  return not distortion_world_base.tooltip
+  if distortion_world_base then
+    return not distortion_world_base.tooltip
+  end
 end
 
 function scale_distortion_world_base()
@@ -316,6 +318,28 @@ end
 --
 --
 
+function update_party_panels()
+  local party_panels = getObjectsWithTag(config.tags.panels.PARTY)
+  for _, party_panel in pairs(party_panels) do
+    if is_expansion_enabled() then
+      if not party_panel.is_face_down then flip_object(party_panel) end
+    else
+      if party_panel.is_face_down then flip_object(party_panel) end
+    end
+  end
+end
+
+function update_shard_panels()
+  local shard_panels = getObjectsWithTag(config.tags.panels.SHARD)
+  for _, shard_panel in pairs(shard_panels) do
+    if is_expansion_enabled() then
+      if not shard_panel.is_face_down then flip_object(shard_panel) end
+    else
+      if shard_panel.is_face_down then flip_object(shard_panel) end
+    end
+  end
+end
+
 function update_panel()
   local label = language_vars.setup_panel.HOS_CAMPAIGN_LABEL
   local color = {200/255, 100/255, 100/255}
@@ -324,4 +348,7 @@ function update_panel()
     color = {150/255, 100/255, 200/255}
   end
   self:editButton({index=1, label=label, color=color})
+
+  update_party_panels()
+  update_shard_panels()
 end

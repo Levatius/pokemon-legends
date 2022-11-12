@@ -53,8 +53,8 @@ function contains(t, value)
 end
 
 function get_max_key_and_value(t)
-  local key, max = 1, t[1]
-  for k, v in ipairs(t) do
+  local key, max = nil, -math.huge
+  for k, v in pairs(t) do
       if t[k] > max then
           key, max = k, v
       end
@@ -193,20 +193,24 @@ function get_object(zone)
   end
 end
 
+function get_x_dir(obj)
+  return round(math.cos(math.rad(obj:getRotation().x)))
+end
+
 function get_y_dir(obj)
   return round(math.cos(math.rad(obj:getRotation().y)))
 end
 
-function get_z_dir()
-  return round(math.cos(math.rad(self:getRotation().z)))
+function get_z_dir(obj)
+  return round(math.cos(math.rad(obj:getRotation().z)))
 end
 
-function flip_object()
-  local height = self:getBounds().size.y
-  local new_pos = Vector(self:getPosition().x, self:getPosition().y + height * get_z_dir(), self:getPosition().z)
-  self:setPosition(new_pos)
-  local new_rot = self:getRotation() + Vector(0, 0, 180)
-  self:setRotation(new_rot)
+function flip_object(obj)
+  local height = obj:getBounds().size.y
+  local new_pos = Vector(obj:getPosition().x, obj:getPosition().y + height * get_z_dir(obj), obj:getPosition().z)
+  obj:setPosition(new_pos)
+  local new_rot = obj:getRotation() + Vector(0, 0, 180)
+  obj:setRotation(new_rot)
 end
 
 function double_check_then(condition, f)

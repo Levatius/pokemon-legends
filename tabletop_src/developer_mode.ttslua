@@ -17,18 +17,18 @@ function onLoad()
 end
 
 function flip_button()
-  flip_object()
+  flip_object(self)
   update_panel()
 end
 
 function update_panel()
   for _, object in pairs(getObjectsWithAnyTags({config.tags.property.NOT_INTERACTABLE, config.tags.objects.POKEMON_MODEL})) do
-    object.interactable = (get_z_dir() == -1)
+    object.interactable = (get_z_dir(self) == -1)
   end
 
   self:editButton({
     index=0,
-    position={0, 0.1 + 0.1 * get_z_dir(), 0},
+    position={0, 0.1 + 0.1 * get_z_dir(self), 0},
     rotation={0, 0, self:getRotation().z}
   })
 end

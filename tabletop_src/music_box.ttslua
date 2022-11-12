@@ -269,7 +269,7 @@ function update_panel()
     -- Now Playing Text
     local now_playing_label = language_vars.music_box.OFFLINE_LABEL
     local music_cartridge = get_object(music_cartridge_zone)
-    if is_music_event_playing() then
+    if is_music_event_playing() and music_events then
       now_playing_label = language_vars.music_box.BATTLE_LABEL .. music_events[selected_music_event_index].title
     elseif music_cartridge then
       now_playing_label = language_vars.music_box.NOW_PLAYING_LABEL .. music_cartridge:getName()

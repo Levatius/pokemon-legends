@@ -93,6 +93,7 @@ config = {
       APRICORN_TREE = "Apricorn Tree Token",
       CAMPAIGN = "Campaign Token",
       DISTORTION_GATE = "Distortion Gate",
+      ULTRA_BEAST_SPAWN = "Ultra Beast Spawn",
       DISTORTION_WORLD = "Distortion World",
       ENCOUNTER = "Encounter Token",
       SHRINE = "Shrine Token",
@@ -122,13 +123,16 @@ config = {
       NOT_INTERACTABLE = "Not Interactable",
       UPDATE_PANELS = "Update Panels",
       ALREADY_VISITED = "Already Visited",
+      ALREADY_DEPLOYED = "Already Deployed",
       BREACH_CLAIMED = "Breach Claimed"
     },
     zones = {
       POKEMON = "Pokemon Zone"
     },
     panels = {
-      BAG = "Bag Panel"
+      BAG = "Bag Panel",
+      PARTY = "Party Panel",
+      SHARD = "Shard Panel"
     }
   },
   guids = {

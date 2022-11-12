@@ -66,18 +66,23 @@ function send_to_arena_0() send_to_arena(1) end
 function send_to_arena_1() send_to_arena(2) end
 function send_to_arena_2() send_to_arena(3) end
 function send_to_arena(index)
-  for _, arena_active_zone in pairs(arena_active_zones) do
-    if is_arena_active_zone_empty(arena_active_zone) then
-      local pokemon = pokedex_layout_zone:getObjects()[index]
-      if pokemon then
-        pokemon:setPosition(arena_active_zone:getPosition() + Vector(0, 0.5, get_y_dir(arena_active_zone) * 1.8))
-        pokemon:setRotation(arena_active_zone:getRotation())
-        Wait.frames(function() pokedex_search:call("return_cards") end, 10)
+  function send_to_arena_coroutine()
+    for _, arena_active_zone in pairs(arena_active_zones) do
+      if is_arena_active_zone_empty(arena_active_zone) then
+        local pokemon = pokedex_layout_zone:getObjects()[index]
+        if pokemon then
+          pokemon:setPosition(arena_active_zone:getPosition() + Vector(0, 0.5, get_y_dir(arena_active_zone) * 1.8))
+          pokemon:setRotation(arena_active_zone:getRotation())
+          brief_pause()
+          pokedex_search:call("return_cards")
+        end
+        return 1
       end
-      return
     end
+    print(language_vars.pokedex.EMPTY_SLOT_MESSAGE)
+    return 1
   end
-  print(language_vars.pokedex.EMPTY_SLOT_MESSAGE)
+  startLuaCoroutine(self, "send_to_arena_coroutine")
 end
 
 --
