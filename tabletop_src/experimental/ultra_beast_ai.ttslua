@@ -1,0 +1,257 @@
+#include config
+#include utils
+
+function onLoad()
+  button_params = {
+    click_function = "deploy_ultra_beasts",
+    function_owner = self,
+    position       = {0, 0.25, 0.5},
+    width          = 500,
+    height         = 250,
+    color          = {0, 1, 1}
+  }
+  self:createButton(button_params)
+  button_params.click_function = "move_ultra_beasts"
+  button_params.position = {0, 0.25, 0}
+  button_params.color = {1, 0, 1}
+  self:createButton(button_params)
+  button_params.click_function = "reset_campaign"
+  button_params.position = {0, 0.25, -0.5}
+  button_params.color = {1, 0, 0}
+  self:createButton(button_params)
+end
+
+--
+--
+--
+
+function get_hit_objects_from_hit_infos(hit_infos)
+  local hit_objects = {}
+  for _, hit_info in pairs(hit_infos) do
+    local hit_object = hit_info.hit_object
+    table.insert(hit_objects, hit_object)
+  end
+  return hit_objects
+end
+
+-- Dynamically returns tile offsets within the given radius on a hexagonal board
+function calc_search_offsets_from_radius(search_radius)
+  SCALE_X = 1.65
+  SCALE_Z = 1.905
+  POS_Y_OFFSET = -5
+
+  local search_offsets = {}
+
+  for u = -search_radius, search_radius do
+    for v = -search_radius, search_radius do
+      for w = -search_radius, search_radius do
+        if math.abs(u) + math.abs(v) + math.abs(w) <= search_radius then
+          local pos_x = SCALE_X * (w - u)
+          local pos_z = SCALE_Z * (v + (u + w) / 2)
+          table.insert(search_offsets, Vector(pos_x, POS_Y_OFFSET, pos_z))
+        end
+      end
+    end
+  end
+  return search_offsets
+end
+
+-- Finds and groups objects at each search offset
+function get_objects_in_search_radius(ultra_beast, search_radius)
+  local cast_info = {
+    direction    = {0, 1, 0},
+    type         = 2,
+    size         = {0.5, 0.5, 0.5},
+    max_distance = 10,
+    debug = false
+  }
+
+  local objects_in_search_radius = {}
+  local search_offsets = calc_search_offsets_from_radius(search_radius)
+
+  for _, search_offset in pairs(shuffle(search_offsets)) do
+    -- Update origin in cast info
+    cast_info.origin = ultra_beast:getPosition() + search_offset
+    -- Do physics cast to get objects
+    local hit_infos = Physics:cast(cast_info)
+    local hit_objects = get_hit_objects_from_hit_infos(hit_infos)
+    table.insert(objects_in_search_radius, hit_objects)
+  end
+  return objects_in_search_radius
+end
+
+-- Combine any new priorities with the default target priorities
+function get_modified_priorities(new_priorities)
+  local target_priorities = {
+    [config.tags.property.ALREADY_VISITED] = -1000,
+    [config.tags.objects.ULTRA_BEAST] = -100,
+    [config.tags.objects.TRAINER] = -100,
+    [config.tags.encounters.LEGENDARY] = -100,
+    [config.tags.world.DISTORTION_GATE] = -100,
+    [config.tags.world.VILLAGE] = -100,
+    [config.tags.property.BREACH_CLAIMED] = -100,
+    [config.tags.items.HIDDEN] = 5,
+    [config.tags.items.ARTIFACT] = 5,
+    [config.tags.world.SHRINE] = 10,
+    [config.tags.world.APRICORN_TREE] = 10,
+    [config.tags.world.WILD_AREA] = 1000
+  }
+
+  if new_priorities then
+    for tag, new_priority in pairs(new_priorities) do
+      target_priorities[tag] = new_priority
+    end
+  end
+  return target_priorities
+end
+
+function calc_priorities(objects_in_search_radius, target_priorities)
+  local objects_in_search_radius_with_priorities = {}
+  for _, objects in pairs(objects_in_search_radius) do
+    local priority = 0
+    for _, object in pairs(objects) do
+      for _, tag in pairs(object:getTags()) do
+        local priority_delta = target_priorities[tag]
+        if priority_delta then
+          priority = priority + priority_delta
+        end
+      end
+    end
+    objects_in_search_radius_with_priorities[objects] = priority
+  end
+  return objects_in_search_radius_with_priorities
+end
+
+function get_chosen_objects(objects_in_search_radius, target_priorities)
+  local objects_in_search_radius_with_priorities = calc_priorities(objects_in_search_radius, target_priorities)
+  local chosen_objects, _ = get_max_key_and_value(objects_in_search_radius_with_priorities)
+  return chosen_objects
+end
+
+function get_wild_area(objects)
+  for _, object in pairs(objects) do
+    if object:hasTag(config.tags.world.WILD_AREA) then
+      return object
+    end
+  end
+end
+
+function do_breach_claim(ultra_beast, chosen_objects)
+  for _, chosen_object in pairs(chosen_objects) do
+    -- Handle Apricorn Trees and Shrines
+    if chosen_object:hasTag(config.tags.world.APRICORN_TREE) or chosen_object:hasTag(config.tags.world.SHRINE) then
+      chosen_object:addTag(config.tags.property.BREACH_CLAIMED)
+      chosen_object:setColorTint({0, 0, 0, 0.5})
+    -- Handle Hidden Spots and Artifacts
+    elseif chosen_object:hasTag(config.tags.items.HIDDEN) or chosen_object:hasTag(config.tags.items.ARTIFACT) then
+      local hidden_spot_discard_zone = getObjectFromGUID(config.guids.HIDDEN_SPOT_DISCARD_ZONE)
+      if chosen_object.is_face_down then chosen_object:flip() end
+      chosen_object:setPositionSmooth(hidden_spot_discard_zone:getPosition() + Vector(0, 1, 0), false, true)
+    end
+  end
+end
+
+function is_on_map(ultra_beast)
+  local object_groups = get_objects_in_search_radius(ultra_beast, 0)
+  -- We only care about the first object group since search radius is 0
+  for _, object_group in pairs(object_groups) do
+    local wild_area = get_wild_area(object_group)
+    if wild_area then
+      wild_area:addTag(config.tags.property.ALREADY_VISITED)
+      return true
+    end
+  end
+  return false
+end
+
+function calc_breach_strength()
+  local trees_and_shrines = getObjectsWithAnyTags({config.tags.world.APRICORN_TREE, config.tags.world.SHRINE})
+  local breach_claimed = getObjectsWithTag(config.tags.property.BREACH_CLAIMED)
+  return round(100 * (#breach_claimed / #trees_and_shrines))
+end
+
+--
+--
+--
+
+function deploy_ultra_beasts()
+  local number_to_deploy = 4
+  local ultra_beast_spawns = getObjectsWithTag(config.tags.world.ULTRA_BEAST_SPAWN)
+  local ultra_beasts = getObjectsWithTag(config.tags.objects.ULTRA_BEAST)
+
+  local number_deployed = 0
+  for _, ultra_beast_spawn in pairs(ultra_beast_spawns) do
+    if number_deployed >= number_to_deploy then
+      return
+    end
+
+    for _, ultra_beast in pairs(shuffle(ultra_beasts)) do
+      if not ultra_beast:hasTag(config.tags.property.ALREADY_DEPLOYED) then
+        ultra_beast:setPositionSmooth(ultra_beast_spawn:getPosition() + Vector(0, 2, 0), false, true)
+        ultra_beast:setRotationSmooth(ultra_beast_spawn:getRotation(), false, true)
+        ultra_beast:addTag(config.tags.property.ALREADY_DEPLOYED)
+        number_deployed = number_deployed + 1
+        break
+      end
+    end
+  end
+end
+
+function move_ultra_beasts()
+  local ultra_beasts = getObjectsWithTag(config.tags.objects.ULTRA_BEAST)
+
+  function move_ultra_beasts_coroutine()
+    for _, ultra_beast in pairs(shuffle(ultra_beasts)) do
+      remove_already_visited_tags()
+
+      if is_on_map(ultra_beast) then
+        move_ultra_beast(ultra_beast)
+        brief_pause()
+      end
+    end
+    return 1
+  end
+  startLuaCoroutine(self, "move_ultra_beasts_coroutine")
+end
+
+function remove_already_visited_tags()
+  local already_visited_areas = getObjectsWithTag(config.tags.property.ALREADY_VISITED)
+  for _, already_visited_area in pairs(already_visited_areas) do
+    already_visited_area:removeTag(config.tags.property.ALREADY_VISITED)
+  end
+end
+
+function move_ultra_beast(ultra_beast)
+  local number_of_moves = ultra_beast:getVar("number_of_moves")
+  for i = 1, number_of_moves do
+    local search_radius = ultra_beast:getVar("search_radius")
+    local search_objects_in_radius = get_objects_in_search_radius(ultra_beast, search_radius)
+
+    local new_priorities = ultra_beast:getVar("new_priorities")
+    local modified_priorities = get_modified_priorities(new_priorities)
+
+    local chosen_objects = get_chosen_objects(search_objects_in_radius, modified_priorities)
+    local chosen_wild_area = get_wild_area(chosen_objects)
+    if chosen_wild_area then
+      ultra_beast:setPositionSmooth(chosen_wild_area:getPosition() + Vector(0, 2, 0), false, true)
+      while ultra_beast:isSmoothMoving() do coroutine.yield(0) end
+      chosen_wild_area:addTag(config.tags.property.ALREADY_VISITED)
+      do_breach_claim(ultra_beast, chosen_objects)
+    end
+  end
+end
+
+function reset_campaign()
+  remove_already_visited_tags()
+
+  local breach_claimed_tokens = getObjectsWithTag(config.tags.property.BREACH_CLAIMED)
+  for _, breach_claimed_token in pairs(breach_claimed_tokens) do
+    breach_claimed_token:removeTag(config.tags.property.BREACH_CLAIMED)
+    breach_claimed_token:setColorTint({1, 1, 1, 1})
+  end
+
+  local ultra_beasts = getObjectsWithTag(config.tags.objects.ULTRA_BEAST)
+  for _, ultra_beast in pairs(ultra_beasts) do
+    ultra_beast:removeTag(config.tags.property.ALREADY_DEPLOYED)
+  end
+end

@@ -1,0 +1,103 @@
+#include utils
+
+local arena_active_zones = {}
+
+function load_arena_active_zones()
+  for _, arena_active_zone_guid in pairs(arena_active_zone_guids) do
+    table.insert(arena_active_zones, getObjectFromGUID(arena_active_zone_guid))
+  end
+end
+
+function onLoad()
+  load_arena_active_zones()
+  language_vars = load_module(MODULE_LANGUAGE_TAG)
+
+  button_params = {
+    click_function = "flip_button",
+    function_owner = self,
+    scale          = {0.25, 1, 0.25},
+    width          = 3000,
+    height         = 3000,
+    color          = {0, 0, 0, 0},
+    tooltip        = language_vars.tooltips.FLIP
+  }
+  self:createButton(button_params)
+  update_panel()
+end
+
+--
+--
+--
+
+function flip_active()
+  if self.is_face_down then
+    self:flip()
+  end
+  self:highlightOn({150/255, 150/255, 250/255})
+end
+
+function flip_inactive()
+  if not self.is_face_down then
+    self:flip()
+  end
+  self:highlightOff()
+end
+
+function flip_motion_coroutine()
+  local steps = 50
+  local acc_y = -0.005
+
+  local pos_x_0 = self:getPosition().x
+  local pos_y_0 = self:getPosition().y
+  local pos_z_0 = self:getPosition().z
+
+  local rot_x_0 = self:getRotation().x
+  local rot_y_0 = self:getRotation().y
+  local rot_z_0 = self:getRotation().z
+
+  local vel_y_0 = 0.1 * get_z_dir(self) / steps - 0.5 * acc_y * steps
+  local vel_z_0 = -2 * pos_z_0 / steps
+
+  for t = 1, steps do
+    local pos_y = pos_y_0 + vel_y_0 * t + 0.5 * acc_y * math.pow(t, 2)
+    local pos_z = pos_z_0 + vel_z_0 * t
+
+    local rot_x = rot_x_0 + t * 540 / steps
+
+    self:setPosition({pos_x_0, pos_y, pos_z})
+    self:setRotation({rot_x, rot_y_0, rot_z_0})
+
+    coroutine.yield(0)
+  end
+  return 1
+end
+
+function flip_button()
+  self:highlightOff()
+  startLuaCoroutine(self, "flip_motion_coroutine")
+end
+
+--
+--
+--
+
+function check_initiative()
+  if len(arena_active_zones) ~= 2 then
+    return
+  end
+
+  local pokemon_1 = get_object(arena_active_zones[1])
+  local pokemon_2 = get_object(arena_active_zones[2])
+  if not pokemon_1 or not pokemon_2 then
+    flip_inactive()
+    return
+  end
+
+  if pokemon_1:getVar("initiative") == pokemon_2:getVar("initiative") then
+    flip_active()
+  end
+end
+
+function update_panel()
+  check_initiative()
+end
