@@ -25,11 +25,26 @@ def add_header(img, stats):
     d.text(xy(13.25, 1.25), str(stats.move_attack_strength), fill=DARK_COLOUR, font=title_font(44), anchor='mm')
 
 
-def add_description(img, stats):
+def add_effect(img, stats):
     d = ImageDraw.Draw(img)
 
-    wrapped_text(d, stats.move_effect, text_font(28), boundaries=(13.5, 4.5), xy=xy(7.25, 4.75), fill=DARK_COLOUR,
+    if pd.isnull(stats.move_class):
+        effect_boundaries = (13.5, 4.5)
+        effect_xy = xy(7.25, 4.75)
+    else:
+        effect_boundaries = (13.5, 3)
+        effect_xy = xy(7.25, 4)
+
+    wrapped_text(d, stats.move_effect, text_font(28), boundaries=effect_boundaries, xy=effect_xy, fill=DARK_COLOUR,
                  anchor='mm', align='center')
+
+
+def add_class(img, stats):
+    if pd.isnull(stats.move_class):
+        return
+
+    class_img = get_img(CARD_ASSETS_DIR / 'move_classes' / f'{stats.move_class}.png', xy(14.5, 1.5))
+    img.paste(class_img, xy(0, 6), class_img)
 
 
 def generate_moves(overwrite):
@@ -44,7 +59,8 @@ def generate_moves(overwrite):
 
         img = get_base()
         add_header(img, stats)
-        add_description(img, stats)
+        add_effect(img, stats)
+        add_class(img, stats)
         img.save(output_path)
 
 
@@ -70,4 +86,4 @@ def run(overwrite=False):
 
 
 if __name__ == '__main__':
-    run(overwrite=True)
+    run(overwrite=False)

@@ -1,3 +1,4 @@
+#include config
 #include utils
 
 local active_zone = getObjectFromGUID(active_zone_guid)
@@ -39,6 +40,11 @@ function deploy_model(model_guid, pokemon)
     guid              = model_guid,
     callback_function = function(model) deploy_model_callback(model, pokemon) end
   })
+  if pokemon.hasTag("Noble") then
+    model.highlightOn({250/255, 200/255, 0/255})
+  elseif pokemon.hasTag("Alpha") then
+    model.highlightOn({150/255, 0/255, 0/255})
+  end
   model.interactable = false
 end
 

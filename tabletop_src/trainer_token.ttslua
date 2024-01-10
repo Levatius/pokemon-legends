@@ -1,74 +1,187 @@
 #include config
 #include utils
 
-local biome
-local climate
-local encounter
+HEIGHT_OFFSET_DISTANCE = 5.5
+LAYOUT_OFFSET_DISTANCE = 3
 
-local title
-local description
-local exclaimation
+local pokemon_card_decks_api = getObjectFromGUID(config.guids.apis.POKEMON_CARD_DECKS)
 
-local do_text_reset = false
+local search_params = {}
+local buttons = {}
+local pokemon_cards = {}
+local exclaim_button_cooldown = 0
 
 function onLoad()
-  button_params = {
-    click_function = "dummy_button",
+  -- Exclaim Button
+  register_button(buttons, "exclaim-button")
+  local exclaim_button_params = {
+    click_function = "click_search_button",
     function_owner = self,
-    rotation       = {270, 0, 0},
+    position       = Vector(0, HEIGHT_OFFSET_DISTANCE, 0),
+    rotation       = self.getRotation() + Vector(90, 0, 180),
     scale          = {2, 2, 2},
     width          = 0,
-    height         = 0
+    height         = 0,
+    font_size      = 1000,
+    font_color     = config.colours.WHITE
   }
-  -- Exclaimation
-  button_params.position = {0, 4.5, 0}
-  button_params.font_size = 1000
-  button_params.font_color = config.colours.DARK
-  self:createButton(button_params)
-  button_params.position = {0, 4.6, 0}
-  button_params.font_color = config.colours.WHITE
-  self:createButton(button_params)
+  self.createButton(exclaim_button_params)
 end
 
-function onPickUp()
-  self:editButton({index=0, label=""})
-  self:editButton({index=1, label=""})
-end
-
-function search_area()
-  local hit_list = Physics:cast({
-    origin       = self:getPosition() + Vector(0, 1, 0),
+function find_search_params()
+  local hit_list = Physics.cast({
+    origin       = self.getPosition(),
     direction    = {0, -1, 0},
     type         = 2,
     size         = {1.5, 1.5, 1.5},
-    max_distance = 2
+    max_distance = 2,
   })
 
   for _, hit_info in pairs(hit_list) do
     local hit_object = hit_info.hit_object
-    if hit_object:hasTag(config.tags.world.CAMPAIGN) then
+    if hit_object.hasTag(config.tags.world.CAMPAIGN) then
       break
-    elseif (hit_object:hasTag(config.tags.world.ENCOUNTER) and not hit_object.is_face_down) or (hit_object:hasTag(config.tags.world.ENCOUNTER) and hit_object:getName() ~= "Alpha Pokémon") then
-      exclaim()
+    elseif hit_object.hasTag(config.tags.world.ENCOUNTER) and not hit_object.is_face_down then
+      hit_object_tags = hit_object.getTags()
+      search_params = {
+        encounter = get_encounter_tag(hit_object_tags),
+        biome = get_biome_tag(hit_object_tags),
+        climate = get_climate_tag(hit_object_tags),
+        name = hit_object.getGMNotes(),
+      }
+      show_search_button()
       break
     end
   end
 end
 
-function exclaim()
-  function exclaim_coroutine()
-    -- Enter
-    self:editButton({index=0, label="!"})
-    self:editButton({index=1, label="!"})
-    for i = 0, 250 do coroutine.yield(0) end
-    -- Exit
-    self:editButton({index=0, label=""})
-    self:editButton({index=1, label=""})
+--
+-- SEARCH BUTTON
+--
+
+function show_search_button()
+  self.editButton({index=buttons["exclaim-button"], label="!", width=450, height=900, color=gameplay_config.search_button_colours[search_params.encounter]})
+  function hide_search_button_coroutine()
+    exclaim_button_cooldown = 500
+    while true do
+      exclaim_button_cooldown = exclaim_button_cooldown - 1
+      coroutine.yield(0)
+      if exclaim_button_cooldown <= 0 then
+        self.editButton({index=buttons["exclaim-button"], label="", width=0, height=0})
+        break
+      end
+    end
     return 1
   end
-  startLuaCoroutine(self, "exclaim_coroutine")
+  startLuaCoroutine(self, "hide_search_button_coroutine")
+end
+
+function hide_search_button()
+  exclaim_button_cooldown = 0
+end
+
+function click_search_button()
+  hide_search_button()
+  local search_count = gameplay_config.search_counts[search_params.encounter]
+  if not search_count then
+    search_count = 1
+  end
+  for i = 1, search_count do
+    local pokemon_card = pokemon_card_decks_api.call("get_pokemon_card", search_params)
+    if pokemon_card then
+      pokemon_card.setPosition(self.getPosition())
+      pokemon_card.setRotation(self.getRotation() + Vector(0, 180, 0))
+      pokemon_card.setLock(true)
+      table.insert(pokemon_cards, pokemon_card)
+    end
+  end
+  layout(pokemon_cards)
+  create_battle_buttons(pokemon_cards)
+end
+
+--
+-- CARD UTILS
+--
+
+function layout(pokemon_cards)
+  for i, pokemon_card in pairs(pokemon_cards) do
+    local j = i - 0.5 - len(pokemon_cards) / 2
+    local offset = Vector(LAYOUT_OFFSET_DISTANCE * j, 0, 0)
+    offset:rotateOver("y", pokemon_card.getRotation().y)
+    local trainer_offset = Vector(0, HEIGHT_OFFSET_DISTANCE, 0)
+    local position = pokemon_card.getPosition() + trainer_offset + offset
+    pokemon_card.setPositionSmooth(position, false, false)
+  end
+end
+
+function create_battle_buttons(pokemon_cards)
+  for i, pokemon_card in pairs(pokemon_cards) do
+    local battle_button_params = {
+      click_function = "click_battle_button",
+      function_owner = self,
+      label          = "Battle!",
+      position       = Vector(0, 0, 1.9),
+      scale          = {0.5, 0.5, 0.5},
+      width          = 1500,
+      height         = 500,
+      font_size      = 300,
+      color          = config.colours.WHITE,
+      font_color     = config.colours.DARK
+    }
+    pokemon_card.createButton(battle_button_params)
+  end
+end
+
+function click_battle_button(pokemon_card, _, _)
+  -- local arena_active_zones = {
+  --   "south_zone" = getObjectFromGUID(config.guids.ARENA_ACTIVE_ZONES[1]),
+  --   "north_zone" = getObjectFromGUID(config.guids.ARENA_ACTIVE_ZONES[2])
+  -- }
+  -- local arena_active_zone = arena_active_zones["north_zone"]
+  local arena_active_zone = getObjectFromGUID(config.guids.ARENA_ACTIVE_ZONES[2])
+  pokemon_card.setPosition(arena_active_zone.getPosition() + Vector(0, 0.5, get_y_dir(arena_active_zone) * 1.8))
+  pokemon_card.setRotation(arena_active_zone.getRotation())
+  pokemon_card.removeButton(0)
+  pokemon_cards[find_first_index(pokemon_cards, pokemon_card)] = nil
+  return_cards()
+  pokemon_card.setLock(false)
+end
+
+function return_cards()
+  for _, pokemon_card in pairs(pokemon_cards) do
+    pokemon_card_decks_api.call("return_pokemon_card", {pokemon_card=pokemon_card})
+  end
+  pokemon_cards = {}
+end
+
+function register_last_player_colour(player_colour)
+  -- Clear last player colour from other trainer tokens
+  local trainer_tokens = getObjectsWithTag(config.tags.objects.TRAINER)
+  for _, trainer_token in pairs(trainer_tokens) do
+    local last_player_colour = trainer_token.getVar("last_player_colour")
+    if last_player_colour == player_colour then
+      trainer_token.setVar("last_player_colour", nil)
+      trainer_token.highlightOff()
+    end
+  end
+  -- Set on this token
+  self.setVar("last_player_colour", player_colour)
+  self.highlightOn(player_colour)
+end
+
+function onPickUp(player_colour)
+  register_last_player_colour(player_colour)
+  hide_search_button()
+  return_cards()
 end
 
 function onDrop()
-  search_area()
+  function delayed_find_search_params()
+    while self.getVelocity():magnitude() > 0.1 do
+      coroutine.yield(0)
+    end
+    find_search_params()
+    return 1
+  end
+  startLuaCoroutine(self, "delayed_find_search_params")
 end

@@ -31,17 +31,13 @@ function onLoad()
   for i = 0, 7 do
     self:createButton(text_params)
   end
-  for i = 0, 1 do
-    local index_base = 8 * i
-    self.editButton({index=index_base + 0, position={-0.42, 0.2, 0.47}})
-    self.editButton({index=index_base + 1, position={-0.14, 0.2, 0.47}})
-    self.editButton({index=index_base + 2, position={0.14, 0.2, 0.47}})
-    self.editButton({index=index_base + 3, position={0.42, 0.2, 0.47}})
-    self.editButton({index=index_base + 4, position={-0.42, 0.2, 0.75}})
-    self.editButton({index=index_base + 5, position={-0.14, 0.2, 0.75}})
-    self.editButton({index=index_base + 6, position={0.14, 0.2, 0.75}})
-    self.editButton({index=index_base + 7, position={0.42, 0.2, 0.75}})
-  end
+  button_params.click_function = "toggle_amulet_button"
+  button_params.scale = {0.5, 1, 0.5}
+  button_params.width = 400
+  button_params.height = 400
+  button_params.tooltip = "Toggle Amulet"
+  button_params.color = {0, 0, 0, 0}
+  self.createButton(button_params)
 
   update_panel()
 end
@@ -88,6 +84,11 @@ function journey_point_button(alt_click)
   end
 end
 
+function toggle_amulet_button()
+  flip_object(self, 0.2)
+  update_panel()
+end
+
 function get_object_index_with_name_in_bag(name)
   for _, bag_object in pairs(bag:getObjects()) do
     if bag_object.name == name then
@@ -111,6 +112,20 @@ end
 --
 
 function update_panel()
+  local buttons_y_pos = 0.1 + 0.1 * get_z_dir(self)
+  -- Update Resource Button/Text Positions
+  for i = 0, 1 do
+    local index_base = 8 * i
+    self.editButton({index=index_base + 0, position={-0.42 * get_z_dir(self), buttons_y_pos, 0.47}, rotation={0, 0, self:getRotation().z}})
+    self.editButton({index=index_base + 1, position={-0.14 * get_z_dir(self), buttons_y_pos, 0.47}, rotation={0, 0, self:getRotation().z}})
+    self.editButton({index=index_base + 2, position={0.14 * get_z_dir(self), buttons_y_pos, 0.47}, rotation={0, 0, self:getRotation().z}})
+    self.editButton({index=index_base + 3, position={0.42 * get_z_dir(self), buttons_y_pos, 0.47}, rotation={0, 0, self:getRotation().z}})
+    self.editButton({index=index_base + 4, position={-0.42 * get_z_dir(self), buttons_y_pos, 0.75}, rotation={0, 0, self:getRotation().z}})
+    self.editButton({index=index_base + 5, position={-0.14 * get_z_dir(self), buttons_y_pos, 0.75}, rotation={0, 0, self:getRotation().z}})
+    self.editButton({index=index_base + 6, position={0.14 * get_z_dir(self), buttons_y_pos, 0.75}, rotation={0, 0, self:getRotation().z}})
+    self.editButton({index=index_base + 7, position={0.42 * get_z_dir(self), buttons_y_pos, 0.75}, rotation={0, 0, self:getRotation().z}})
+  end
+  -- Update Apricorn Texts
   for i = 0, 6 do
     local apricorn_name = APRICORN_NAMES[i + 1] .. " Apricorn"
     local apricorn_count = count_objects_with_name_in_bag(apricorn_name)
@@ -119,9 +134,16 @@ function update_panel()
       label = apricorn_count
     })
   end
+  -- Update Journey Point Texts
   local journey_point_count = count_objects_with_name_in_bag(JOURNEY_POINT_TOKEN_NAME)
   self.editButton({
     index = 8 + 7,
     label = journey_point_count
+  })
+  -- Update Amulet Button
+  self.editButton({
+    index = 16,
+    position = {0, 0.1 + 0.15 * get_z_dir(self), -0.6},
+    rotation = {0, 0, self:getRotation().z}
   })
 end

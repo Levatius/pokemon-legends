@@ -40,6 +40,7 @@ config = {
     LIGHT_WOOD = {200/255, 125/255, 100/255},
     GREEN = {100/255, 200/255, 100/255},
     RED = {250/255, 100/255, 100/255},
+    INFO = {100/255, 150/255, 250/255},
     TYPE = {
       Typeless = {150/255, 75/255, 50/255},
       Normal = {144/255, 153/255, 161/255},
@@ -59,7 +60,13 @@ config = {
       Dragon = {10/255, 109/255, 196/255},
       Dark = {90/255, 83/255, 102/255},
       Steel = {90/255, 142/255, 161/255},
-      Fairy = {236/255, 143/255, 230/255}
+      Fairy = {236/255, 143/255, 230/255},
+    },
+    encounters = {
+      WEAK = {100/255, 200/255, 100/255},
+      MODERATE = {100/255, 150/255, 250/255},
+      STRONG = {250/255, 100/255, 100/255},
+      LEGENDARY = {250/255, 200/255, 100/255},
     }
   },
   tags = {
@@ -103,12 +110,14 @@ config = {
     },
     items = {
       BALL = "Ball Token",
-      BLESSING = "Blessing Token",
+      DISTORTION_OBJECT = "Distortion Object",
       HELD = "Held Item",
       HIDDEN = "Hidden Token",
       ARTIFACT = "Artifact Token",
       JOURNEY_POINT = "Journey Point Token",
-      APRICORN = "Apricorn Token"
+      APRICORN = "Apricorn Token",
+      CELESTIAL_AMULET = "Celestial Amulet",
+      CELESTIAL_JEWEL = "Celestial Jewel"
     },
     cards = {
       ACTS = "Act Card",
@@ -127,7 +136,8 @@ config = {
       BREACH_CLAIMED = "Breach Claimed"
     },
     zones = {
-      POKEMON = "Pokemon Zone"
+      POKEMON = "Pokemon Zone",
+      POKEMON_DECK = "Pokemon Deck Zone"
     },
     panels = {
       BAG = "Bag Panel",
@@ -145,8 +155,36 @@ config = {
     HIDDEN_SPOT_DISCARD_ZONE = "02b565",
     SECRET_ENCOUNTER_ZONE = "f0666d",
     BREACH_ZONE = "f596eb",
-    ULTRA_BURST_PRISM_ARMOUR_ZONE = "3fdea1",
-    ULTRA_BEAST_PRISM_ARMOUR_ZONE = "bfb371"
+    ULTRA_SPACE_BREACH_BAG = "6f5139",
+    TACTICS_ZONE = "02b5c2",
+    STARTER_DECK_ZONE = "ce4312",
+    WEAK_DECK_ZONE = "4d7853",
+    MODERATE_DECK_ZONE = "59e600",
+    STRONG_DECK_ZONE = "c788ce",
+    LEGENDARY_DECK_ZONE = "001a84",
+    EVOLUTION_DECK_ZONE = "ae4239",
+    ARENA_ACTIVE_ZONES = {"494620", "6b0103"},
+    apis = {
+      POKEMON_CARD_DECKS = "18783a",
+    },
+    stores = {
+      POKEMON_STATS = "c4a15e",
+    },
+  }
+}
+
+gameplay_config = {
+  search_counts = {
+    [config.tags.encounters.WEAK] = 2,
+    [config.tags.encounters.MODERATE] = 2,
+    [config.tags.encounters.STRONG] = 2,
+    [config.tags.encounters.LEGENDARY] = 1,
+  },
+  search_button_colours = {
+    [config.tags.encounters.WEAK] = config.colours.encounters.WEAK,
+    [config.tags.encounters.MODERATE] = config.colours.encounters.MODERATE,
+    [config.tags.encounters.STRONG] = config.colours.encounters.STRONG,
+    [config.tags.encounters.LEGENDARY] = config.colours.encounters.LEGENDARY,
   }
 }
 

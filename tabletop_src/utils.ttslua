@@ -23,6 +23,15 @@ end
 
 function dummy_button() end
 
+function tobool(value)
+  if value == "true" or value == 1 then
+    return true
+  elseif value == "false" or value == 0 then
+    return false
+  end
+  return value
+end
+
 function len(t)
   l = 0
   for _, _ in pairs(t) do
@@ -50,6 +59,16 @@ end
 function contains(t, value)
   local first_index = find_first_index(t, value)
   return first_index != nil
+end
+
+function get_min_key_and_value(t)
+  local key, min = nil, math.huge
+  for k, v in pairs(t) do
+      if t[k] < min then
+          key, min = k, v
+      end
+  end
+  return key, min
 end
 
 function get_max_key_and_value(t)
@@ -119,7 +138,7 @@ function take_object_from_zone_deck(zone, params)
 end
 
 function get_biome_tag(tags)
-  for _, tag in pairs(tags) do
+  for _, tag in pairs(shuffle(tags)) do
     if contains(BIOME_TAGS, tag) then
       return tag
     end
@@ -127,7 +146,7 @@ function get_biome_tag(tags)
 end
 
 function get_climate_tag(tags)
-  for _, tag in pairs(tags) do
+  for _, tag in pairs(shuffle(tags)) do
     if contains(CLIMATE_TAGS, tag) then
       return tag
     end
@@ -135,10 +154,9 @@ function get_climate_tag(tags)
 end
 
 function get_encounter_tag(tags)
-  for _, encounter_tag in pairs(ENCOUNTER_TAGS) do
-    local full_encounter_tag = encounter_tag .. " Encounter Card"
-    if contains(tags, full_encounter_tag) then
-      return full_encounter_tag
+  for _, encounter_tag in pairs(config.tags.encounters) do
+    if contains(tags, encounter_tag) then
+      return encounter_tag
     end
   end
 end
@@ -149,16 +167,22 @@ function brief_pause()
   end
 end
 
+function ui_loading_pause(object)
+  while object.UI.loading do
+    coroutine.yield(0)
+  end
+end
+
 function signed_label(value)
   if not value then return nil end
   return (value >= 0) and "+" .. value or value
 end
 
-function update_panels(zone)
+function update_panels(zone, object, is_entering)
   for _, update_panel_guid in pairs(zone:getVar("update_panel_guids")) do
     local update_panel = getObjectFromGUID(update_panel_guid)
     if update_panel then
-      update_panel:call("update_panel")
+      update_panel:call("update_panel", {zone=zone, object=object, is_entering=is_entering})
     end
   end
 end
@@ -173,17 +197,6 @@ end
 
 function round(value)
   return math.floor(value + 0.5)
-end
-
-function get_trainer_token(player_colour)
-  local trainer_tokens = getObjectsWithTag("Trainer Token")
-  for _, trainer_token in pairs(trainer_tokens) do
-    local trainer_colour = trainer_token:getGMNotes()
-    if trainer_colour == player_colour then
-      return trainer_token
-    end
-  end
-  print('Could not find trainer token for player colour "' .. player_colour .. '".')
 end
 
 function get_object(zone)
@@ -205,8 +218,11 @@ function get_z_dir(obj)
   return round(math.cos(math.rad(obj:getRotation().z)))
 end
 
-function flip_object(obj)
-  local height = obj:getBounds().size.y
+function flip_object(obj, known_height)
+  local height = known_height
+  if not height then
+    height = obj:getBounds().size.y
+  end
   local new_pos = Vector(obj:getPosition().x, obj:getPosition().y + height * get_z_dir(obj), obj:getPosition().z)
   obj:setPosition(new_pos)
   local new_rot = obj:getRotation() + Vector(0, 0, 180)
@@ -225,6 +241,10 @@ function double_check_then(condition, f)
     return 1
   end
   startLuaCoroutine(self, "double_check_coroutine")
+end
+
+function register_button(buttons, name)
+  buttons[name] = len(buttons)
 end
 
 --

@@ -158,6 +158,7 @@ function get_evolution_guid(evolution_name)
   local infos = get_object_infos_from_zone_deck(evolution_zone)
   for _, info in pairs(infos) do
     local _, _, internal_name = string.find(info.lua_script, 'internal_name = "([%w%p%s]+)"')
+    log(internal_name)
     if internal_name and internal_name == evolution_name then
       return info.guid
     end

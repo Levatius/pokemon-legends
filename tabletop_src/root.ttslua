@@ -1,14 +1,48 @@
 #include config
 #include utils
 
+local pokemon_card_ui_api
+
 function onload()
   math.randomseed(os.time())
   deduplicate_models()
+  set_custom_assets()
+  --count_trees()
+  --mass_add_tags()
+  pokemon_card_ui_api = getObjectFromGUID("1b208d")
 end
 
 --
 --
 --
+
+function mass_add_tags()
+  local count = 0
+  for _, object in pairs(getObjectsWithAllTags({"Ability Card", "Breach Card", "Pokemon Card", "Village Card", "Held Item"})) do
+    count = count + 1
+    object.removeTag("Held Item")
+  end
+  print(count)
+end
+
+function count_trees()
+  counts = {}
+  for _, tree in pairs(getObjectsWithTag(config.tags.world.APRICORN_TREE)) do
+    local id = tree.getName() .. " / " .. get_biome_tag(tree.getTags()) .. " / " .. get_climate_tag(tree.getTags())
+    if counts[id] == nil then
+      counts[id] = 1
+    else
+      counts[id] = counts[id] + 1
+    end
+  end
+  local tkeys = {}
+  -- populate the table that holds the keys
+  for k in pairs(counts) do table.insert(tkeys, k) end
+  -- sort the keys
+  table.sort(tkeys)
+  -- use the keys to retrieve the values in the sorted order
+  for _, k in ipairs(tkeys) do log(k .. ": " .. counts[k]) end
+end
 
 function deduplicate_models()
   -- This method should not be necessary, but good to have just in case
@@ -28,151 +62,65 @@ function deduplicate_models()
   end
 end
 
+function set_custom_assets()
+  local assets = {}
+  -- Tactics
+  local tactics_zone = getObjectFromGUID(config.guids.TACTICS_ZONE)
+  local tactic_infos = get_object_infos_from_zone_deck(tactics_zone, false)
+  for _, tactic_info in pairs(tactic_infos) do
+    table.insert(assets, {name=tactic_info.name, url=tactic_info.description})
+  end
+  -- Assets
+  table.insert(assets, {name="TransformButton", url="http://cloud-3.steamusercontent.com/ugc/2271565016378594630/117CE7A341DEB3A41874383A2C4B61F2702B6D48/"})
+  table.insert(assets, {name="TransformButtonHighlighted", url="http://cloud-3.steamusercontent.com/ugc/2271565016378594856/1B86229B0D9D81C192DA025FF60F33269C7D851B/"})
+  table.insert(assets, {name="HealthSliderHandle", url="http://cloud-3.steamusercontent.com/ugc/2215269767511164066/64623BA754400EFBACB7E9FFF958576C1444356F/"})
+  table.insert(assets, {name="Fonts", url="http://cloud-3.steamusercontent.com/ugc/2215269767515599132/156AEBF5DA0E8DD795B34D02ED75A87D7553BCA2/", type="1"})
+  table.insert(assets, {name="HealthBase", url="http://cloud-3.steamusercontent.com/ugc/2271565016354302744/111E81FCCB5B0B66FF02501251780C1B8F29F8DC/"})
+  table.insert(assets, {name="InitiativeBase", url="http://cloud-3.steamusercontent.com/ugc/2271565016354302888/301E96564A96EEBF9C950185EBA809B09DEA378F/"})
+  table.insert(assets, {name="FaintedImage", url="http://cloud-3.steamusercontent.com/ugc/2271565016379561035/E5F9B7365B64DC2BAAFAA3C5CD11301050CF370A/"})
+  --
+  table.insert(assets, {name="ConfusedStatus0", url="http://cloud-3.steamusercontent.com/ugc/2271565016378560008/4D3085469A0EDF33654B6F489470F6A69E4E8C6B/"})
+  table.insert(assets, {name="ParalysedStatus0", url="http://cloud-3.steamusercontent.com/ugc/2271565016378560343/D90C56487522217EA929C6F91C87A4C9EF122D67/"})
+  table.insert(assets, {name="PoisonedStatus0", url="http://cloud-3.steamusercontent.com/ugc/2271565016378560445/F7B37B75FE40423F12BC06DBB471D30CF995C5FE/"})
+  table.insert(assets, {name="BurnedStatus0", url="http://cloud-3.steamusercontent.com/ugc/2271565016378559752/FEC69DC4ACB1A2B39A7601CC6D14B191D3670C55/"})
+  table.insert(assets, {name="FrozenStatus0", url="http://cloud-3.steamusercontent.com/ugc/2271565016378560250/0902181C4A367ADBEA1E4A48F90EC1FD885E8A8A/"})
+  table.insert(assets, {name="DrowsyStatus0", url="http://cloud-3.steamusercontent.com/ugc/2271565016378560132/53E9F1E578FFE3A50E654B0DC287D6C1792E6210/"})
+  --
+  table.insert(assets, {name="ConfusedStatus1", url="http://cloud-3.steamusercontent.com/ugc/2271565016354473349/53D0D64428E2BE4424A83CB77C87C898971C7A56/"})
+  table.insert(assets, {name="ParalysedStatus1", url="http://cloud-3.steamusercontent.com/ugc/2271565016354473611/3CBC97449E90115A71A73785B75B5127A540E0EF/"})
+  table.insert(assets, {name="PoisonedStatus1", url="http://cloud-3.steamusercontent.com/ugc/2271565016354473723/6614E3FA74FAC2798A20065D16E7BD32A60069C3/"})
+  table.insert(assets, {name="BurnedStatus1", url="http://cloud-3.steamusercontent.com/ugc/2271565016354473175/ABFA32E15CE544D49D8E20440786A47F96FA09D9/"})
+  table.insert(assets, {name="FrozenStatus1", url="http://cloud-3.steamusercontent.com/ugc/2271565016354473533/5CC020B499B40DA3765504006D50E1F3C75E6523/"})
+  table.insert(assets, {name="DrowsyStatus1", url="http://cloud-3.steamusercontent.com/ugc/2271565016354473448/5F2C33DC929D79253B6D037F299DB5346502AF03/"})
+  UI.setCustomAssets(assets)
+end
+
 --
+-- Global Zone Handler
 --
+
+#include global_event_handlers/zone_handler
+
+--
+-- Global UI Functions
 --
 
-function get_pokemon_zone(zone)
-  -- Arena Special Case
-  if zone:getName() == "Arena Pokeball Zone" then
-    zone = getObjectFromGUID(zone:getVar("pokemon_zone_guid"))
-  end
-  return zone
+function toggle_status_button(player, value, id)
+  pokemon_card_ui_api.call("toggle_status_button", {player=player, value=value, id=id})
 end
 
-function set_balls_in_zone_to_pokemon(zone, pokemon)
-  for _, object_in_zone in pairs(zone:getObjects()) do
-    if object_in_zone:hasTag(config.tags.items.BALL) then
-      object_in_zone:setName(pokemon:getName())
-    end
-  end
+function move_health_slider(player, value, id)
+  pokemon_card_ui_api.call("move_health_slider", {player=player, value=value, id=id})
 end
 
-function reset_balls_in_zone(zone)
-  for _, object_in_zone in pairs(zone:getObjects()) do
-    if object_in_zone:hasTag(config.tags.items.BALL) then
-      object_in_zone:setName(object_in_zone:getGMNotes())
-      object_in_zone:setVar("registered_zone", nil)
-    end
-  end
+function click_transform_button(player, value, id)
+  pokemon_card_ui_api.call("click_transform_button", {player=player, value=value, id=id})
 end
 
-function register_zone_to_ball(zone, ball)
-  -- Register Zone
-  ball:setVar("registered_zone", zone)
-  -- Set Name
-  for _, object_in_zone in pairs(zone:getObjects()) do
-    if object_in_zone:hasTag(config.tags.cards.POKEMON) and not object_in_zone.is_face_down then
-      ball:setName(object_in_zone:getName())
-      break
-    end
-  end
+function click_health_button(player, value, id)
+  pokemon_card_ui_api.call("click_health_button", {player=player, value=value, id=id})
 end
 
-function is_zone_occupied(zone)
-  for _, object_in_zone in pairs(zone:getObjects()) do
-    if not object_in_zone:hasTag(config.tags.items.BALL) then
-      return true
-    end
-  end
-  return false
-end
-
-function move_objects_between_zones(source_zone, target_zone)
-  for _, object_in_zone in pairs(source_zone:getObjects()) do
-    if not object_in_zone:hasTag(config.tags.items.BALL) then
-      local rotation_delta = target_zone:getRotation() - source_zone:getRotation()
-      local position_delta = object_in_zone:getPosition() - source_zone:getPosition()
-      position_delta:rotateOver("y", rotation_delta.y)
-      object_in_zone:setPosition(target_zone:getPosition() + position_delta)
-      object_in_zone:setRotation(object_in_zone:getRotation() + rotation_delta)
-    end
-  end
-end
-
-function onObjectEnterZone(zone, object)
-  if not zone or not object then return end
-  -- Update Zones
-  if zone:hasTag(config.tags.property.UPDATE_PANELS) then
-    update_panels(zone)
-  end
-  -- Hand Zones
-  if zone.type == "Hand" and object:hasTag(config.tags.cards.MOVE) and not object:hasTag(config.tags.cards.BREACH) then
-    if #zone:getObjects() > 1 then
-      print("Remove any objects from hand if trying to change hand colour.")
-      return
-    end
-
-    local card_colour = object:getGMNotes()
-    local zone_colour = zone:getValue()
-
-    -- Change zone colour
-    for _, object in pairs(getObjects()) do
-      if object.type == "Hand" then
-        if object:getValue() == card_colour and object:getGUID() != zone:getGUID() then
-          object:setValue(zone_colour)
-        end
-      end
-    end
-    zone:setValue(card_colour)
-  end
-  -- Pokemon Zones
-  if zone:hasTag(config.tags.zones.POKEMON) then
-    if object:hasTag(config.tags.items.BALL) then
-      zone = get_pokemon_zone(zone)
-      local registered_zone = object:getVar("registered_zone")
-
-      if not registered_zone or is_zone_occupied(zone) then
-        register_zone_to_ball(zone, object)
-        return
-      end
-      move_objects_between_zones(registered_zone, zone)
-
-    elseif object:hasTag(config.tags.cards.POKEMON) and not object.is_face_down then
-      set_balls_in_zone_to_pokemon(zone, object)
-    end
-  end
-end
-
-function onObjectLeaveZone(zone, object)
-  if not zone or not object then return end
-  -- Update Zones
-  if zone:hasTag(config.tags.property.UPDATE_PANELS) then
-    update_panels(zone)
-  end
-  -- Pokemon Zones
-  if zone:hasTag(config.tags.zones.POKEMON) then
-    if object:hasTag(config.tags.items.BALL) then
-      zone = get_pokemon_zone(zone)
-      register_zone_to_ball(zone, object)
-    elseif object:hasTag(config.tags.cards.POKEMON) and not object.is_face_down then
-      reset_balls_in_zone(zone)
-    end
-  end
-end
-
--- Container Events
-function tryObjectEnterContainer(container, object)
-  if container:hasTag(config.tags.objects.POKEMON_MODEL) then
-    return object:hasTag(config.tags.objects.POKEMON_MODEL)
-  elseif container:hasTag(config.tags.items.APRICORN) and container:hasTag(config.tags.items.JOURNEY_POINT) then
-    return object:hasTag(config.tags.items.APRICORN) or object:hasTag(config.tags.items.JOURNEY_POINT)
-  end
-  return true
-end
-
-function onObjectEnterContainer(container, object)
-  if container:hasTag(config.tags.items.APRICORN) and container:hasTag(config.tags.items.JOURNEY_POINT) then
-    for _, bag_panel in pairs(getObjectsWithTag(config.tags.panels.BAG)) do
-      bag_panel:call("update_panel")
-    end
-  end
-end
-
-function onObjectLeaveContainer(container, object)
-  if container:hasTag(config.tags.items.APRICORN) and container:hasTag(config.tags.items.JOURNEY_POINT) then
-    for _, bag_panel in pairs(getObjectsWithTag(config.tags.panels.BAG)) do
-      bag_panel:call("update_panel")
-    end
-  end
+function click_initiative_button(player, value, id)
+  pokemon_card_ui_api.call("click_initiative_button", {player=player, value=value, id=id})
 end

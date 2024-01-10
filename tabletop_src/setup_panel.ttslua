@@ -5,7 +5,6 @@ local claimed_wild_area_descriptions = {}
 local claimed_wild_area_guids = {}
 local distortion_world_coroutine_running = false
 local distortion_world_base = getObjectFromGUID(distortion_world_base_guid)
-local ultra_control_panel = getObjectFromGUID(ultra_control_panel_guid)
 local starter_zone = getObjectFromGUID(starter_zone_guid)
 local weak_zone = getObjectFromGUID(weak_zone_guid)
 
@@ -53,20 +52,6 @@ end
 --
 --
 
-function _reset_habitat_tags(hidden_token)
-  local hidden_token_biome = get_biome_tag(hidden_token:getTags())
-  local hidden_token_climate = get_climate_tag(hidden_token:getTags())
-
-  if hidden_token_biome then
-    hidden_token:removeTag(hidden_token_biome)
-    hidden_token_biome = nil
-  end
-  if hidden_token_climate then
-    hidden_token:removeTag(hidden_token_climate)
-    hidden_token_climate = nil
-  end
-end
-
 function _get_compatible_wild_areas(hidden_token)
   local hidden_token_biome = get_biome_tag(hidden_token:getTags())
   local hidden_token_climate = get_climate_tag(hidden_token:getTags())
@@ -99,31 +84,21 @@ end
 
 function setup_items(hidden_tokens, flip)
   for _, hidden_token in pairs(hidden_tokens) do
-    -- Remove biome and climate tags from Alpha Pokémon
-    if hidden_token:hasTag(config.tags.items.ARTIFACT) and hidden_token:hasTag(config.tags.world.ENCOUNTER) then
-      _reset_habitat_tags(hidden_token)
-    end
-
     local compatible_wild_areas_shuffled = shuffle(_get_compatible_wild_areas(hidden_token))
 
     local safe_wild_area_found = false
     for _, wild_area in ipairs(compatible_wild_areas_shuffled) do
       if _check_wild_area_is_safe(wild_area) then
         hidden_token:setPositionSmooth(wild_area:getPosition() + Vector(0, 2.5, 0), false, false)
+
         local rotation = Vector(0, 180, 0)
-        if flip then rotation = Vector(0, 180, 180) end
+        if flip then
+          rotation = Vector(0, 180, 180)
+        end
+
         hidden_token:setRotationSmooth(rotation)
         table.insert(claimed_wild_area_descriptions, wild_area:getDescription())
         table.insert(claimed_wild_area_guids, wild_area:getGUID())
-
-        -- Add biome and climate tags of wild area to hidden encounters
-        if get_encounter_tag(hidden_token:getTags()) then
-          local wild_area_biome = get_biome_tag(wild_area:getTags())
-          hidden_token:addTag(wild_area_biome)
-
-          local wild_area_climate = get_climate_tag(wild_area:getTags())
-          hidden_token:addTag(wild_area_climate)
-        end
 
         safe_wild_area_found = true
         break
@@ -157,13 +132,6 @@ function _move_starters_coroutine()
 end
 
 function _expansion_setup()
-  local ultra_beast_tokens = shuffle(getObjectsWithTag(config.tags.objects.ULTRA_BEAST))
-  setup_items(ultra_beast_tokens, false)
-
-  local ultra_burst_token = getObjectsWithTag(config.tags.objects.ULTRA_BURST)[1]
-  ultra_burst_token:setPositionSmooth(distortion_world_base:getPosition() + Vector(0, 3, 0), false, false)
-  ultra_burst_token:setRotationSmooth(distortion_world_base:getRotation(), false, false)
-
   claimed_wild_area_descriptions = {}
   -- Remove Heart of Sinnoh campaign tokens
   local commander_campaign_tokens = getObjectsWithAllTags({config.tags.encounters.GALACTIC_COMMANDER, config.tags.world.CAMPAIGN})
@@ -191,12 +159,6 @@ function setup_game()
     campaign_token:setLock(false)
   end
 
-  -- Unlock all follower tokens
-  local follower_tokens = getObjectsWithTag(config.tags.objects.FOLLOWER)
-  for _, follower_token in pairs(follower_tokens) do
-    follower_token:setLock(false)
-  end
-
   if is_expansion_enabled() then
     _expansion_setup()
   end
@@ -208,17 +170,10 @@ function setup_game()
   setup_items(hidden_tokens, true)
 
   -- Shuffle decks
-  local card_objects = getObjectsWithAnyTags({config.tags.cards.SHRINE, config.tags.cards.BREACH, config.tags.cards.GINKGO, config.tags.cards.CHANGE_OF_FATE})
+  local card_objects = getObjectsWithAnyTags({config.tags.cards.SHRINE, config.tags.cards.BREACH, config.tags.cards.CHANGE_OF_FATE})
   for _, card_object in pairs(card_objects) do
     if card_object.type == "Deck" then
       card_object:randomize()
-    end
-  end
-
-  local ginkgo_objects = getObjectsWithTag(config.tags.cards.GINKGO)
-  for _, ginkgo_object in pairs(ginkgo_objects) do
-    if ginkgo_object.type == "Deck" and ginkgo_object.is_face_down then
-      ginkgo_object:flip()
     end
   end
 
@@ -244,29 +199,16 @@ function scale_distortion_world_base()
   end
 end
 
-function slide_ultra_control_panel()
-  local z_position_offset = (is_expansion_enabled() and -1 or 1) * 6.5
-  ultra_control_panel:setPositionSmooth(ultra_control_panel:getPosition() + Vector(0, 0, z_position_offset), false, false)
-  while ultra_control_panel:isSmoothMoving() do coroutine.yield(0) end
-end
-
 function toggle_campaign()
   function toggle_distortion_world_coroutine()
     distortion_world_base.tooltip = not distortion_world_base.tooltip
     update_panel()
     distortion_world_coroutine_running = true
 
-    local distortion_gates = getObjectsWithTag(config.tags.world.DISTORTION_GATE)
-    for _, distortion_gate in pairs(distortion_gates) do
-      distortion_gate:setRotation(distortion_gate:getRotation() + Vector(0, 0, 180))
-      distortion_gate:setPosition(distortion_gate:getPosition() + Vector(0, (is_expansion_enabled() and -1 or 1) * 0.1, 0))
-    end
-
     if is_expansion_enabled() then
       scale_distortion_world_base()
     else
-      slide_ultra_control_panel()
-      for _, blessing_token in pairs(getObjectsWithTag(config.tags.items.BLESSING)) do blessing_token:setLock(true) end
+      for _, distortion_object in pairs(getObjectsWithTag(config.tags.items.DISTORTION_OBJECT)) do distortion_object:setLock(true) end
     end
 
     local offset = Vector(0, (is_expansion_enabled() and 1 or -1) * 5, 0)
@@ -281,8 +223,7 @@ function toggle_campaign()
     end
 
     if is_expansion_enabled() then
-      slide_ultra_control_panel()
-      for _, blessing_token in pairs(getObjectsWithTag(config.tags.items.BLESSING)) do blessing_token:setLock(false) end
+      for _, distortion_object in pairs(getObjectsWithTag(config.tags.items.DISTORTION_OBJECT)) do distortion_object:setLock(false) end
     else
       scale_distortion_world_base()
     end
@@ -318,24 +259,16 @@ end
 --
 --
 
-function update_party_panels()
-  local party_panels = getObjectsWithTag(config.tags.panels.PARTY)
-  for _, party_panel in pairs(party_panels) do
+function update_trainer_area_panels()
+  local trainer_area_panels = getObjectsWithAnyTags({config.tags.panels.BAG, config.tags.panels.PARTY, config.tags.panels.SHARD})
+  for _, trainer_area_panel in pairs(trainer_area_panels) do
     if is_expansion_enabled() then
-      if not party_panel.is_face_down then flip_object(party_panel) end
+      if not trainer_area_panel.is_face_down then flip_object(trainer_area_panel) end
     else
-      if party_panel.is_face_down then flip_object(party_panel) end
+      if trainer_area_panel.is_face_down then flip_object(trainer_area_panel) end
     end
-  end
-end
-
-function update_shard_panels()
-  local shard_panels = getObjectsWithTag(config.tags.panels.SHARD)
-  for _, shard_panel in pairs(shard_panels) do
-    if is_expansion_enabled() then
-      if not shard_panel.is_face_down then flip_object(shard_panel) end
-    else
-      if shard_panel.is_face_down then flip_object(shard_panel) end
+    if trainer_area_panel.hasTag(config.tags.panels.BAG) then
+      trainer_area_panel.call("update_panel")
     end
   end
 end
@@ -349,6 +282,5 @@ function update_panel()
   end
   self:editButton({index=1, label=label, color=color})
 
-  update_party_panels()
-  update_shard_panels()
+  update_trainer_area_panels()
 end

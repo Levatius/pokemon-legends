@@ -1,3 +1,4 @@
+#include config
 #include utils
 
 function onLoad()
@@ -10,13 +11,24 @@ function onLoad()
     width          = 600,
     height         = 600,
     color          = {0, 0, 0, 0},
-    tooltip        = language_vars.teleport.TELEPORT_BUTTON_TOOLTIP
+    tooltip        = language_vars.teleport.TELEPORT_BUTTON_TOOLTIP_1 .. self:getName() .. "\n" .. language_vars.teleport.TELEPORT_BUTTON_TOOLTIP_2
   })
 end
 
+function find_trainer_token(player_colour)
+  local trainer_tokens = getObjectsWithTag(config.tags.objects.TRAINER)
+  for _, trainer_token in pairs(trainer_tokens) do
+    local last_player_colour = trainer_token.getVar("last_player_colour")
+    if last_player_colour == player_colour then
+      return trainer_token
+    end
+  end
+end
+
 function teleport(_, player_colour)
-  local trainer_token = get_trainer_token(player_colour)
+  local trainer_token = find_trainer_token(player_colour)
   if not trainer_token then
+    broadcastToAll(language_vars.errors.TRAINER_TOKEN_NOT_FOUND, config.colours.INFO)
     return
   end
 
