@@ -1,17 +1,32 @@
 #include config
 #include utils
 
-local bag = getObjectFromGUID(bag_guid)
+RESOURCE_COLOUR_ORDER = {"Red", "Blue", "Yellow", "Black", "Pink", "Green", "White", "Purple"}
 
-JOURNEY_POINT_TOKEN_NAME = "Journey Point"
-APRICORN_NAMES = {"Red", "Blue", "Yellow", "Black", "Pink", "Green", "White"}
+loaded = false
+
+--
+--
+--
+
+function _find_resource_bags()
+  local resource_bags = {}
+  for _, bag in pairs(getObjectsWithTag(config.tags.objects.RESOURCE_BAG)) do
+    local colour = bag.getGMNotes()
+    resource_bags[colour] = bag
+  end
+  return resource_bags
+end
 
 function onLoad()
+  bag = find_closest(self, {config.tags.objects.PLAYER_BAG})
+  resource_bags = _find_resource_bags()
+
   button_params = {
     function_owner = self,
     width          = 150,
     height         = 150,
-    color          = {0, 0, 0, 0}
+    color          = {0, 0, 0, 0},
   }
   text_params = {
     click_function = "dummy_button",
@@ -20,25 +35,18 @@ function onLoad()
     width          = 0,
     height         = 0,
     font_size      = 200,
-    font_color     = config.colours.WHITE
+    font_color     = config.colours.WHITE,
   }
   -- Resource Buttons
   for i = 0, 7 do
     button_params.click_function = "resource_button_" .. i
-    self:createButton(button_params)
+    self.createButton(button_params)
   end
   -- Resource Texts
   for i = 0, 7 do
-    self:createButton(text_params)
+    self.createButton(text_params)
   end
-  button_params.click_function = "toggle_amulet_button"
-  button_params.scale = {0.5, 1, 0.5}
-  button_params.width = 400
-  button_params.height = 400
-  button_params.tooltip = "Toggle Amulet"
-  button_params.color = {0, 0, 0, 0}
-  self.createButton(button_params)
-
+  loaded = true
   update_panel()
 end
 
@@ -46,65 +54,50 @@ end
 --
 --
 
-function resource_button_0(_, _, alt_click) apricorn_button(1, alt_click) end
-function resource_button_1(_, _, alt_click) apricorn_button(2, alt_click) end
-function resource_button_2(_, _, alt_click) apricorn_button(3, alt_click) end
-function resource_button_3(_, _, alt_click) apricorn_button(4, alt_click) end
-function resource_button_4(_, _, alt_click) apricorn_button(5, alt_click) end
-function resource_button_5(_, _, alt_click) apricorn_button(6, alt_click) end
-function resource_button_6(_, _, alt_click) apricorn_button(7, alt_click) end
-function resource_button_7(_, _, alt_click) journey_point_button(alt_click) end
-
-function apricorn_button(index, alt_click)
-  local apricorn_bag = getObjectFromGUID(config.guids.APRICORN_BAGS[index])
-  if not alt_click then
-    local apricorn = apricorn_bag:takeObject({rotation=bag:getRotation()})
-    bag:putObject(apricorn)
-  else
-    local apricorn_name = APRICORN_NAMES[index] .. " Apricorn"
-    local apricorn_index = get_object_index_with_name_in_bag(apricorn_name)
-    if apricorn_index then
-      local apricorn = bag:takeObject({index=apricorn_index, rotation=bag:getRotation()})
-      apricorn_bag:putObject(apricorn)
+function _get_first_bag_index(colour)
+  for _, resource in pairs(bag.getObjects()) do
+    if resource.gm_notes == colour then
+      return resource.index
     end
   end
 end
 
-function journey_point_button(alt_click)
-  local journey_point_bag = getObjectFromGUID(config.guids.JOURNEY_POINT_BAG)
-  if not alt_click then
-    local journey_point = journey_point_bag:takeObject({rotation=bag:getRotation()})
-    bag:putObject(journey_point)
-  else
-    local journey_point_index = get_object_index_with_name_in_bag(JOURNEY_POINT_TOKEN_NAME)
-    if journey_point_index then
-      local journey_point = bag:takeObject({index=journey_point_index, rotation=bag:getRotation()})
-      journey_point_bag:putObject(journey_point)
-    end
-  end
-end
-
-function toggle_amulet_button()
-  flip_object(self, 0.2)
-  update_panel()
-end
-
-function get_object_index_with_name_in_bag(name)
-  for _, bag_object in pairs(bag:getObjects()) do
-    if bag_object.name == name then
-      return bag_object.index
-    end
-  end
-end
-
-function count_objects_with_name_in_bag(name)
+function _count_resource(colour)
   local count = 0
-  for _, bag_object in pairs(bag:getObjects()) do
-    if bag_object.name == name then
+  for _, resource in pairs(bag.getObjects()) do
+    if resource.gm_notes == colour then
       count = count + 1
     end
   end
   return count
+end
+
+function resource_button_0(_, _, alt_click) resource_button(0, alt_click) end
+function resource_button_1(_, _, alt_click) resource_button(1, alt_click) end
+function resource_button_2(_, _, alt_click) resource_button(2, alt_click) end
+function resource_button_3(_, _, alt_click) resource_button(3, alt_click) end
+function resource_button_4(_, _, alt_click) resource_button(4, alt_click) end
+function resource_button_5(_, _, alt_click) resource_button(5, alt_click) end
+function resource_button_6(_, _, alt_click) resource_button(6, alt_click) end
+function resource_button_7(_, _, alt_click) resource_button(7, alt_click) end
+
+function resource_button(index, alt_click)
+  local colour = RESOURCE_COLOUR_ORDER[index + 1]
+  local resource_bag = resource_bags[colour]
+
+  if not alt_click then
+    -- Left Click: Take from resource bag, put in bag
+    local resource = resource_bag.takeObject({rotation=bag.getRotation()})
+    bag.putObject(resource)
+  else
+    local bag_index = _get_first_bag_index(colour)
+    if not bag_index then
+      return
+    end
+    -- Right Click: Take from bag, put in resource bag
+    local resource = bag.takeObject({index=bag_index, rotation=bag.getRotation()})
+    resource_bag.putObject(resource)
+  end
 end
 
 --
@@ -112,38 +105,25 @@ end
 --
 
 function update_panel()
-  local buttons_y_pos = 0.1 + 0.1 * get_z_dir(self)
+  if not loaded then
+    return
+  end
   -- Update Resource Button/Text Positions
   for i = 0, 1 do
     local index_base = 8 * i
-    self.editButton({index=index_base + 0, position={-0.42 * get_z_dir(self), buttons_y_pos, 0.47}, rotation={0, 0, self:getRotation().z}})
-    self.editButton({index=index_base + 1, position={-0.14 * get_z_dir(self), buttons_y_pos, 0.47}, rotation={0, 0, self:getRotation().z}})
-    self.editButton({index=index_base + 2, position={0.14 * get_z_dir(self), buttons_y_pos, 0.47}, rotation={0, 0, self:getRotation().z}})
-    self.editButton({index=index_base + 3, position={0.42 * get_z_dir(self), buttons_y_pos, 0.47}, rotation={0, 0, self:getRotation().z}})
-    self.editButton({index=index_base + 4, position={-0.42 * get_z_dir(self), buttons_y_pos, 0.75}, rotation={0, 0, self:getRotation().z}})
-    self.editButton({index=index_base + 5, position={-0.14 * get_z_dir(self), buttons_y_pos, 0.75}, rotation={0, 0, self:getRotation().z}})
-    self.editButton({index=index_base + 6, position={0.14 * get_z_dir(self), buttons_y_pos, 0.75}, rotation={0, 0, self:getRotation().z}})
-    self.editButton({index=index_base + 7, position={0.42 * get_z_dir(self), buttons_y_pos, 0.75}, rotation={0, 0, self:getRotation().z}})
+    self.editButton({index=index_base + 0, position={-0.320, 0.2, 0.115}})
+    self.editButton({index=index_base + 1, position={-0.105, 0.2, 0.115}})
+    self.editButton({index=index_base + 2, position={ 0.105, 0.2, 0.115}})
+    self.editButton({index=index_base + 3, position={ 0.320, 0.2, 0.115}})
+    self.editButton({index=index_base + 4, position={-0.320, 0.2, 0.330}})
+    self.editButton({index=index_base + 5, position={-0.105, 0.2, 0.330}})
+    self.editButton({index=index_base + 6, position={ 0.105, 0.2, 0.330}})
+    self.editButton({index=index_base + 7, position={ 0.320, 0.2, 0.330}})
   end
-  -- Update Apricorn Texts
-  for i = 0, 6 do
-    local apricorn_name = APRICORN_NAMES[i + 1] .. " Apricorn"
-    local apricorn_count = count_objects_with_name_in_bag(apricorn_name)
-    self.editButton({
-      index = 8 + i,
-      label = apricorn_count
-    })
+  -- Update Resource Texts
+  for i = 0, 7 do
+    local colour = RESOURCE_COLOUR_ORDER[i + 1]
+    local count = _count_resource(colour)
+    self.editButton({index = 8 + i, label = count})
   end
-  -- Update Journey Point Texts
-  local journey_point_count = count_objects_with_name_in_bag(JOURNEY_POINT_TOKEN_NAME)
-  self.editButton({
-    index = 8 + 7,
-    label = journey_point_count
-  })
-  -- Update Amulet Button
-  self.editButton({
-    index = 16,
-    position = {0, 0.1 + 0.15 * get_z_dir(self), -0.6},
-    rotation = {0, 0, self:getRotation().z}
-  })
 end

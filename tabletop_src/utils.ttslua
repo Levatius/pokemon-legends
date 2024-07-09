@@ -8,6 +8,7 @@ CLIMATE_TAGS = {"Cold", "Temperate", "Warm"}
 BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean"}
 ENCOUNTER_TAGS = {"Weak", "Moderate", "Strong", "Legendary", "Distortion", "Secret"}
 
+
 function load_module(module_tag)
   local modules = getObjectsWithTag(module_tag)
   if len(modules) > 1 then
@@ -19,6 +20,14 @@ function load_module(module_tag)
   end
   local module = modules[1]
   return module:getTable("vars")
+end
+
+function get_module(module_name)
+  local modules = {}
+  for _, module in pairs(getObjectsWithTag("Module")) do
+    modules[module.getGMNotes()] = module
+  end
+  return modules[module_name]
 end
 
 function dummy_button() end
@@ -178,15 +187,6 @@ function signed_label(value)
   return (value >= 0) and "+" .. value or value
 end
 
-function update_panels(zone, object, is_entering)
-  for _, update_panel_guid in pairs(zone:getVar("update_panel_guids")) do
-    local update_panel = getObjectFromGUID(update_panel_guid)
-    if update_panel then
-      update_panel:call("update_panel", {zone=zone, object=object, is_entering=is_entering})
-    end
-  end
-end
-
 function get_next_state(current_state, total_states, alt_click)
   if not current_state then
     return 1
@@ -245,6 +245,48 @@ end
 
 function register_button(buttons, name)
   buttons[name] = len(buttons)
+end
+
+function get_closest(caller, objects)
+  -- Given a table of objects, return the closest object to the caller
+  local distances = {}
+  for _, object in pairs(objects) do
+    distances[object] = caller.getPosition():distance(object.getPosition())
+  end
+
+  local closest_object, _ = get_min_key_and_value(distances)
+  return closest_object
+end
+
+function filter_objects_of_type(objects, type)
+  local objects_of_type = {}
+  for _, object in pairs(objects) do
+    if object.type == type then
+      table.insert(objects_of_type, object)
+    end
+  end
+  return objects_of_type
+end
+
+function find_objects(tags, type)
+  local objects = getObjectsWithAllTags(tags)
+  if type == nil then
+    return objects
+  end
+  return filter_objects_of_type(objects, type)
+end
+
+function find_closest(caller, tags, type)
+  local objects = find_objects(tags, type)
+  return get_closest(caller, objects)
+end
+
+function ui_tuple(t)
+  return table.concat(t, " ")
+end
+
+function ui_colour(colour)
+  return "#" .. colour:toHex()
 end
 
 --

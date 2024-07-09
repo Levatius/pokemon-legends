@@ -15,7 +15,7 @@ SPECIFIC_HELD_ITEM_BASE_LOOKUP = {
 # File Paths
 COMPONENT_DIR = Path(__file__).parent
 ROOT_DIR = COMPONENT_DIR.parent
-CARD_ASSETS_DIR = COMPONENT_DIR.parent / 'assets' / 'card_generator'
+CARD_ASSETS_DIR = COMPONENT_DIR.parent / 'assets' / 'generators' / 'pokemon_cards'
 OUTPUT_DIR = COMPONENT_DIR / 'output'
 MOVES_OUTPUT_DIR = OUTPUT_DIR / 'moves'
 CARD_FRONTS_OUTPUT_DIR = OUTPUT_DIR / 'card_fronts'

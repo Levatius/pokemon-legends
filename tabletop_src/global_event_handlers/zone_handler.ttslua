@@ -1,0 +1,136 @@
+function update_panels(zone, object, is_entering)
+  local linked_objects = get_module("object_links_store").call("get_linked_objects", {object = zone})
+  for _, linked_object in pairs(linked_objects) do
+    linked_object.call("update_panel", {zone=zone, object=object, is_entering=is_entering})
+  end
+end
+
+function onObjectStateChange(object, old_state_guid)
+  if not object.type == "Card" or not object.hasTag(config.tags.cards.POKEMON) then
+    return
+  end
+  local pokemon_stats_store = getObjectFromGUID("bf727d")
+  local pokemon_stats = pokemon_stats_store.call("get", {guid=old_state_guid})
+  local new_state_guid = object.getGUID()
+  pokemon_stats_store.call("save", {guid=new_state_guid, pokemon_stats=pokemon_stats})
+  local pokemon_card_ui_api = getObjectFromGUID("998dc7")
+  pokemon_card_ui_api.call("add", {guid=new_state_guid})
+end
+
+function onObjectEnterZone(zone, object)
+  if not zone or not object then return end
+
+  -- Scripting Zones
+  if zone.hasTag(config.tags.zones.POKEMON_SLOT) and object.hasTag(config.tags.cards.POKEMON) and not object.is_face_down then
+    local pokemon_card = object
+    local guid = pokemon_card.getGUID()
+    local pokemon_card_ui_api = getObjectFromGUID("998dc7")
+    function pause_coroutine()
+      brief_pause()
+      pokemon_card_ui_api.call("show", {guid=guid, zone=zone})
+      return 1
+    end
+    startLuaCoroutine(self, "pause_coroutine")
+  end
+
+  -- Update Zones
+  if zone.hasTag(config.tags.property.UPDATE_PANELS) then
+    update_panels(zone, object, true)
+  end
+  -- Hand Zones
+  if zone.type == "Hand" and object:hasTag(config.tags.cards.MOVE) and not object:hasTag(config.tags.cards.BREACH) then
+    if #zone:getObjects() > 1 then
+      print("Remove any objects from hand if trying to change hand colour.")
+      return
+    end
+
+    local card_colour = object:getGMNotes()
+    local zone_colour = zone:getValue()
+
+    -- Change zone colour
+    for _, object in pairs(getObjects()) do
+      if object.type == "Hand" then
+        if object:getValue() == card_colour and object:getGUID() != zone:getGUID() then
+          object:setValue(zone_colour)
+        end
+      end
+    end
+    zone:setValue(card_colour)
+  end
+
+  if zone.hasTag(config.tags.items.BALL) and object.hasTag(config.tags.items.BALL) then
+    local poke_ball = object
+    --
+    local poke_ball_move_api = getObjectFromGUID("ee0914")
+    if not poke_ball.getVar("registered_zone") then
+      poke_ball_move_api.call("register", {poke_ball=poke_ball})
+      return
+    end
+    poke_ball_move_api.call("move", {poke_ball=poke_ball})
+  end
+end
+
+function onObjectLeaveZone(zone, object)
+  if not zone or not object then return end
+  -- Update Zones
+  if zone:hasTag(config.tags.property.UPDATE_PANELS) then
+    update_panels(zone, object, false)
+  end
+
+  if zone.hasTag(config.tags.items.BALL) and object.hasTag(config.tags.items.BALL) then
+    local poke_ball = object
+    --
+    local poke_ball_move_api = getObjectFromGUID("ee0914")
+    poke_ball_move_api.call("register", {poke_ball=poke_ball})
+  end
+
+  if zone.hasTag(config.tags.zones.POKEMON_SLOT) and object.hasTag(config.tags.cards.POKEMON) then
+    local pokemon_card = object
+
+    if len(pokemon_card.getZones()) > 0 then
+      return
+    end
+
+    local guid = pokemon_card.getGUID()
+    local pokemon_card_ui_api = getObjectFromGUID("998dc7")
+    pokemon_card_ui_api.call("hide", {guid=guid})
+  end
+end
+
+function tryObjectEnterContainer(container, object)
+  -- Pokemon Models
+  if container.hasTag(config.tags.objects.POKEMON_MODEL) then
+    return object.hasTag(config.tags.objects.POKEMON_MODEL)
+  -- Player Bags
+  elseif container.hasTag(config.tags.objects.PLAYER_BAG) then
+    return object.hasTag(config.tags.items.APRICORN) or object.hasTag(config.tags.items.JOURNEY_POINT)
+  -- ???
+  elseif container.hasTag(config.tags.objects.ULTRA_BEAST) and container.hasTag(config.tags.objects.ULTRA_BURST) then
+    return object.hasTag(config.tags.objects.ULTRA_BEAST) or object.hasTag(config.tags.objects.ULTRA_BURST)
+  end
+  return true
+end
+
+function onObjectEnterContainer(container, object)
+  -- Player Bags
+  if container.hasTag(config.tags.objects.PLAYER_BAG) then
+    local bag_panels = getObjectsWithTag(config.tags.panels.BAG)
+    local closest_bag_panel = get_closest(container, bag_panels)
+    closest_bag_panel.call("update_panel")
+  end
+end
+
+function onObjectLeaveContainer(container, object)
+  -- Player Bags
+  if container.hasTag(config.tags.objects.PLAYER_BAG) then
+    local bag_panels = getObjectsWithTag(config.tags.panels.BAG)
+    local closest_bag_panel = get_closest(container, bag_panels)
+    closest_bag_panel.call("update_panel")
+  -- Pokemon Decks
+  elseif container.type == "Deck" and object.hasTag(config.tags.cards.POKEMON) then
+    local pokemon_card = object
+    local guid = pokemon_card.getGUID()
+    local pokemon_card_ui_api = getObjectFromGUID("998dc7")
+    pokemon_card_ui_api.call("add", {guid=guid})
+  end
+end

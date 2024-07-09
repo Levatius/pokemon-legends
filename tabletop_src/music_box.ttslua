@@ -1,30 +1,29 @@
 #include config
 #include utils
 
-local music_cartridge_zone = getObjectFromGUID(music_cartridge_zone_guid)
-local music_events_zone = getObjectFromGUID(music_events_zone_guid)
-local arena_active_zones = {}
-local arena_pokeball_zones = {}
 local music_events
 local selected_music_event_index
 
-
-function load_arena_active_zones()
-  for _, arena_active_zone_guid in pairs(arena_active_zone_guids) do
-    table.insert(arena_active_zones, getObjectFromGUID(arena_active_zone_guid))
-  end
-end
-
-function load_arena_pokeball_zones()
-  for _, arena_pokeball_zone_guid in pairs(arena_pokeball_zone_guids) do
-    table.insert(arena_pokeball_zones, getObjectFromGUID(arena_pokeball_zone_guid))
-  end
-end
-
 function onLoad()
-  load_arena_active_zones()
-  load_arena_pokeball_zones()
   language_vars = load_module(MODULE_LANGUAGE_TAG)
+
+  music_cartridge_zone = find_closest(self, {config.tags.objects.MUSIC_CARTRIDGE}, "Scripting")
+  music_events_zone = find_closest(self, {config.tags.objects.MUSIC_EVENTS}, "Scripting")
+  arena_pokeball_zones = find_objects({config.tags.items.BALL, config.tags.property.ARENA}, "Scripting")
+  arena_active_zones = find_objects({config.tags.zones.POKEMON_SLOT, config.tags.property.ARENA}, "Scripting")
+
+  get_module("object_links_store").call("set_links", {
+    object = self,
+    other_objects = {
+      music_cartridge_zone,
+      music_events_zone,
+      -- Assuming the Arena only has two active zones and two ball zones
+      arena_pokeball_zones[1],
+      arena_pokeball_zones[2],
+      arena_active_zones[1],
+      arena_active_zones[2],
+    }
+  })
 
   local text_params = {
     click_function = "dummy_button",

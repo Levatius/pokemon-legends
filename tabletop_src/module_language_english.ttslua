@@ -75,6 +75,9 @@ vars = {
     FLY_BUTTON_TOOLTIP_2 = "[Costs 1 Apricorn]",
     ALREADY_FLYING_MESSAGE = "Someone is already flying (if they are not, reloading the game should fix it)."
   },
+  distortion_ore = {
+    REDUCE_ORE_TOOLTIP = "Reduce Ore"
+  },
   errors = {
     MISSING_DATA_NAME = "Missing Data",
     MISSING_DATA_DESCRIPTION = "Internal data for this card has been deleted. It can no longer be used in the arena. Try rewinding time.",

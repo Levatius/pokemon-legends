@@ -1,12 +1,6 @@
 #include config
 #include utils
 
-local active_zone = getObjectFromGUID(active_zone_guid)
-local enemy_active_zone = getObjectFromGUID(enemy_active_zone_guid)
-local field_zone = getObjectFromGUID(field_zone_guid)
-local dice_bag = getObjectFromGUID(dice_bag_guid)
-local fatigue_dice = getObjectFromGUID(fatigue_dice_guid)
-
 local dice_button_state = 1
 local type_button_state = 1
 local type_range_button_state = 1
@@ -21,8 +15,42 @@ FATIGUE_ROTATIONS = {
   Vector(90, 180, 0)
 }
 
+function _find_active_slots()
+  local active_slots = find_objects({config.tags.property.ARENA, config.tags.zones.POKEMON_SLOT})
+  local your_active_slot = get_closest(self, active_slots)
+
+  -- Get index
+  local your_active_slot_index = nil
+  for i, active_slot in pairs(active_slots) do
+    if active_slot == your_active_slot then
+      your_active_slot_index = i
+      break
+    end
+  end
+
+  table.remove(active_slots, your_active_slot_index)
+  local enemy_active_slot = get_closest(self, active_slots)
+  return your_active_slot, enemy_active_slot
+end
+
 function onLoad()
   language_vars = load_module(MODULE_LANGUAGE_TAG)
+
+  dice_bag = find_closest(self, {config.tags.objects.ATTACK_DICE}, "Infinite")
+  fatigue_dice = find_closest(self, {config.tags.objects.FATIGUE_DICE})
+  field_zone = find_closest(self, {config.tags.objects.POKEMON_MODEL}, "Scripting")
+  your_active_slot, enemy_active_slot = _find_active_slots()
+
+  get_module("object_links_store").call("set_links", {
+    object = self,
+    other_objects = {
+      dice_bag,
+      fatigue_dice,
+      field_zone,
+      your_active_slot,
+      enemy_active_slot,
+    }
+  })
 
   local button_params = {
     function_owner = self,
@@ -74,9 +102,9 @@ end
 --
 
 function clean_up_dice()
-  local dice_list = getObjectsWithTag(config.tags.objects.ATTACK_DICE)
-  for _, dice in pairs(dice_list) do
-    dice:destroyObject()
+  local attack_dice_list = find_objects({config.tags.objects.ATTACK_DICE}, "Dice")
+  for _, attack_dice in pairs(attack_dice_list) do
+    attack_dice:destroyObject()
   end
 end
 
@@ -229,18 +257,18 @@ end
 
 function get_active_pokemon(is_enemy)
   local active_pokemon
-  local zone = not is_enemy and active_zone or enemy_active_zone
-  for _, object in pairs(zone:getObjects()) do
-    if object.type == "Card" then
+  local slot = not is_enemy and your_active_slot or enemy_active_slot
+  for _, object in pairs(slot.getObjects()) do
+    if object.type == "Card" and not object.is_face_down then
       active_pokemon = object
       break
     end
   end
 
-  if active_pokemon and active_pokemon:getLuaScript() == "" then
-    active_pokemon:setName(language_vars.errors.MISSING_DATA_NAME)
-    active_pokemon:setDescription(language_vars.errors.MISSING_DATA_DESCRIPTION)
-    active_pokemon:highlightOn({250/255, 100/255, 100/255})
+  if active_pokemon and active_pokemon.getLuaScript() == "" then
+    active_pokemon.setName(language_vars.errors.MISSING_DATA_NAME)
+    active_pokemon.setDescription(language_vars.errors.MISSING_DATA_DESCRIPTION)
+    active_pokemon.highlightOn({250/255, 100/255, 100/255})
     return
   end
   return active_pokemon

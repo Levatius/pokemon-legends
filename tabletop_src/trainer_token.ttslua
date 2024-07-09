@@ -133,12 +133,10 @@ function create_battle_buttons(pokemon_cards)
 end
 
 function click_battle_button(pokemon_card, _, _)
-  -- local arena_active_zones = {
-  --   "south_zone" = getObjectFromGUID(config.guids.ARENA_ACTIVE_ZONES[1]),
-  --   "north_zone" = getObjectFromGUID(config.guids.ARENA_ACTIVE_ZONES[2])
-  -- }
-  -- local arena_active_zone = arena_active_zones["north_zone"]
-  local arena_active_zone = getObjectFromGUID(config.guids.ARENA_ACTIVE_ZONES[2])
+  local arena_active_zones = find_objects({config.tags.property.ARENA, config.tags.zones.POKEMON_SLOT})
+  -- TODO
+  local arena_active_zone = arena_active_zones[1]
+  --
   pokemon_card.setPosition(arena_active_zone.getPosition() + Vector(0, 0.5, get_y_dir(arena_active_zone) * 1.8))
   pokemon_card.setRotation(arena_active_zone.getRotation())
   pokemon_card.removeButton(0)
@@ -154,23 +152,20 @@ function return_cards()
   pokemon_cards = {}
 end
 
-function register_last_player_colour(player_colour)
-  -- Clear last player colour from other trainer tokens
+function update_colour_tint(player_colour)
+  -- Clear player colour from other trainer tokens
   local trainer_tokens = getObjectsWithTag(config.tags.objects.TRAINER)
   for _, trainer_token in pairs(trainer_tokens) do
-    local last_player_colour = trainer_token.getVar("last_player_colour")
-    if last_player_colour == player_colour then
-      trainer_token.setVar("last_player_colour", nil)
-      trainer_token.highlightOff()
+    if trainer_token.getColorTint() == Color.fromString(player_colour) then
+      trainer_token.setColorTint({0, 0, 0, 0.25})
     end
   end
   -- Set on this token
-  self.setVar("last_player_colour", player_colour)
-  self.highlightOn(player_colour)
+  self.setColorTint(player_colour)
 end
 
 function onPickUp(player_colour)
-  register_last_player_colour(player_colour)
+  update_colour_tint(player_colour)
   hide_search_button()
   return_cards()
 end

@@ -25,8 +25,7 @@ end
 function find_trainer_token(player_colour)
   local trainer_tokens = getObjectsWithTag(config.tags.objects.TRAINER)
   for _, trainer_token in pairs(trainer_tokens) do
-    local last_player_colour = trainer_token.getVar("last_player_colour")
-    if last_player_colour == player_colour then
+    if trainer_token.getColorTint() == Color.fromString(player_colour) then
       return trainer_token
     end
   end

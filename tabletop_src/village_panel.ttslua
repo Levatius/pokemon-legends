@@ -1,0 +1,62 @@
+#include config
+#include utils
+
+local pasture_zone = getObjectFromGUID(pasture_zone_guid)
+local leftmost_pasture_slot_delta = vector(34, 0.96, 10) - vector(29.71, 1.17, 10.98)
+
+--
+--
+--
+
+function get_pasture_card_to_return()
+  local pasture_cards_by_x = {}
+
+  for _, pasture_card in pairs(pasture_zone.getObjects()) do
+    pasture_cards_by_x[pasture_card] = pasture_card.getPosition().x
+  end
+
+  local rightmost_pasture_card, _ = get_max_key_and_value(pasture_cards_by_x)
+  return rightmost_pasture_card
+end
+
+function send_card_to_pasture(pokemon_card)
+  local leftmost_pasture_slot_pos = self.getPosition() - leftmost_pasture_slot_delta
+  function move_card_coroutine()
+    pokemon_card.setPositionSmooth(leftmost_pasture_slot_pos, false, false)
+    while pokemon_card.isSmoothMoving() do coroutine.yield(0) end
+    brief_pause()
+    pasture_zone.LayoutZone.layout()
+    return 1
+  end
+  startLuaCoroutine(self, "move_card_coroutine")
+end
+
+function return_card_to_deck(pokemon_card)
+  pokemon_card.setPositionSmooth({20, 1.5, 20}, false, false)
+  pasture_zone.LayoutZone.layout()
+end
+
+--
+--
+--
+
+function update_panel(params)
+  if not params.is_entering then
+    return
+  end
+
+  local object = params.object
+
+  if object.type == "Card" then
+    local pokemon_card = object
+    if pokemon_card.is_face_down then
+      return_card_to_deck(pokemon_card)
+    else
+      if len(pasture_zone:getObjects()) >= 5 then
+        local pasture_card_to_return = get_pasture_card_to_return()
+        return_card_to_deck(pasture_card_to_return)
+      end
+      send_card_to_pasture(pokemon_card)
+    end
+  end
+end

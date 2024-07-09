@@ -1,16 +1,10 @@
+#include config
 #include utils
 
-local arena_active_zones = {}
-
-function load_arena_active_zones()
-  for _, arena_active_zone_guid in pairs(arena_active_zone_guids) do
-    table.insert(arena_active_zones, getObjectFromGUID(arena_active_zone_guid))
-  end
-end
-
 function onLoad()
-  load_arena_active_zones()
   language_vars = load_module(MODULE_LANGUAGE_TAG)
+
+  arena_active_zones = find_objects({config.tags.property.ARENA, config.tags.zones.POKEMON_SLOT})
 
   button_params = {
     click_function = "flip_button",

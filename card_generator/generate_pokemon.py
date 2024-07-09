@@ -47,7 +47,7 @@ def get_pokemon_img_size(stats):
     min_size = 7
     max_size = 11
     if not pd.isnull(stats.trainer):
-        max_size = 10
+        max_size = 9
     return max(min(stats.total // 2 + 3, max_size), min_size)
 
 
@@ -282,8 +282,8 @@ def run(overwrite=False):
 
         # img = Image.new('RGBA', xy(16, 28))
         add_frame(img)
-        add_pokemon_img(img, stats)
         add_trainer(img, stats)
+        add_pokemon_img(img, stats)
 
         add_all_bases(img, stats)
 
