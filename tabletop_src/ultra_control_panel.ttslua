@@ -11,7 +11,7 @@ END_MUSIC = {
 local move_ultra_beasts_in_progress = false
 
 function onLoad()
-  language_vars = load_module(MODULE_LANGUAGE_TAG)
+  language_vars = get_module("localised_text_store").getTable("vars")
 
   hidden_spot_discard_zone = getObjectFromGUID(config.guids.HIDDEN_SPOT_DISCARD_ZONE)
   breach_zone = getObjectFromGUID(config.guids.BREACH_ZONE)
@@ -39,7 +39,7 @@ function onLoad()
     height         = 700,
     font_size      = 550,
     color          = {50/255, 50/255, 150/255},
-    font_color     = config.colours.WHITE,
+    font_color     = Color.White,
     tooltip        = language_vars.ub_control_panel.BREACH_STRENGTH_TOOLTIP
   }
   self:createButton(button_params)

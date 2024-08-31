@@ -1,31 +1,55 @@
 #include config
 #include utils
 
-HEIGHT_OFFSET_DISTANCE = 5.5
-LAYOUT_OFFSET_DISTANCE = 3
-
-local pokemon_card_decks_api = getObjectFromGUID(config.guids.apis.POKEMON_CARD_DECKS)
+ENCOUNTER_COLOURS = {
+  [config.tags.encounters.WEAK]      = Color.WeakGreen,
+  [config.tags.encounters.MODERATE]  = Color.ModerateBlue,
+  [config.tags.encounters.STRONG]    = Color.StrongRed,
+  [config.tags.encounters.LEGENDARY] = Color.LegendaryYellow,
+}
 
 local search_params = {}
-local buttons = {}
-local pokemon_cards = {}
-local exclaim_button_cooldown = 0
+local search_button_hide_timer_id
 
 function onLoad()
-  -- Exclaim Button
-  register_button(buttons, "exclaim-button")
-  local exclaim_button_params = {
-    click_function = "click_search_button",
-    function_owner = self,
-    position       = Vector(0, HEIGHT_OFFSET_DISTANCE, 0),
-    rotation       = self.getRotation() + Vector(90, 0, 180),
-    scale          = {2, 2, 2},
-    width          = 0,
-    height         = 0,
-    font_size      = 1000,
-    font_color     = config.colours.WHITE
-  }
-  self.createButton(exclaim_button_params)
+  Wait.condition(load_panel, has_ui_loaded)
+end
+
+function get_player()
+  for _, player in pairs(Player.getPlayers()) do
+    if self.getColorTint() == Color.fromString(player.color) then
+      return player
+    end
+  end
+end
+
+--
+--
+--
+
+function player_has_artifact(sanctuary_name)
+  local player = get_player()
+  if not player then
+    return false
+  end
+  local hand = player.getHandTransform(1)
+  if not hand then
+    return false
+  end
+  local player_pokemon_zones = {find_closest(hand.position, {config.tags.zones.POKEMON_SLOT}, "Scripting", 6)}
+
+  for _, zone in pairs(player_pokemon_zones) do
+    for _, object in pairs(zone.getObjects(true)) do
+      if object.hasTag(config.tags.items.ARTIFACT) then
+        for artifact_sactuary_name in split(object.getGMNotes(), "/") do
+          if artifact_sactuary_name == sanctuary_name then
+            return true
+          end
+        end
+      end
+    end
+  end
+  return false
 end
 
 function find_search_params()
@@ -36,121 +60,44 @@ function find_search_params()
     size         = {1.5, 1.5, 1.5},
     max_distance = 2,
   })
-
-  for _, hit_info in pairs(hit_list) do
+  for _, hit_info in ipairs(hit_list) do
     local hit_object = hit_info.hit_object
+    -- Campaign Tokens
     if hit_object.hasTag(config.tags.world.CAMPAIGN) then
       break
+    -- Sanctuaries
+    elseif hit_object.hasTag(config.tags.world.SANCTUARY) and player_has_artifact(hit_object.getName()) then
+      set_search_params(hit_object)
+      show_search_button()
+      break
+    -- Encounters
     elseif hit_object.hasTag(config.tags.world.ENCOUNTER) and not hit_object.is_face_down then
-      hit_object_tags = hit_object.getTags()
-      search_params = {
-        encounter = get_encounter_tag(hit_object_tags),
-        biome = get_biome_tag(hit_object_tags),
-        climate = get_climate_tag(hit_object_tags),
-        name = hit_object.getGMNotes(),
-      }
+      set_search_params(hit_object)
       show_search_button()
       break
     end
   end
 end
 
---
--- SEARCH BUTTON
---
+function set_search_params(hit_object)
+  local tags = hit_object.getTags()
 
-function show_search_button()
-  self.editButton({index=buttons["exclaim-button"], label="!", width=450, height=900, color=gameplay_config.search_button_colours[search_params.encounter]})
-  function hide_search_button_coroutine()
-    exclaim_button_cooldown = 500
-    while true do
-      exclaim_button_cooldown = exclaim_button_cooldown - 1
-      coroutine.yield(0)
-      if exclaim_button_cooldown <= 0 then
-        self.editButton({index=buttons["exclaim-button"], label="", width=0, height=0})
-        break
-      end
-    end
-    return 1
-  end
-  startLuaCoroutine(self, "hide_search_button_coroutine")
+  search_params = {
+    encounter = get_encounter_tag(tags),
+    biome = get_biome_tag(tags),
+    climate = get_climate_tag(tags),
+    name = hit_object.getGMNotes(),
+  }
 end
 
-function hide_search_button()
-  exclaim_button_cooldown = 0
-end
-
-function click_search_button()
-  hide_search_button()
-  local search_count = gameplay_config.search_counts[search_params.encounter]
-  if not search_count then
-    search_count = 1
-  end
-  for i = 1, search_count do
-    local pokemon_card = pokemon_card_decks_api.call("get_pokemon_card", search_params)
-    if pokemon_card then
-      pokemon_card.setPosition(self.getPosition())
-      pokemon_card.setRotation(self.getRotation() + Vector(0, 180, 0))
-      pokemon_card.setLock(true)
-      table.insert(pokemon_cards, pokemon_card)
-    end
-  end
-  layout(pokemon_cards)
-  create_battle_buttons(pokemon_cards)
-end
+-- local legendary_names = split(hit_object.getGMNotes(), "/")
+-- for legendary_name in legendary_names do
+--   log(legendary_name)
+-- end
 
 --
--- CARD UTILS
 --
-
-function layout(pokemon_cards)
-  for i, pokemon_card in pairs(pokemon_cards) do
-    local j = i - 0.5 - len(pokemon_cards) / 2
-    local offset = Vector(LAYOUT_OFFSET_DISTANCE * j, 0, 0)
-    offset:rotateOver("y", pokemon_card.getRotation().y)
-    local trainer_offset = Vector(0, HEIGHT_OFFSET_DISTANCE, 0)
-    local position = pokemon_card.getPosition() + trainer_offset + offset
-    pokemon_card.setPositionSmooth(position, false, false)
-  end
-end
-
-function create_battle_buttons(pokemon_cards)
-  for i, pokemon_card in pairs(pokemon_cards) do
-    local battle_button_params = {
-      click_function = "click_battle_button",
-      function_owner = self,
-      label          = "Battle!",
-      position       = Vector(0, 0, 1.9),
-      scale          = {0.5, 0.5, 0.5},
-      width          = 1500,
-      height         = 500,
-      font_size      = 300,
-      color          = config.colours.WHITE,
-      font_color     = config.colours.DARK
-    }
-    pokemon_card.createButton(battle_button_params)
-  end
-end
-
-function click_battle_button(pokemon_card, _, _)
-  local arena_active_zones = find_objects({config.tags.property.ARENA, config.tags.zones.POKEMON_SLOT})
-  -- TODO
-  local arena_active_zone = arena_active_zones[1]
-  --
-  pokemon_card.setPosition(arena_active_zone.getPosition() + Vector(0, 0.5, get_y_dir(arena_active_zone) * 1.8))
-  pokemon_card.setRotation(arena_active_zone.getRotation())
-  pokemon_card.removeButton(0)
-  pokemon_cards[find_first_index(pokemon_cards, pokemon_card)] = nil
-  return_cards()
-  pokemon_card.setLock(false)
-end
-
-function return_cards()
-  for _, pokemon_card in pairs(pokemon_cards) do
-    pokemon_card_decks_api.call("return_pokemon_card", {pokemon_card=pokemon_card})
-  end
-  pokemon_cards = {}
-end
+--
 
 function update_colour_tint(player_colour)
   -- Clear player colour from other trainer tokens
@@ -164,19 +111,106 @@ function update_colour_tint(player_colour)
   self.setColorTint(player_colour)
 end
 
+function spawn_hand_zone()
+  print("!")
+  spawnObject({
+    type              = "HandTrigger",
+    position          = self.getPosition() + Vector(0, 5, 0),
+    rotation          = self.getRotation(),
+    scale             = Vector(18, 5, 6.5),
+    sound             = false,
+    callback_function = function(hand)
+      hand.setValue("Brown")
+    end,
+  })
+end
+
+--
+--
+--
+
 function onPickUp(player_colour)
+  hide_search_button(0)
   update_colour_tint(player_colour)
-  hide_search_button()
-  return_cards()
 end
 
 function onDrop()
-  function delayed_find_search_params()
-    while self.getVelocity():magnitude() > 0.1 do
-      coroutine.yield(0)
-    end
-    find_search_params()
-    return 1
+  Wait.condition(find_search_params, function() return self.resting end, 2)
+end
+
+--
+--
+--
+
+function show_search_button()
+  update_panel()
+  self.UI.show("SearchButton")
+  hide_search_button(5)
+end
+
+function hide_search_button(delay)
+  if search_button_hide_timer_id then
+    Wait.stop(search_button_hide_timer_id)
+    search_button_hide_timer_id = nil
   end
-  startLuaCoroutine(self, "delayed_find_search_params")
+
+  function hide()
+    self.UI.hide("SearchButton")
+    search_button_hide_timer_id = nil
+  end
+  search_button_hide_timer_id = Wait.time(hide, delay)
+end
+
+function click_search_button()
+  hide_search_button(0)
+  spawn_hand_zone()
+end
+
+--
+--
+--
+
+function load_panel()
+  local ui_elements = {
+    {
+      tag = "Panel",
+      attributes = {
+        position = ui_tuple({0, 0, -650}),
+        rotation = ui_tuple({270, 0, 0}),
+        scale    = ui_tuple({1, 1, 1}),
+        width    = 250,
+        height   = 500,
+      },
+      children = {
+        tag = "Button",
+        attributes = {
+          active  = false,
+          id      = "SearchButton",
+          onClick = "click_search_button",
+          -- onMouseEnter = "enter_relocate_button",
+          -- onMouseExit  = "exit_relocate_button",
+          --
+          color = ui_colour(Color(0, 0, 0, 0)),
+          --
+          textShadow           = ui_colour(Color.AtiusBlack),
+          textOutline          = ui_colour(Color.AtiusBlack),
+          font                 = "Fonts/La Oriental",
+          resizeTextMaxSize    = 500,
+          resizeTextForBestFit = true,
+          --
+          showAnimation = "Grow",
+          hideAnimation = "Shrink",
+        },
+      }
+    },
+  }
+  self.UI.setXmlTable(ui_elements, UI.getCustomAssets())
+
+  Wait.condition(update_panel, has_ui_loaded)
+end
+
+function update_panel()
+  self.UI.setAttribute("SearchButton", "color", search_params.encounter and ui_colour(ENCOUNTER_COLOURS[search_params.encounter]) or ui_colour(Color(0, 0, 0, 0)))
+  self.UI.setAttribute("SearchButton", "text", "!")
+  self.UI.setAttribute("SearchButton", "textColor", ui_colour(Color.White))
 end

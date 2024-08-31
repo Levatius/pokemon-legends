@@ -2,7 +2,7 @@
 #include utils
 
 function onLoad()
-  language_vars = load_module(MODULE_LANGUAGE_TAG)
+  language_vars = get_module("localised_text_store").getTable("vars")
 
   self.createButton({
     click_function = "teleport",
@@ -27,7 +27,7 @@ end
 function teleport(_, player_colour)
   local trainer_token = find_trainer_token(player_colour)
   if not trainer_token then
-    broadcastToAll(language_vars.errors.TRAINER_TOKEN_NOT_FOUND, config.colours.INFO)
+    broadcastToAll(language_vars.errors.TRAINER_TOKEN_NOT_FOUND, Color.InfoBlue)
     return
   end
 

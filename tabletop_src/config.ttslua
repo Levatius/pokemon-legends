@@ -2,6 +2,47 @@
 -- CONFIG START
 --
 
+local colours = {
+  AtiusBlack    = Color(037/255, 037/255, 050/255),
+  WoodLight     = Color(200/255, 125/255, 100/255),
+  Wood          = Color(150/255, 075/255, 050/255),
+  WoodDark      = Color(125/255, 050/255, 025/255),
+  ActiveGreen   = Color(100/255, 225/255, 150/255),
+  WarningYellow = Color(250/255, 200/255, 100/255),
+  ErrorRed      = Color(250/255, 100/255, 100/255),
+  InfoBlue      = Color(100/255, 150/255, 250/255),
+  DeepGreen     = Color(050/255, 200/255, 100/255),
+  DeepRed       = Color(200/255, 050/255, 050/255),
+  --
+  Typeless  = Color(255/255, 255/255, 255/255),
+  Normal    = Color(144/255, 153/255, 161/255),
+  Fire      = Color(255/255, 156/255, 084/255),
+  Water     = Color(077/255, 144/255, 213/255),
+  Electric  = Color(243/255, 210/255, 059/255),
+  Grass     = Color(099/255, 187/255, 091/255),
+  Ice       = Color(116/255, 206/255, 192/255),
+  Fighting  = Color(206/255, 064/255, 105/255),
+  Poison    = Color(171/255, 106/255, 200/255),
+  Ground    = Color(217/255, 119/255, 070/255),
+  Flying    = Color(143/255, 168/255, 221/255),
+  Psychic   = Color(249/255, 113/255, 118/255),
+  Bug       = Color(144/255, 193/255, 044/255),
+  Rock      = Color(199/255, 183/255, 139/255),
+  Ghost     = Color(082/255, 105/255, 172/255),
+  Dragon    = Color(010/255, 109/255, 196/255),
+  Dark      = Color(090/255, 083/255, 102/255),
+  Steel     = Color(090/255, 142/255, 161/255),
+  Fairy     = Color(236/255, 143/255, 230/255),
+  --
+  WeakGreen       = Color(100/255, 200/255, 100/255),
+  ModerateBlue    = Color(100/255, 150/255, 250/255),
+  StrongRed       = Color(250/255, 100/255, 100/255),
+  LegendaryYellow = Color(250/255, 200/255, 100/255),
+}
+for name, colour in pairs(colours) do
+  Color.Add(name, colour)
+end
+
 WEAK = 2
 RESIST = -2
 IMMUNE = -4
@@ -9,66 +50,24 @@ IMMUNE = -4
 config = {
   type_chart = {
     Typeless = {},
-    Normal = {Rock = RESIST, Ghost = IMMUNE, Steel = RESIST},
-    Fire = {Fire = RESIST, Water = RESIST, Grass = WEAK, Ice = WEAK, Bug = WEAK, Rock = RESIST, Dragon = RESIST, Steel = WEAK},
-    Water = {Fire = WEAK, Water = RESIST, Grass = RESIST, Ground = WEAK, Rock = WEAK, Dragon = RESIST},
+    Normal   = {Rock = RESIST, Ghost = IMMUNE, Steel = RESIST},
+    Fire     = {Fire = RESIST, Water = RESIST, Grass = WEAK, Ice = WEAK, Bug = WEAK, Rock = RESIST, Dragon = RESIST, Steel = WEAK},
+    Water    = {Fire = WEAK, Water = RESIST, Grass = RESIST, Ground = WEAK, Rock = WEAK, Dragon = RESIST},
     Electric = {Water = WEAK, Electric = RESIST, Grass = RESIST, Ground = IMMUNE, Flying = WEAK, Dragon = RESIST},
-    Grass = {Fire = RESIST, Water = WEAK, Grass = RESIST, Poison = RESIST, Ground = WEAK, Flying = RESIST, Bug = RESIST,
-            Rock = WEAK, Dragon = RESIST, Steel = RESIST},
-    Ice = {Fire = RESIST, Water = RESIST, Grass = WEAK, Ice = RESIST, Ground = WEAK, Flying = WEAK, Dragon = WEAK,
-          Steel = RESIST},
-    Fighting = {Normal = WEAK, Ice = WEAK, Poison = RESIST, Flying = RESIST, Psychic = RESIST, Bug = RESIST, Rock = WEAK,
-               Ghost = IMMUNE, Dark = WEAK, Steel = WEAK, Fairy = RESIST},
-    Poison = {Grass = WEAK, Poison = RESIST, Ground = RESIST, Rock = RESIST, Ghost = RESIST, Steel = IMMUNE, Fairy = WEAK},
-    Ground = {Fire = WEAK, Electric = WEAK, Grass = RESIST, Poison = WEAK, Flying = IMMUNE, Bug = RESIST, Rock = WEAK,
-             Steel = WEAK},
-    Flying = {Electric = RESIST, Grass = WEAK, Fighting = WEAK, Bug = WEAK, Rock = RESIST, Steel = RESIST},
-    Psychic = {Fighting = WEAK, Poison = WEAK, Psychic = RESIST, Dark = IMMUNE, Steel = RESIST},
-    Bug = {Fire = RESIST, Grass = WEAK, Fighting = RESIST, Poison = RESIST, Flying = RESIST, Psychic = WEAK, Ghost = RESIST,
-          Dark = WEAK, Steel = RESIST, Fairy = RESIST},
-    Rock = {Fire = WEAK, Ice = WEAK, Fighting = RESIST, Ground = RESIST, Flying = WEAK, Bug = WEAK, Steel = RESIST},
-    Ghost = {Normal = IMMUNE, Psychic = WEAK, Ghost = WEAK, Dark = RESIST},
-    Dragon = {Dragon = WEAK, Steel = RESIST, Fairy = IMMUNE},
-    Dark = {Fighting = RESIST, Psychic = WEAK, Ghost = WEAK, Dark = RESIST, Fairy = RESIST},
-    Steel = {Fire = RESIST, Water = RESIST, Electric = RESIST, Ice = WEAK, Rock = WEAK, Steel = RESIST, Fairy = WEAK},
-    Fairy = {Fire = RESIST, Fighting = WEAK, Poison = RESIST, Dragon = WEAK, Dark = WEAK, Steel = RESIST}
-  },
-  colours = {
-    WHITE       = Color(255/255, 255/255, 255/255),
-    DARK        = Color(037/255, 037/255, 050/255),
-    DARK_WOOD   = Color(125/255, 050/255, 025/255),
-    WOOD        = Color(150/255, 075/255, 050/255),
-    LIGHT_WOOD  = Color(200/255, 125/255, 100/255),
-    GREEN       = Color(100/255, 200/255, 100/255),
-    RED         = Color(250/255, 100/255, 100/255),
-    INFO        = Color(100/255, 150/255, 250/255),
-    TYPE = {
-      Typeless  = Color(200/255, 195/255, 190/255),
-      Normal    = Color(144/255, 153/255, 161/255),
-      Fire      = Color(255/255, 156/255, 084/255),
-      Water     = Color(077/255, 144/255, 213/255),
-      Electric  = Color(243/255, 210/255, 059/255),
-      Grass     = Color(099/255, 187/255, 091/255),
-      Ice       = Color(116/255, 206/255, 192/255),
-      Fighting  = Color(206/255, 064/255, 105/255),
-      Poison    = Color(171/255, 106/255, 200/255),
-      Ground    = Color(217/255, 119/255, 070/255),
-      Flying    = Color(143/255, 168/255, 221/255),
-      Psychic   = Color(249/255, 113/255, 118/255),
-      Bug       = Color(144/255, 193/255, 044/255),
-      Rock      = Color(199/255, 183/255, 139/255),
-      Ghost     = Color(082/255, 105/255, 172/255),
-      Dragon    = Color(010/255, 109/255, 196/255),
-      Dark      = Color(090/255, 083/255, 102/255),
-      Steel     = Color(090/255, 142/255, 161/255),
-      Fairy     = Color(236/255, 143/255, 230/255),
-    },
-    encounters = {
-      WEAK      = Color(100/255, 200/255, 100/255),
-      MODERATE  = Color(100/255, 150/255, 250/255),
-      STRONG    = Color(250/255, 100/255, 100/255),
-      LEGENDARY = Color(250/255, 200/255, 100/255),
-    }
+    Grass    = {Fire = RESIST, Water = WEAK, Grass = RESIST, Poison = RESIST, Ground = WEAK, Flying = RESIST, Bug = RESIST, Rock = WEAK, Dragon = RESIST, Steel = RESIST},
+    Ice      = {Fire = RESIST, Water = RESIST, Grass = WEAK, Ice = RESIST, Ground = WEAK, Flying = WEAK, Dragon = WEAK, Steel = RESIST},
+    Fighting = {Normal = WEAK, Ice = WEAK, Poison = RESIST, Flying = RESIST, Psychic = RESIST, Bug = RESIST, Rock = WEAK, Ghost = IMMUNE, Dark = WEAK, Steel = WEAK, Fairy = RESIST},
+    Poison   = {Grass = WEAK, Poison = RESIST, Ground = RESIST, Rock = RESIST, Ghost = RESIST, Steel = IMMUNE, Fairy = WEAK},
+    Ground   = {Fire = WEAK, Electric = WEAK, Grass = RESIST, Poison = WEAK, Flying = IMMUNE, Bug = RESIST, Rock = WEAK, Steel = WEAK},
+    Flying   = {Electric = RESIST, Grass = WEAK, Fighting = WEAK, Bug = WEAK, Rock = RESIST, Steel = RESIST},
+    Psychic  = {Fighting = WEAK, Poison = WEAK, Psychic = RESIST, Dark = IMMUNE, Steel = RESIST},
+    Bug      = {Fire = RESIST, Grass = WEAK, Fighting = RESIST, Poison = RESIST, Flying = RESIST, Psychic = WEAK, Ghost = RESIST, Dark = WEAK, Steel = RESIST, Fairy = RESIST},
+    Rock     = {Fire = WEAK, Ice = WEAK, Fighting = RESIST, Ground = RESIST, Flying = WEAK, Bug = WEAK, Steel = RESIST},
+    Ghost    = {Normal = IMMUNE, Psychic = WEAK, Ghost = WEAK, Dark = RESIST},
+    Dragon   = {Dragon = WEAK, Steel = RESIST, Fairy = IMMUNE},
+    Dark     = {Fighting = RESIST, Psychic = WEAK, Ghost = WEAK, Dark = RESIST, Fairy = RESIST},
+    Steel    = {Fire = RESIST, Water = RESIST, Electric = RESIST, Ice = WEAK, Rock = WEAK, Steel = RESIST, Fairy = WEAK},
+    Fairy    = {Fire = RESIST, Fighting = WEAK, Poison = RESIST, Dragon = WEAK, Dark = WEAK, Steel = RESIST},
   },
   tags = {
     encounters = {
@@ -101,6 +100,7 @@ config = {
       MODULE          = "Module",
       MUSIC_CARTRIDGE = "Music Cartridge",
       MUSIC_EVENTS    = "Music Events",
+      HIDDEN_SPOT     = "Hidden Spot",
     },
     world = {
       APRICORN_TREE     = "Apricorn Tree Token",
@@ -113,15 +113,21 @@ config = {
       VILLAGE           = "Village Token",
       WILD_AREA         = "Wild Area",
       WORLD             = "World Token",
+      ELEMENTAL_STONE   = "Elemental Stone",
+      SANCTUARY         = "Sanctuary",
     },
     items = {
-      BALL              = "Ball Token",
-      DISTORTION_OBJECT = "Distortion Object",
-      HELD              = "Held Item",
-      HIDDEN            = "Hidden Token",
-      ARTIFACT          = "Artifact Token",
-      JOURNEY_POINT     = "Journey Point Token",
-      APRICORN          = "Apricorn Token",
+      BALL                = "Ball Token",
+      DISTORTION_OBJECT   = "Distortion Object",
+      HELD                = "Held Item",
+      HIDDEN              = "Hidden Token",
+      ARTIFACT            = "Artifact Token",
+      JOURNEY_POINT       = "Journey Point Token",
+      APRICORN            = "Apricorn Token",
+      KEY                 = "Key Item",
+      HEALING_FLASK       = "Healing Flask",
+      CRAFTING_HAMMER     = "Crafting Hammer",
+      PATHFINDING_COMPASS = "Pathfinding Compass",
     },
     cards = {
       ACTS            = "Act Card",
@@ -140,56 +146,28 @@ config = {
       BREACH_CLAIMED    = "Breach Claimed",
     },
     zones = {
-      POKEMON_SLOT  = "Pokemon Slot",
-      POKEMON       = "Pokemon Zone",
-      POKEMON_DECK  = "Pokemon Deck Zone",
+      POKEMON_SLOT   = "Pokemon Slot",
+      POKEMON        = "Pokemon Zone",
+      POKEMON_DECK   = "Pokemon Deck Zone",
+      LEGENDARY_BIRD = "Legendary Bird",
     },
     panels = {
       BAG   = "Bag Panel",
       PARTY = "Party Panel",
       SHARD = "Shard Panel",
-    }
+    },
+    secrets = {
+      HIDDEN_SHALLOWS = "Hidden Shallows",
+    },
   },
   guids = {
     BIRD = "527326",
     NESBURGH = "83102a",
-    APRICORN_BAGS = {"c2d9cc", "5ae126", "926a58", "1d667c", "c7bdb9", "43f641", "76d021"},
-    JOURNEY_POINT_BAG = "611d38",
     COMMANDER_CAMPAIGN_TOKEN_ZONE = "cc2674",
     BOSS_CAMPAIGN_TOKEN_ZONE = "2c6ace",
     HIDDEN_SPOT_DISCARD_ZONE = "02b565",
-    SECRET_ENCOUNTER_ZONE = "f0666d",
     BREACH_ZONE = "f596eb",
-    ULTRA_SPACE_BREACH_BAG = "6f5139",
     TACTICS_ZONE = "02b5c2",
-    STARTER_DECK_ZONE = "ce4312",
-    WEAK_DECK_ZONE = "4d7853",
-    MODERATE_DECK_ZONE = "59e600",
-    STRONG_DECK_ZONE = "c788ce",
-    LEGENDARY_DECK_ZONE = "001a84",
-    EVOLUTION_DECK_ZONE = "ae4239",
-    ARENA_ACTIVE_ZONES = {"494620", "6b0103"},
-    apis = {
-      POKEMON_CARD_DECKS = "70b03a",
-    },
-    stores = {
-      POKEMON_STATS = "bf727d",
-    },
-  }
-}
-
-gameplay_config = {
-  search_counts = {
-    [config.tags.encounters.WEAK] = 2,
-    [config.tags.encounters.MODERATE] = 2,
-    [config.tags.encounters.STRONG] = 2,
-    [config.tags.encounters.LEGENDARY] = 1,
-  },
-  search_button_colours = {
-    [config.tags.encounters.WEAK] = config.colours.encounters.WEAK,
-    [config.tags.encounters.MODERATE] = config.colours.encounters.MODERATE,
-    [config.tags.encounters.STRONG] = config.colours.encounters.STRONG,
-    [config.tags.encounters.LEGENDARY] = config.colours.encounters.LEGENDARY,
   }
 }
 

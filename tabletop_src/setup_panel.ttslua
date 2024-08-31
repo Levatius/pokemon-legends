@@ -11,13 +11,13 @@ local weak_zone = getObjectFromGUID(weak_zone_guid)
 STEPS = 50
 
 function onLoad()
-  language_vars = load_module(MODULE_LANGUAGE_TAG)
+  language_vars = get_module("localised_text_store").getTable("vars")
 
   local button_params = {
     function_owner = self,
     scale          = {0.5, 1, 0.5},
-    color          = config.colours.WOOD,
-    font_color     = config.colours.WHITE
+    color          = Color.Wood,
+    font_color     = Color.White
   }
   -- Debug Button
   button_params["click_function"] = "debug_game"
@@ -259,19 +259,19 @@ end
 --
 --
 
-function update_trainer_area_panels()
-  local trainer_area_panels = getObjectsWithAnyTags({config.tags.panels.BAG, config.tags.panels.PARTY, config.tags.panels.SHARD})
-  for _, trainer_area_panel in pairs(trainer_area_panels) do
-    if is_expansion_enabled() then
-      if not trainer_area_panel.is_face_down then flip_object(trainer_area_panel) end
-    else
-      if trainer_area_panel.is_face_down then flip_object(trainer_area_panel) end
-    end
-    if trainer_area_panel.hasTag(config.tags.panels.BAG) then
-      trainer_area_panel.call("update_panel")
-    end
-  end
-end
+-- function update_trainer_area_panels()
+--   local trainer_area_panels = getObjectsWithAnyTags({config.tags.panels.BAG, config.tags.panels.PARTY, config.tags.panels.SHARD})
+--   for _, trainer_area_panel in pairs(trainer_area_panels) do
+--     if is_expansion_enabled() then
+--       if not trainer_area_panel.is_face_down then flip_object(trainer_area_panel) end
+--     else
+--       if trainer_area_panel.is_face_down then flip_object(trainer_area_panel) end
+--     end
+--     if trainer_area_panel.hasTag(config.tags.panels.BAG) then
+--       trainer_area_panel.call("update_panel")
+--     end
+--   end
+-- end
 
 function update_panel()
   local label = language_vars.setup_panel.HOS_CAMPAIGN_LABEL
@@ -282,5 +282,5 @@ function update_panel()
   end
   self:editButton({index=1, label=label, color=color})
 
-  update_trainer_area_panels()
+  --update_trainer_area_panels()
 end

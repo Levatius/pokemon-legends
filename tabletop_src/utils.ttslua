@@ -8,20 +8,6 @@ CLIMATE_TAGS = {"Cold", "Temperate", "Warm"}
 BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean"}
 ENCOUNTER_TAGS = {"Weak", "Moderate", "Strong", "Legendary", "Distortion", "Secret"}
 
-
-function load_module(module_tag)
-  local modules = getObjectsWithTag(module_tag)
-  if len(modules) > 1 then
-    print('More than one module with tag "' .. module_tag .. '".')
-    return
-  elseif len(modules) == 0 then
-    print('Missing a module with tag "' .. module_tag .. '".')
-    return
-  end
-  local module = modules[1]
-  return module:getTable("vars")
-end
-
 function get_module(module_name)
   local modules = {}
   for _, module in pairs(getObjectsWithTag("Module")) do
@@ -47,14 +33,6 @@ function len(t)
     l = l + 1
   end
   return l
-end
-
-function get_keys(t)
-  local keys = {}
-  for key, _ in pairs(t) do
-    table.insert(keys, key)
-  end
-  return keys
 end
 
 function find_first_index(t, value)
@@ -89,12 +67,6 @@ function get_max_key_and_value(t)
   end
   return key, max
 end
-
-local function reversedipairsiter(t, i)
-  i = i - 1
-  if i ~= 0 then return i, t[i] end
-end
-function reversedipairs(t) return reversedipairsiter, t, #t + 1 end
 
 function shuffle(t)
   shuffled = {}
@@ -170,16 +142,22 @@ function get_encounter_tag(tags)
   end
 end
 
+function split(value, delimiter)
+  local pattern = "([^" .. delimiter .. "]+)"
+  return string.gmatch(value, pattern)
+end
+
 function brief_pause()
   for i = 0, 25 do
     coroutine.yield(0)
   end
 end
 
-function ui_loading_pause(object)
-  while object.UI.loading do
-    coroutine.yield(0)
+function has_ui_loaded(object)
+  if not object then
+    object = self
   end
+  return (not object.UI.loading) and (not UI.loading)
 end
 
 function signed_label(value)
@@ -199,23 +177,30 @@ function round(value)
   return math.floor(value + 0.5)
 end
 
-function get_object(zone)
-  local objects = zone:getObjects()
+function get_object(zone, only_face_up)
+  local objects = zone.getObjects()
   for _, object in pairs(objects) do
-    return object
+    if only_face_up then
+      if not object.is_face_down then
+        return object
+      end
+    else
+      return object
+    end
   end
+  return nil
 end
 
 function get_x_dir(obj)
-  return round(math.cos(math.rad(obj:getRotation().x)))
+  return round(math.cos(math.rad(obj.getRotation().x)))
 end
 
 function get_y_dir(obj)
-  return round(math.cos(math.rad(obj:getRotation().y)))
+  return round(math.cos(math.rad(obj.getRotation().y)))
 end
 
 function get_z_dir(obj)
-  return round(math.cos(math.rad(obj:getRotation().z)))
+  return round(math.cos(math.rad(obj.getRotation().z)))
 end
 
 function flip_object(obj, known_height)
@@ -243,19 +228,33 @@ function double_check_then(condition, f)
   startLuaCoroutine(self, "double_check_coroutine")
 end
 
-function register_button(buttons, name)
-  buttons[name] = len(buttons)
-end
+--
+--
+--
 
-function get_closest(caller, objects)
-  -- Given a table of objects, return the closest object to the caller
-  local distances = {}
-  for _, object in pairs(objects) do
-    distances[object] = caller.getPosition():distance(object.getPosition())
+function get_closest(position, objects, top)
+  if not top then
+    top = 1
   end
 
-  local closest_object, _ = get_min_key_and_value(distances)
-  return closest_object
+  local sortable_records = {}
+  for _, object in pairs(objects) do
+    table.insert(sortable_records, {
+      object = object,
+      distance = Vector(position):distance(object.getPosition())
+    })
+  end
+
+  function sort_function(a, b)
+    return a.distance < b.distance
+  end
+  table.sort(sortable_records, sort_function)
+
+  local closest_objects = {}
+  for _, sortable_record in pairs({table.unpack(sortable_records, 1, top)}) do
+    table.insert(closest_objects, sortable_record.object)
+  end
+  return table.unpack(closest_objects)
 end
 
 function filter_objects_of_type(objects, type)
@@ -276,17 +275,21 @@ function find_objects(tags, type)
   return filter_objects_of_type(objects, type)
 end
 
-function find_closest(caller, tags, type)
+function find_closest(position, tags, type, top)
   local objects = find_objects(tags, type)
-  return get_closest(caller, objects)
+  return get_closest(position, objects, top)
 end
+
+--
+--
+--
 
 function ui_tuple(t)
   return table.concat(t, " ")
 end
 
 function ui_colour(colour)
-  return "#" .. colour:toHex()
+  return "#" .. colour:toHex(true)
 end
 
 --

@@ -1,5 +1,7 @@
-openpyxl==3.0.7
-pandas==1.2.3
-Pillow==8.2.0
-requests==2.25.1
-tqdm==4.62.3
+numpy==2.0.1
+openpyxl==3.1.5
+pandas==2.2.2
+pandera==0.20.3
+Pillow==10.4.0
+requests==2.32.3
+tqdm==4.66.4

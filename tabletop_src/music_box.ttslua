@@ -5,11 +5,11 @@ local music_events
 local selected_music_event_index
 
 function onLoad()
-  language_vars = load_module(MODULE_LANGUAGE_TAG)
+  language_vars = get_module("localised_text_store").getTable("vars")
 
-  music_cartridge_zone = find_closest(self, {config.tags.objects.MUSIC_CARTRIDGE}, "Scripting")
-  music_events_zone = find_closest(self, {config.tags.objects.MUSIC_EVENTS}, "Scripting")
-  arena_pokeball_zones = find_objects({config.tags.items.BALL, config.tags.property.ARENA}, "Scripting")
+  position = self.getPosition()
+  music_cartridge_zone = find_closest(position, {config.tags.objects.MUSIC_CARTRIDGE}, "Scripting")
+  music_events_zone = find_closest(position, {config.tags.objects.MUSIC_EVENTS}, "Scripting")
   arena_active_zones = find_objects({config.tags.zones.POKEMON_SLOT, config.tags.property.ARENA}, "Scripting")
 
   get_module("object_links_store").call("set_links", {
@@ -17,11 +17,7 @@ function onLoad()
     other_objects = {
       music_cartridge_zone,
       music_events_zone,
-      -- Assuming the Arena only has two active zones and two ball zones
-      arena_pokeball_zones[1],
-      arena_pokeball_zones[2],
-      arena_active_zones[1],
-      arena_active_zones[2],
+      table.unpack(arena_active_zones),
     }
   })
 
@@ -33,7 +29,7 @@ function onLoad()
     width          = 0,
     height         = 0,
     font_size      = 100,
-    font_color     = config.colours.WHITE
+    font_color     = Color.White
   }
   self:createButton(text_params)
 
@@ -45,8 +41,8 @@ function onLoad()
     width          = 150,
     height         = 150,
     font_size      = 300,
-    color          = config.colours.WOOD,
-    font_color     = config.colours.WHITE
+    color          = Color.Wood,
+    font_color     = Color.White
   }
   for i = 1, 5 do
     self:createButton(button_params)
@@ -158,14 +154,13 @@ end
 --
 
 function get_non_player_pokemon()
-  for i = 1, 2 do
-    local arena_active_zone = arena_active_zones[i]
-    local arena_pokeball_zone = arena_pokeball_zones[i]
+  for _, arena_active_zone in pairs(arena_active_zones) do
+    local arena_ball_zone = find_closest(arena_active_zone.getPosition(), {config.tags.items.BALL, config.tags.property.ARENA}, "Scripting")
 
     local pokemon = get_object(arena_active_zone)
-    local pokeball = get_object(arena_pokeball_zone)
+    local ball = get_object(arena_ball_zone)
 
-    if pokemon and not pokeball then
+    if pokemon and not ball then
       return pokemon
     end
   end
@@ -181,7 +176,7 @@ function find_music_event_index(pokemon)
       -- Find the best match amongst all tag profiles
       local match = 0
       for _, tag in pairs(tag_profile) do
-        if pokemon:hasTag(tag) then
+        if pokemon.hasTag(tag) then
           match = match + 1
         else
           -- Pokémon does not have a tag in the tag profile, disregard
@@ -276,7 +271,7 @@ function update_panel()
     self:editButton({index=0, label=now_playing_label})
 
     -- Shuffle Button
-    local shuffle_button_colour = MusicPlayer.shuffle and config.colours.GREEN or config.colours.WOOD
+    local shuffle_button_colour = MusicPlayer.shuffle and Color.ActiveGreen or Color.Wood
     self:editButton({index=1, color=shuffle_button_colour})
 
     -- Back Button
@@ -295,12 +290,12 @@ function update_panel()
     if MusicPlayer.player_status == "Pause" then
       play_button_label = "▶"
       play_button_font_size = 300
-      play_button_colour = config.colours.WOOD
+      play_button_colour = Color.Wood
       play_button_tooltip = language_vars.music_box.PLAY_BUTTON_TOOLTIP
     else
       play_button_label = "▐ ▌"
       play_button_font_size = 200
-      play_button_colour = config.colours.GREEN
+      play_button_colour = Color.ActiveGreen
       play_button_tooltip = language_vars.music_box.PAUSE_BUTTON_TOOLTIP
     end
     self:editButton({index=3, label=play_button_label, font_size=play_button_font_size, color=play_button_colour, tooltip=play_button_tooltip})
@@ -317,7 +312,7 @@ function update_panel()
     self:editButton({index=4, label=forward_button_label, tooltip=forward_button_tooltip})
 
     -- Repeat Button
-    local repeat_button_colour = MusicPlayer.repeat_track and config.colours.GREEN or config.colours.WOOD
+    local repeat_button_colour = MusicPlayer.repeat_track and Color.ActiveGreen or Color.Wood
     self:editButton({index=5, color=repeat_button_colour})
 
     -- Track Display Text

@@ -13,8 +13,8 @@ function onObjectStateChange(object, old_state_guid)
   local pokemon_stats = pokemon_stats_store.call("get", {guid=old_state_guid})
   local new_state_guid = object.getGUID()
   pokemon_stats_store.call("save", {guid=new_state_guid, pokemon_stats=pokemon_stats})
-  local pokemon_card_ui_api = getObjectFromGUID("998dc7")
-  pokemon_card_ui_api.call("add", {guid=new_state_guid})
+  local pokemon_ui_api = getObjectFromGUID("998dc7")
+  pokemon_ui_api.call("add", {guid=new_state_guid})
 end
 
 function onObjectEnterZone(zone, object)
@@ -24,10 +24,10 @@ function onObjectEnterZone(zone, object)
   if zone.hasTag(config.tags.zones.POKEMON_SLOT) and object.hasTag(config.tags.cards.POKEMON) and not object.is_face_down then
     local pokemon_card = object
     local guid = pokemon_card.getGUID()
-    local pokemon_card_ui_api = getObjectFromGUID("998dc7")
+    local pokemon_ui_api = getObjectFromGUID("998dc7")
     function pause_coroutine()
       brief_pause()
-      pokemon_card_ui_api.call("show", {guid=guid, zone=zone})
+      pokemon_ui_api.call("show", {guid=guid, zone=zone})
       return 1
     end
     startLuaCoroutine(self, "pause_coroutine")
@@ -92,8 +92,8 @@ function onObjectLeaveZone(zone, object)
     end
 
     local guid = pokemon_card.getGUID()
-    local pokemon_card_ui_api = getObjectFromGUID("998dc7")
-    pokemon_card_ui_api.call("hide", {guid=guid})
+    local pokemon_ui_api = getObjectFromGUID("998dc7")
+    pokemon_ui_api.call("hide", {guid=guid})
   end
 end
 
@@ -104,6 +104,9 @@ function tryObjectEnterContainer(container, object)
   -- Player Bags
   elseif container.hasTag(config.tags.objects.PLAYER_BAG) then
     return object.hasTag(config.tags.items.APRICORN) or object.hasTag(config.tags.items.JOURNEY_POINT)
+  -- Hidden Spots
+  elseif container.hasTag(config.tags.objects.HIDDEN_SPOT) then
+    return object.hasTag(config.tags.objects.HIDDEN_SPOT)
   -- ???
   elseif container.hasTag(config.tags.objects.ULTRA_BEAST) and container.hasTag(config.tags.objects.ULTRA_BURST) then
     return object.hasTag(config.tags.objects.ULTRA_BEAST) or object.hasTag(config.tags.objects.ULTRA_BURST)
@@ -112,25 +115,18 @@ function tryObjectEnterContainer(container, object)
 end
 
 function onObjectEnterContainer(container, object)
-  -- Player Bags
-  if container.hasTag(config.tags.objects.PLAYER_BAG) then
-    local bag_panels = getObjectsWithTag(config.tags.panels.BAG)
-    local closest_bag_panel = get_closest(container, bag_panels)
-    closest_bag_panel.call("update_panel")
-  end
 end
 
 function onObjectLeaveContainer(container, object)
-  -- Player Bags
-  if container.hasTag(config.tags.objects.PLAYER_BAG) then
-    local bag_panels = getObjectsWithTag(config.tags.panels.BAG)
-    local closest_bag_panel = get_closest(container, bag_panels)
-    closest_bag_panel.call("update_panel")
   -- Pokemon Decks
-  elseif container.type == "Deck" and object.hasTag(config.tags.cards.POKEMON) then
+  if container.type == "Deck" and object.hasTag(config.tags.cards.POKEMON) then
     local pokemon_card = object
+
+    -- Enable add to hand
+    pokemon_card.use_hands = true
+
+    -- Register card with UI module
     local guid = pokemon_card.getGUID()
-    local pokemon_card_ui_api = getObjectFromGUID("998dc7")
-    pokemon_card_ui_api.call("add", {guid=guid})
+    get_module("pokemon_ui_api").call("add", {guid=guid})
   end
 end
