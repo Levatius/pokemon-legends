@@ -1,0 +1,22 @@
+#include config
+#include utils
+
+function onLoad()
+  language_vars = get_module("localised_text_store").getTable("vars")
+
+  self.createButton({
+    click_function = "reduce_ore",
+    function_owner = self,
+    position       = {0, 0.1, 0},
+    width          = 600,
+    height         = 600,
+    color          = {0, 0, 0, 0},
+    tooltip        = language_vars.distortion_ore.REDUCE_ORE_TOOLTIP
+  })
+end
+
+function reduce_ore(_, _, alt_click)
+  local current_state = self.getStateId()
+  local next_state = get_next_state(current_state, len(self.getStates()) + 1)
+  self:setState(next_state)
+end

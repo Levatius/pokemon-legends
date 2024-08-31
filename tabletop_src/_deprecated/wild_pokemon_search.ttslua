@@ -1,0 +1,62 @@
+#include config
+#include utils
+
+local starter_deck_zone = getObjectFromGUID(config.guids.STARTER_DECK_ZONE)
+local weak_deck_zone = getObjectFromGUID(config.guids.WEAK_DECK_ZONE)
+local moderate_deck_zone = getObjectFromGUID(config.guids.MODERATE_DECK_ZONE)
+local strong_deck_zone = getObjectFromGUID(config.guids.STRONG_DECK_ZONE)
+local legendary_deck_zone = getObjectFromGUID(config.guids.LEGENDARY_DECK_ZONE)
+local evolution_deck_zone = getObjectFromGUID(config.guids.EVOLUTION_DECK_ZONE)
+
+local TIER_TO_ZONE_MAP = {
+  config.tags.encounters.STARTER = starter_deck_zone,
+  config.tags.encounters.WEAK = weak_deck_zone,
+  config.tags.encounters.MODERATE = moderate_deck_zone,
+  config.tags.encounters.STRONG = strong_deck_zone,
+  config.tags.encounters.LEGENDARY = legendary_deck_zone,
+  config.tags.encounters.ULTRA_BEAST = legendary_deck_zone,
+  config.tags.encounters.ULTRA_BURST = legendary_deck_zone
+}
+local RETURN_DROP_OFFSET = Vector(0, 2.5, 0)
+
+function _get_zone(tier)
+  if not tier then
+    return evolution_deck_zone
+  end
+  return TIER_TO_ZONE_MAP[tier]
+end
+
+function _get_wild_pokemon_guid(biome, climate, tier, name)
+  local zone = _get_zone(tier)
+  local wild_pokemon_infos = get_object_infos_from_zone_deck(zone, false)
+
+  for _, info in pairs(wild_pokemon_infos) do
+    -- Search by "name" is prioritised
+    if name then
+      local _, _, wild_pokemon_name = string.find(info.lua_script, 'pokedex_name = "([%w%p%s]+)"')
+      if wild_pokemon_name and wild_pokemon_name == name then
+        return info.guid
+      end
+    -- Otherwise, search by "biome" and "climate"
+    else
+      local wild_pokemon_biome = get_biome_tag(info.tags)
+      local wild_pokemon_climate = get_climate_tag(info.tags)
+      -- Apricorn Trees/Reefs
+      if wild_pokemon_biome == biome and wild_pokemon_climate == climate then
+        return info.guid
+      -- Warped Apricorn Trees
+      elseif not biome and not climate then
+        return info.guid
+      end
+    end
+  end
+end
+
+function get_wild_pokemon()
+end
+
+function return_wild_pokemon(wild_pokemon_card)
+  local tier = get_encounter_tag(wild_pokemon_card:getTags())
+  local zone = _get_zone(tier)
+
+end

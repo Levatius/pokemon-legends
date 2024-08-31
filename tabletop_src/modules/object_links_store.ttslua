@@ -1,0 +1,96 @@
+local object_links_state
+
+
+function onLoad(save_state)
+  Global.setVectorLines()
+
+  object_links_state = JSON.decode(save_state)
+  if object_links_state == nil then
+    object_links_state = {}
+  end
+end
+
+function onSave()
+  _cleanup_links()
+  return JSON.encode(object_links_state)
+end
+
+--
+--
+--
+
+function _is_store_loaded()
+  return object_links_state ~= nil
+end
+
+function update_vector_lines()
+  local vector_lines = {}
+  for link_base_guid, link_end_guids in pairs(object_links_state) do
+    local object = getObjectFromGUID(link_base_guid)
+    for _, link_end_guid in pairs(link_end_guids) do
+      local other_object = getObjectFromGUID(link_end_guid)
+      local vector_line = {
+        points = {object.getPosition() + Vector(0, 0.25, 0), other_object.getPosition() + Vector(0, 0.25, 0)},
+        color = Color.fromHex(object.getGUID()),
+        thickness = 0.1,
+      }
+      table.insert(vector_lines, vector_line)
+    end
+  end
+  Global.setVectorLines(vector_lines)
+end
+
+function _cleanup_links()
+  for base_guid, _ in pairs(object_links_state) do
+    local base_object = getObjectFromGUID(base_guid)
+    if base_object == nil then
+      object_links_state[base_guid] = nil
+    end
+  end
+end
+
+function set_links(params)
+  local object_guid = params.object.getGUID()
+  local other_objects_guids = {}
+
+  for _, other_object in pairs(params.other_objects) do
+    table.insert(other_objects_guids, other_object.getGUID())
+  end
+
+  function _set_links()
+    object_links_state[object_guid] = other_objects_guids
+  end
+  Wait.condition(_set_links, _is_store_loaded)
+  Wait.condition(_cleanup_links, _is_store_loaded)
+end
+
+function _get_linked_guids(object)
+  local object_guid = object.getGUID()
+  -- Forward Links
+  local linked_guids = object_links_state[object]
+  if linked_guids == nil then
+    linked_guids = {}
+  end
+  -- Reverse Links
+  for base_guid, link_guids in pairs(object_links_state) do
+    for _, link_guid in pairs(link_guids) do
+      if link_guid == object_guid then
+        table.insert(linked_guids, base_guid)
+      end
+    end
+  end
+  return linked_guids
+end
+
+function get_linked_objects(params)
+  local linked_guids = _get_linked_guids(params.object)
+  local linked_objects = {}
+
+  for _, linked_guid in pairs(linked_guids) do
+    local linked_object = getObjectFromGUID(linked_guid)
+    if linked_object ~= nil then
+      table.insert(linked_objects, linked_object)
+    end
+  end
+  return linked_objects
+end

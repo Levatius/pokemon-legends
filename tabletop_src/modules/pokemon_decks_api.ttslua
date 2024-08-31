@@ -1,0 +1,84 @@
+#include ../config
+#include ../utils
+
+--
+-- UTILS
+--
+
+function _get_zone_deck(encounter)
+  for _, zone_deck in pairs(getObjectsWithTag(config.tags.zones.POKEMON_DECK)) do
+    if zone_deck:hasTag(encounter) then
+      return zone_deck
+    end
+  end
+end
+
+--
+-- SEARCH
+--
+
+function get_pokemon_card(params)
+  local zone_deck = _get_zone_deck(params.encounter)
+  local guid = _get_guid(zone_deck, params.biome, params.climate, params.name)
+  if not guid then
+    return
+  end
+  local take_params = {
+    guid=guid,
+    smooth=false
+  }
+  local pokemon_card = take_object_from_zone_deck(zone_deck, take_params)
+  return pokemon_card
+end
+
+function _get_guid(zone_deck, biome, climate, name)
+  local infos = get_object_infos_from_zone_deck(zone_deck, false)
+  -- Named encounters and evolutions
+  if name and name ~= "" then
+    return _get_guid_from_name(infos, name)
+  -- Apricorn trees
+  else
+    return _get_guid_from_biome_and_climate(infos, biome, climate)
+  end
+  return nil
+end
+
+function _get_guid_from_name(infos, name)
+  for _, info in pairs(infos) do
+    -- First look for a match on internal_name
+    local _, _, internal_name = string.find(info.lua_script, 'internal_name = "([%w%p%s]+)"')
+    if internal_name and internal_name == name then
+      return info.guid
+    end
+    -- Then look for a match on pokedex_name
+    local _, _, pokedex_name = string.find(info.lua_script, 'pokedex_name = "([%w%p%s]+)"')
+    if pokedex_name and pokedex_name == name then
+      return info.guid
+    end
+  end
+  return nil
+end
+
+function _get_guid_from_biome_and_climate(infos, biome, climate)
+  for _, info in pairs(infos) do
+    local biome_tag = get_biome_tag(info.tags)
+    local climate_tag = get_climate_tag(info.tags)
+    if biome_tag == biome and climate_tag == climate then
+      return info.guid
+    end
+  end
+  return nil
+end
+
+--
+-- RETURN
+--
+
+function return_pokemon_card(params)
+  local pokemon_card = params.pokemon_card
+  local encounter = get_encounter_tag(pokemon_card.getTags())
+  local zone_deck = _get_zone_deck(encounter)
+  pokemon_card.setPosition(zone_deck.getPosition() + Vector(0, 2.5, 0))
+  pokemon_card.setRotation(zone_deck.getRotation())
+  pokemon_card.setLock(false)
+end

@@ -1,0 +1,80 @@
+#include ../config
+#include ../utils
+
+
+function onLoad()
+  position = self.getPosition()
+  active_slot = find_closest(position, {config.tags.property.ARENA, config.tags.zones.POKEMON_SLOT})
+  field_zone = find_closest(position, {config.tags.objects.POKEMON_MODEL}, "Scripting")
+  model_bag = find_closest(position, {config.tags.objects.POKEMON_MODEL}, "Bag")
+
+  get_module("object_links_store").call("set_links", {
+    object = self,
+    other_objects = {
+      active_slot,
+      field_zone,
+      model_bag,
+    }
+  })
+  update_panel()
+end
+
+--
+--
+--
+
+function handle_models(pokemon)
+  local models = field_zone.getObjects()
+  if not pokemon and #models > 0 then
+    undeploy_models(models)
+  elseif pokemon then
+    local model_guid = find_model_guid(pokemon)
+    if model_guid then
+      deploy_model(model_guid, pokemon)
+    end
+  end
+end
+
+function find_model_guid(pokemon)
+  for _, contained_object in pairs(model_bag.getObjects()) do
+    if contained_object.name == pokemon.getVar("internal_name") then
+      return contained_object.guid
+    end
+  end
+end
+
+function deploy_model(model_guid, pokemon)
+  local model = model_bag.takeObject({
+    position          = field_zone.getPosition(),
+    rotation          = field_zone.getRotation(),
+    guid              = model_guid,
+    callback_function = function(model) deploy_model_callback(model, pokemon) end
+  })
+  if pokemon.hasTag("Noble") then
+    model.highlightOn({250/255, 200/255, 0/255})
+  elseif pokemon.hasTag("Alpha") then
+    model.highlightOn({150/255, 0/255, 0/255})
+  end
+  model.interactable = false
+end
+
+function deploy_model_callback(model, pokemon)
+  model.AssetBundle.playTriggerEffect(2)
+end
+
+function undeploy_models(models)
+  for _, model in pairs(models) do
+    if not model.isDestroyed() then
+      model_bag.putObject(model)
+    end
+  end
+end
+
+--
+--
+--
+
+function update_panel()
+  local active_pokemon = get_object(active_slot, true)
+  handle_models(active_pokemon)
+end

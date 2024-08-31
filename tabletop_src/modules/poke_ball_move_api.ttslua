@@ -1,0 +1,68 @@
+#include ../config
+#include ../utils
+
+--
+--
+--
+
+function _find_closest_scripting_zone(poke_ball)
+  local scripting_zones = {}
+
+  local objects = getObjectsWithTag(config.tags.cards.POKEMON)
+  for _, object in pairs(objects) do
+    if object.type == "Scripting" then
+      scripting_zones[object] = poke_ball.getPosition():distance(object.getPosition())
+    end
+  end
+
+  local closest_scripting_zone, _ = get_min_key_and_value(scripting_zones)
+  return closest_scripting_zone
+end
+
+function register(params)
+  local poke_ball = params.poke_ball
+  --
+  local closest_scripting_zone = _find_closest_scripting_zone(poke_ball)
+  poke_ball.setVar("registered_zone", closest_scripting_zone)
+end
+
+function _is_object_in_zone(object, zone)
+  local object_pos = object.getPosition()
+  local zone_pos = zone.getPosition()
+  local zone_scale = zone.getScale()
+
+  for _, dir in pairs({"x", "y", "z"}) do
+    if object_pos[dir] < zone_pos[dir] - zone_scale[dir] / 2 or object_pos[dir] > zone_pos[dir] + zone_scale[dir] / 2 then
+      return false
+    end
+  end
+  return true
+end
+
+function _is_zone_occupied(zone)
+  local objects = zone.getObjects()
+  return len(objects) > 0
+end
+
+function move(params)
+  local poke_ball = params.poke_ball
+  --
+  local source_zone = poke_ball.getVar("registered_zone")
+  local target_zone = _find_closest_scripting_zone(poke_ball)
+  --
+  if _is_zone_occupied(target_zone) then
+    return
+  end
+  --
+  local moveable_objects = source_zone.getObjects()
+
+  for _, object in ipairs(moveable_objects) do
+    local position_delta = object.getPosition() - source_zone.getPosition()
+    local rotation_delta = target_zone.getRotation() - source_zone.getRotation()
+
+    position_delta:rotateOver("y", rotation_delta.y)
+
+    object.setPosition(target_zone.getPosition() + position_delta)
+    object.setRotation(object.getRotation() + rotation_delta)
+  end
+end

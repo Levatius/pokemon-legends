@@ -1,0 +1,95 @@
+#include config
+#include utils
+
+local pokemon_ui_api
+
+function onLoad()
+  math.randomseed(os.time())
+  deduplicate_models()
+  set_custom_assets()
+end
+
+--
+--
+--
+
+function _mass_add_tags()
+  local count = 0
+  for _, object in pairs(getObjectsWithAllTags({"Ability Card", "Breach Card", "Pokemon Card", "Village Card", "Held Item"})) do
+    count = count + 1
+    object.removeTag("Held Item")
+  end
+  print(count)
+end
+
+function _count_trees()
+  counts = {}
+  for _, tree in pairs(getObjectsWithTag(config.tags.world.APRICORN_TREE)) do
+    local id = tree.getName() .. " / " .. get_biome_tag(tree.getTags()) .. " / " .. get_climate_tag(tree.getTags())
+    if counts[id] == nil then
+      counts[id] = 1
+    else
+      counts[id] = counts[id] + 1
+    end
+  end
+  local tkeys = {}
+  -- populate the table that holds the keys
+  for k in pairs(counts) do table.insert(tkeys, k) end
+  -- sort the keys
+  table.sort(tkeys)
+  -- use the keys to retrieve the values in the sorted order
+  for _, k in ipairs(tkeys) do log(k .. ": " .. counts[k]) end
+end
+
+function deduplicate_models()
+  -- This method should not be necessary, but good to have just in case
+  for _, object in pairs(getObjectsWithTag(config.tags.objects.POKEMON_MODEL)) do
+    if object.type == "Bag" then
+      local models_in_bag = {}
+      for _, model in pairs(object:getObjects()) do
+        if not models_in_bag[model.name] then
+          models_in_bag[model.name] = 1
+        else
+          models_in_bag[model.name] = models_in_bag[model.name] + 1
+          local model = object:takeObject({guid=model.guid})
+          model:destroyObject()
+        end
+      end
+    end
+  end
+end
+
+--
+-- Global Zone Handler
+--
+
+#include global_event_handlers/zone_handler
+
+--
+-- Global UI Functions
+--
+
+function set_custom_assets()
+  local assets = UI.getCustomAssets()
+  UI.setCustomAssets(assets)
+end
+
+function toggle_status_button(player, value, id)
+  get_module("pokemon_ui_api").call("toggle_status_button", {player=player, value=value, id=id})
+end
+
+function move_health_slider(player, value, id)
+  get_module("pokemon_ui_api").call("move_health_slider", {player=player, value=value, id=id})
+end
+
+function click_transform_button(player, value, id)
+  get_module("pokemon_ui_api").call("click_transform_button", {player=player, value=value, id=id})
+end
+
+function click_health_button(player, value, id)
+  get_module("pokemon_ui_api").call("click_health_button", {player=player, value=value, id=id})
+end
+
+function click_initiative_button(player, value, id)
+  get_module("pokemon_ui_api").call("click_initiative_button", {player=player, value=value, id=id})
+end

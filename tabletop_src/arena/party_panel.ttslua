@@ -1,0 +1,165 @@
+#include ../config
+#include ../utils
+
+UI_SCALE = 4
+
+local do_return = false
+
+function onLoad()
+  local offset_position = self.getPosition() + Vector(0, 0, 5 * get_y_dir(self))
+  local_party_slots = {find_closest(offset_position, {config.tags.zones.POKEMON_SLOT}, "Scripting", 6)}
+  local_ball_zones = {find_closest(offset_position, {config.tags.items.BALL}, "Scripting", 6)}
+
+  local other_objects = local_party_slots
+  for _, local_ball_zone in ipairs(local_ball_zones) do
+    table.insert(other_objects, local_ball_zone)
+  end
+
+  get_module("object_links_store").call("set_links", {
+    object = self,
+    other_objects = other_objects
+  })
+
+  function _is_ui_loaded()
+    return (not self.UI.loading) and (not UI.loading)
+  end
+  Wait.condition(load_panel, _is_ui_loaded)
+end
+
+function is_occupied()
+  for _, local_party_slot in pairs(local_party_slots) do
+    if len(local_party_slot.getObjects()) > 0 then
+      return true
+    end
+  end
+
+  for _, local_ball_zone in pairs(local_ball_zones) do
+    if len(local_ball_zone.getObjects()) > 0 then
+      return true
+    end
+  end
+
+  return false
+end
+
+--
+--
+--
+
+function relocate(source_zones, source_panel, target_panel)
+  for _, zone in pairs(source_zones) do
+    for _, ball in pairs(zone.getObjects()) do
+
+      function move_coroutine()
+        ball.setLock(true)
+        ball.setPositionSmooth(ball.getPosition() + Vector(0, 1, 0), false, true)
+        while ball.isSmoothMoving() do coroutine.yield(0) end
+
+        local delta = ball.getPosition() - source_panel.getPosition()
+        delta:rotateOver("y", target_panel.getRotation().y - source_panel.getRotation().y)
+        local new_pos = target_panel.getPosition() + delta
+
+        ball.setPositionSmooth(new_pos, false, true)
+        ball.setRotationSmooth(target_panel.getRotation(), false, true)
+        while ball.isSmoothMoving() do coroutine.yield(0) end
+        ball.setLock(false)
+
+        return 1
+      end
+      startLuaCoroutine(self, "move_coroutine")
+    end
+  end
+end
+
+function click_relocate_button(player)
+  local hand = player.getHandTransform(1)
+  if not hand then
+    return
+  end
+
+  local player_party_panel = find_closest(hand.position, {config.tags.panels.PARTY})
+  local player_ball_zones = {find_closest(hand.position, {config.tags.items.BALL}, "Scripting", 6)}
+
+  if do_return then
+    relocate(local_ball_zones, self, player_party_panel)
+  else
+    relocate(player_ball_zones, player_party_panel, self)
+  end
+end
+
+function enter_relocate_button(player)
+  local hand = player.getHandTransform(1)
+  if not hand then
+    return
+  end
+
+  local player_party_panel = find_closest(hand.position, {config.tags.panels.PARTY})
+  local player_colour = Color.fromString(player.color)
+  player_party_panel.highlightOn(player_colour)
+end
+
+function exit_relocate_button(player)
+  local hand = player.getHandTransform(1)
+  if not hand then
+    return
+  end
+
+  local player_party_panel = find_closest(hand.position, {config.tags.panels.PARTY})
+  player_party_panel.highlightOff()
+end
+
+--
+--
+--
+
+function load_panel()
+  local ui_elements = {
+    {
+      tag = "Panel",
+      attributes = {
+        position = ui_tuple({0, 125, 0}),
+        rotation = ui_tuple({0, 0, 180}),
+        scale    = ui_tuple({1/UI_SCALE, 1/UI_SCALE, 1}),
+        width    = 55 * 6 * UI_SCALE,
+        height   = 33 * 6 * UI_SCALE,
+      },
+      children = {
+        tag = "Button",
+        attributes = {
+          id           = "RelocateButton",
+          onClick      = "click_relocate_button",
+          onMouseEnter = "enter_relocate_button",
+          onMouseExit  = "exit_relocate_button",
+          --
+          width    = 16 * 6 * UI_SCALE,
+          height   = 8 * 6 * UI_SCALE,
+          colors   = table.concat({
+            ui_colour(Color.Wood),
+            ui_colour(Color.WoodLight),
+            ui_colour(Color.Wood),
+            ui_colour(Color.AtiusBlack),
+          }, "|"),
+          --
+          textShadow           = ui_colour(Color.AtiusBlack),
+          textOutline          = ui_colour(Color.AtiusBlack),
+          font                 = "Fonts/La Oriental",
+          resizeTextMaxSize    = 60,
+          resizeTextForBestFit = true,
+        },
+      }
+    },
+  }
+  self.UI.setXmlTable(ui_elements, UI.getCustomAssets())
+
+  function _is_ui_loaded()
+    return (not self.UI.loading) and (not UI.loading)
+  end
+  Wait.condition(update_panel, _is_ui_loaded)
+end
+
+function update_panel()
+  do_return = is_occupied()
+  local relocate_button_text = do_return and "Return Party" or "Move Party"
+  self.UI.setAttribute("RelocateButton", "text", relocate_button_text)
+  self.UI.setAttribute("RelocateButton", "textColor", ui_colour(Color.White))
+end

@@ -1,0 +1,37 @@
+#include ../config
+#include ../utils
+
+
+function onLoad()
+  self.createButton({
+    click_function = "toggle",
+    function_owner = self,
+    width          = 500,
+    height         = 500,
+    color          = {0, 0, 0, 0},
+    tooltip        = "Toggle Developer Mode",
+  })
+  update_panel()
+end
+
+function toggle(_, _, alt_click)
+  if alt_click and not self.is_face_down then
+    get_module("object_links_store").call("update_vector_lines")
+  else
+    Global.setVectorLines()
+  end
+  flip_object(self)
+  update_panel()
+end
+
+function update_panel()
+  for _, object in pairs(getObjectsWithAnyTags({config.tags.property.NOT_INTERACTABLE, config.tags.objects.POKEMON_MODEL})) do
+    object.interactable = (get_z_dir(self) == -1)
+  end
+
+  self.editButton({
+    index    = 0,
+    position = {0, 0.1 + 0.1 * get_z_dir(self), 0},
+    rotation = {0, 0, self.getRotation().z}
+  })
+end

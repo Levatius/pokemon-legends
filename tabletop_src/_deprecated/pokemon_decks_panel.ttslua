@@ -1,0 +1,58 @@
+starter_zone_guid = "ce4312"
+weak_zone_guid = "4d7853"
+moderate_zone_guid = "59e600"
+strong_zone_guid = "c788ce"
+legendary_zone_guid = "001a84"
+
+weak_discard_zone_guid = "346288"
+moderate_discard_zone_guid = "872344"
+strong_discard_zone_guid = "11d15c"
+legendary_discard_zone_guid = "d12c05"
+
+
+function get_return_zone(pokemon_card)
+  local tags = pokemon_card:getTags()
+
+  if contains(tags, config.tags.encounters.GALACTIC_GRUNT) then
+    return galactic_grunt_zone
+  elseif contains(tags, config.tags.encounters.GALACTIC_COMMANDER) then
+    return galactic_commander_zone
+  elseif contains(tags, config.tags.encounters.GALACTIC_BOSS) then
+    return galactic_boss_zone
+  elseif contains(tags, config.tags.encounters.STARTER) then
+    return starter_zone
+  elseif contains(tags, config.tags.encounters.WEAK) then
+    return weak_zone
+  elseif contains(tags, config.tags.encounters.MODERATE) then
+    return moderate_zone
+  elseif contains(tags, config.tags.encounters.STRONG) then
+    return strong_zone
+  elseif contains(tags, config.tags.encounters.LEGENDARY) or contains(tags, config.tags.encounters.ULTRA_BEAST) or contains(tags, config.tags.encounters.ULTRA_BURST) or contains(tags, config.tags.encounters.NOBLE) then
+    return legendary_zone
+  elseif contains(tags, config.tags.encounters.EVOLUTION) then
+    return evolution_zone
+  end
+end
+
+function get_discard_zone(pokemon_card)
+  local tags = pokemon_card:getTags()
+
+  if contains(tags, config.tags.encounters.STARTER) then
+    return weak_discard_zone
+  elseif contains(tags, config.tags.encounters.WEAK) then
+    return weak_discard_zone
+  elseif contains(tags, config.tags.encounters.MODERATE) then
+    return moderate_discard_zone
+  elseif contains(tags, config.tags.encounters.STRONG) then
+    return strong_discard_zone
+  elseif contains(tags, config.tags.encounters.LEGENDARY) or contains(tags, config.tags.encounters.ULTRA_BEAST) or contains(tags, config.tags.encounters.ULTRA_BURST) or contains(tags, config.tags.encounters.NOBLE) then
+    return legendary_discard_zone
+  end
+end
+
+function return_pokemon_card(pokemon_card)
+  local return_zone = get_return_zone(pokemon_card)
+
+  pokemon_card:setPosition(return_zone:getPosition() + Vector(0, 2, 0))
+  pokemon_card:setRotation(return_zone:getRotation())
+end

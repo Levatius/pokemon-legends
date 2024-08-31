@@ -1,0 +1,165 @@
+#include ../config
+#include ../utils
+
+UI_SCALE = 4
+EXPANSION_DELTA = 19
+
+function onLoad()
+  language_vars = get_module("localised_text_store").getTable("vars")
+
+  Wait.condition(load_panel, has_ui_loaded)
+end
+
+--
+--
+--
+
+function get_unused_colour()
+  for _, colour in pairs(Player.getColors()) do
+    if not contains(Player.getAvailableColors(), colour) and not contains({"Brown", "Grey", "Black"}, colour) then
+      return colour
+    end
+  end
+end
+
+function get_closest_trainer_area_objects()
+  local trainer_area_objects = {}
+  local position = get_new_position(self, true, 0.5)
+
+  local party_panel = find_closest(position, {config.tags.panels.PARTY})
+  table.insert(trainer_area_objects, party_panel)
+
+  local bag_panel = find_closest(position, {config.tags.panels.BAG})
+  table.insert(trainer_area_objects, bag_panel)
+
+  local key_items = {find_closest(position, {config.tags.items.KEY}, "Tile", 3)}
+  for _, key_item in pairs(key_items) do
+    table.insert(trainer_area_objects, key_item)
+  end
+
+  local party_slots = {find_closest(position, {config.tags.zones.POKEMON_SLOT}, "Scripting", 6)}
+  for _, party_slot in pairs(party_slots) do
+    table.insert(trainer_area_objects, party_slot)
+  end
+
+  local ball_slots = {find_closest(position, {config.tags.items.BALL}, "Scripting", 6)}
+  for _, ball_slot in pairs(ball_slots) do
+    table.insert(trainer_area_objects, ball_slot)
+  end
+
+  local key_item_zone = find_closest(position, {config.tags.items.KEY}, "Scripting")
+  table.insert(trainer_area_objects, key_item_zone)
+
+  local hand_zone = find_closest(position, {}, "Hand")
+  table.insert(trainer_area_objects, hand_zone)
+
+  return trainer_area_objects
+end
+
+function get_new_position(object, invert, scale)
+  local invert_sign = invert and -1 or 1
+  local rotation_sign = get_y_dir(self)
+  if not scale then
+    scale = 1
+  end
+  return object.getPosition() + Vector(invert_sign * rotation_sign * scale * EXPANSION_DELTA, 0, 0)
+end
+
+--
+--
+--
+
+function expand()
+  local colour = get_unused_colour()
+  if not colour then
+    broadcastToAll(language_vars.errors.OUT_OF_PLAYER_COLOURS, Color.InfoBlue)
+    return
+  end
+  local trainer_area_objects = get_closest_trainer_area_objects()
+
+  copy(trainer_area_objects)
+  local new_trainer_area_objects = paste(get_new_position(self))
+
+  for i = 1, len(trainer_area_objects) do
+    local trainer_area_object = trainer_area_objects[i]
+    local new_trainer_area_object = new_trainer_area_objects[i]
+    new_trainer_area_object.setPosition(get_new_position(trainer_area_object))
+
+    if new_trainer_area_object.type == "Hand" then
+      new_trainer_area_object.setValue(colour)
+    end
+  end
+
+  self.setPosition(get_new_position(self))
+end
+
+function reduce()
+  local trainer_area_objects = get_closest_trainer_area_objects()
+  local position = self.getPosition()
+  local new_position = get_new_position(self, true)
+
+  -- Will expander delete the central board?
+  if position.x * new_position.x < 0 then
+    broadcastToAll(language_vars.errors.CANNOT_DELETE_CENTRAL_BOARD, Color.InfoBlue)
+    return
+  end
+
+  for _, trainer_area_object in pairs(trainer_area_objects) do
+    destroyObject(trainer_area_object)
+  end
+
+  self.setPosition(new_position)
+end
+
+function button_ui(position, is_expand)
+  local on_click_button = is_expand and "expand" or "reduce"
+  local text = is_expand and "◀" or "▶"
+  local colour = is_expand and Color.ActiveGreen or Color.ErrorRed
+  return {
+    tag = "Button",
+    attributes = {
+      id      = on_click_button,
+      onClick = on_click_button,
+      --
+      position = ui_tuple(position),
+      width    = 30 * UI_SCALE,
+      height   = 165 * UI_SCALE,
+      color    = ui_colour(colour),
+      --
+      text                 = text,
+      textColor            = ui_colour(Color.White),
+      textOutline          = ui_colour(Color.AtiusBlack),
+      font                 = "Fonts/La Oriental",
+      resizeTextMaxSize    = 150,
+      resizeTextForBestFit = true,
+    }
+  }
+end
+
+--
+--
+--
+
+function load_panel()
+  local buttons = {}
+
+  for i, is_expand in pairs({true, false}) do
+    local position = {(-52.5 + 35 * i) * UI_SCALE, 0, 0}
+    table.insert(buttons, button_ui(position, is_expand))
+  end
+
+  local ui_elements = {
+    {
+      tag = "Panel",
+      attributes = {
+        position = ui_tuple({0, 0, -21}),
+        rotation = ui_tuple({0, 0, 180}),
+        scale    = ui_tuple({1/UI_SCALE, 1/UI_SCALE, 1}),
+        width    = 200 * UI_SCALE,
+        height   = 400 * UI_SCALE,
+      },
+      children = buttons
+    }
+  }
+  self.UI.setXmlTable(ui_elements, UI.getCustomAssets())
+end

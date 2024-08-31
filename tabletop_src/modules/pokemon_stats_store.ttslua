@@ -1,0 +1,38 @@
+local pokemon_stats_state
+
+
+function onLoad(save_state)
+  pokemon_stats_state = JSON.decode(save_state)
+  if not pokemon_stats_state then
+    pokemon_stats_state = {}
+  end
+end
+
+function onSave()
+  return JSON.encode(pokemon_stats_state)
+end
+
+function save(params)
+  pokemon_stats_state[params.guid] = params.pokemon_stats
+end
+
+function get(params)
+  local pokemon_stats = pokemon_stats_state[params.guid]
+  if not pokemon_stats then
+    pokemon_stats = {
+      health_delta=0,
+      initiative_delta=0,
+      damage=0,
+      status_conditions={
+        confused=0,
+        paralysed=0,
+        poisoned=0,
+        burned=0,
+        frozen=0,
+        drowsy=0,
+      },
+    }
+    save({guid=params.guid, pokemon_stats=pokemon_stats})
+  end
+  return pokemon_stats
+end

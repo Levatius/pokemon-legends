@@ -1,0 +1,260 @@
+#include ../config
+#include ../utils
+
+ROWS = 4
+COLUMNS = 2
+UI_SCALE = 4
+RESOURCES = {"Red", "Blue", "Yellow", "Black", "Pink", "Green", "White", "Purple"}
+KEY_ITEMS = {
+  {
+    tag = config.tags.items.HEALING_FLASK,
+    upgrade_costs = {
+      {Red = 2, Pink = 1},
+      {Pink = 2, Black = 1},
+      {Black = 2, White = 1, Green = 1},
+    }
+  },
+  {
+    tag = config.tags.items.CRAFTING_HAMMER,
+    upgrade_costs = {
+      {Blue = 2, Green = 1},
+      {Green = 2, Black = 1},
+      {Black = 2, Pink = 1, White = 1},
+    }
+  },
+  {
+    tag = config.tags.items.PATHFINDING_COMPASS,
+    upgrade_costs = {
+      {Yellow = 2, White = 1},
+      {White = 2, Black = 1},
+      {Black = 2, Green = 1, Pink = 1},
+    }
+  },
+}
+
+local resource_state
+
+function onLoad(save_state)
+  resource_state = JSON.decode(save_state)
+
+  if not resource_state then
+    resource_state = {}
+    for _, resource in pairs(RESOURCES) do
+      resource_state[resource] = 0
+    end
+  end
+
+  key_item_zone = find_closest(self.getPosition(), {config.tags.items.KEY}, "Scripting")
+
+  get_module("object_links_store").call("set_links", {
+    object = self,
+    other_objects = {
+      key_item_zone,
+    }
+  })
+
+  Wait.condition(load_panel, has_ui_loaded)
+end
+
+function onSave()
+  return JSON.encode(resource_state)
+end
+
+--
+--
+--
+
+function get_key_item(key_item_tag)
+  local key_items = key_item_zone.getObjects()
+
+  for _, key_item in pairs(key_items) do
+    if key_item.hasTag(key_item_tag) then
+      return key_item
+    end
+  end
+end
+
+function get_key_item_data(key_item_tag)
+  for _, key_item_data in pairs(KEY_ITEMS) do
+    if key_item_data.tag == key_item_tag then
+      return key_item_data
+    end
+  end
+end
+
+function can_afford_upgrade(upgrade_cost)
+  if not upgrade_cost then
+    return false
+  end
+  for resource, amount in pairs(upgrade_cost) do
+    if amount > resource_state[resource] then
+      return false
+    end
+  end
+  return true
+end
+
+function modify_resources(upgrade_cost, is_cost)
+  local sign = is_cost and -1 or 1
+  for resource, amount in pairs(upgrade_cost) do
+    resource_state[resource] = resource_state[resource] + sign * amount
+  end
+end
+
+--
+--
+--
+
+function click_resource_button(player, value, id)
+  local resource = id
+  -- Left click
+  if value == "-1" then
+    log(string.format("%s increased %s Resource (%d → %d)", player.steam_name, resource, resource_state[resource], resource_state[resource] + 1))
+    resource_state[resource] = resource_state[resource] + 1
+  -- Right click
+  elseif value == "-2" and resource_state[resource] > 0 then
+    log(string.format("%s decreased %s Resource (%d → %d)", player.steam_name, resource, resource_state[resource], resource_state[resource] - 1))
+    resource_state[resource] = resource_state[resource] - 1
+  end
+  update_panel()
+end
+
+function resource_button_element(colour, position)
+  return {
+    tag = "Button",
+    attributes = {
+      id      = colour,
+      onClick = "click_resource_button",
+      --
+      position = ui_tuple(position),
+      width    = 35 * UI_SCALE,
+      height   = 35 * UI_SCALE,
+      sprite   = colour .. "Resource",
+      --
+      text                 = resource_state[colour],
+      textColor            = ui_colour(Color.White),
+      textShadow           = ui_colour(Color.AtiusBlack),
+      textOutline          = ui_colour(Color.AtiusBlack),
+      font                 = "Fonts/La Oriental",
+      resizeTextMaxSize    = 90,
+      resizeTextForBestFit = true,
+    },
+  }
+end
+
+function click_key_item_button(player, value, id)
+  local key_item = get_key_item(id)
+  if not key_item then
+    return
+  end
+  local key_item_data = get_key_item_data(id)
+  local current_state = key_item.getStateId()
+  local upgrade_cost = key_item_data.upgrade_costs[current_state]
+  -- Left click
+  if value == "-1" and current_state < len(key_item.getStates()) + 1 and can_afford_upgrade(upgrade_cost) then
+    log(string.format("%s upgraded %s (%d → %d)", player.steam_name, key_item_data.tag, current_state, current_state + 1))
+    modify_resources(upgrade_cost, true)
+    key_item.setState(current_state + 1)
+  -- Right click
+  elseif value == "-2" and current_state > 1 then
+    local prior_upgrade_cost = key_item_data.upgrade_costs[current_state - 1]
+    log(string.format("%s downgraded %s (%d → %d)", player.steam_name, key_item_data.tag, current_state, current_state - 1))
+    modify_resources(prior_upgrade_cost, false)
+    key_item.setState(current_state - 1)
+  end
+end
+
+function key_item_button_element(key_item_tag, position)
+  return {
+    tag = "Button",
+    attributes = {
+      id      = key_item_tag,
+      onClick = "click_key_item_button",
+      --
+      position = ui_tuple(position),
+      width    = 50 * UI_SCALE,
+      height   = 33 * UI_SCALE,
+      colors   = table.concat({
+        ui_colour(Color.Wood),
+        ui_colour(Color.WoodLight),
+        ui_colour(Color.WoodDark),
+        ui_colour(Color.AtiusBlack),
+      }, "|"),
+      --
+      text                 = key_item_tag,
+      textColor            = ui_colour(Color.White),
+      font                 = "Fonts/Barlow",
+      resizeTextMaxSize    = 33,
+      resizeTextForBestFit = true,
+    },
+  }
+end
+
+--
+--
+--
+
+function load_panel()
+  local resource_button_elements = {}
+
+  for j = 1, COLUMNS do
+    for i = 1, ROWS do
+      local colour = RESOURCES[ROWS * (j - 1) + i]
+      local position = {(-92.5 + 37 * i) * UI_SCALE, (55.5 - 37 * j) * UI_SCALE, 0}
+      table.insert(resource_button_elements, resource_button_element(colour, position))
+    end
+  end
+
+  local key_item_button_elements = {}
+
+  for i = 1, 3 do
+    local position = {(-116 + 58 * i) * UI_SCALE, 0, 0}
+    table.insert(key_item_button_elements, key_item_button_element(KEY_ITEMS[i].tag, position))
+  end
+
+  local ui_elements = {
+    {
+      tag = "Panel",
+      attributes = {
+        position = ui_tuple({189.5, -47, -21}),
+        rotation = ui_tuple({0, 0, 180}),
+        scale    = ui_tuple({1/UI_SCALE, 1/UI_SCALE, 1}),
+        width    = 148 * UI_SCALE,
+        height   = 74 * UI_SCALE,
+      },
+      children = resource_button_elements,
+    },
+    {
+      tag = "Panel",
+      attributes = {
+        position = ui_tuple({189.5, 75, -21}),
+        rotation = ui_tuple({0, 0, 180}),
+        scale    = ui_tuple({1/UI_SCALE, 1/UI_SCALE, 1}),
+        width    = 148 * UI_SCALE,
+        height   = 74 * UI_SCALE,
+      },
+      children = key_item_button_elements,
+    },
+  }
+  self.UI.setXmlTable(ui_elements, UI.getCustomAssets())
+end
+
+function update_panel()
+  -- Resource Buttons
+  for _, resource in pairs(RESOURCES) do
+    self.UI.setAttribute(resource, "text", resource_state[resource])
+    self.UI.setAttribute(resource, "textColor", ui_colour(Color.White))
+  end
+  -- Key Item Buttons
+  local key_items = key_item_zone.getObjects()
+  for _, key_item_data in pairs(KEY_ITEMS) do
+    local key_item = get_key_item(key_item_data.tag)
+    if key_item then
+      local current_state = key_item.getStateId()
+      local upgrade_cost = key_item_data.upgrade_costs[current_state]
+      local text_colour = can_afford_upgrade(upgrade_cost) and ui_colour(Color.LegendaryYellow) or ui_colour(Color.White)
+      self.UI.setAttribute(key_item_data.tag, "text", key_item.getName())
+      self.UI.setAttribute(key_item_data.tag, "textColor", text_colour)
+    end
+  end
+end
