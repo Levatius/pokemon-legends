@@ -80,5 +80,6 @@ vars = {
     TRAINER_TOKEN_NOT_FOUND = "[INFO] Could not find trainer token for player. Pick up your trainer token once, then try again.",
     OUT_OF_PLAYER_COLOURS = "[INFO] Cannot create anymore player boards, out of valid player colours.",
     CANNOT_DELETE_CENTRAL_BOARD = "[INFO] Cannot delete central player board.",
+    ALL_NPC_SLOTS_OCCUPIED = "[INFO] Cannot add to the battle, all NPC slots for the arena are currently occupied."
   },
 }

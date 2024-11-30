@@ -32,17 +32,20 @@ def read_cube(cube_name='sinnoh_cube', sheet_name='pokemon'):
 def get_img(file_path, size):
     return Image.open(file_path).convert('RGBA').resize(size)
 
+def textsize(d, text, font):
+    _, _, width, height = d.textbbox((0, 0), text=text, font=font)
+    return width, height
 
 def wrapped_text(d, text, font, boundaries, *args, **kwargs):
     words = text.split(' ')
     multiline_text_list = []
     for word in words:
-        if not multiline_text_list or d.textsize(f'{multiline_text_list[-1]} {word}', font)[0] >= xy(*boundaries)[0]:
+        if not multiline_text_list or textsize(d, f'{multiline_text_list[-1]} {word}', font)[0] >= xy(*boundaries)[0]:
             multiline_text_list.append('')
         multiline_text_list[-1] += word + ' '
 
     multiline_text = '\n'.join(multiline_text_list).strip()
-    if d.textsize(multiline_text, font)[0] >= xy(*boundaries)[0] or d.textsize(multiline_text, font)[1] >= xy(*boundaries)[1]:
+    if textsize(d, multiline_text, font)[0] >= xy(*boundaries)[0] or textsize(d, multiline_text, font)[1] >= xy(*boundaries)[1]:
         smaller_font = ImageFont.truetype(font.path, size=font.size - 2)
         wrapped_text(d, text, smaller_font, boundaries, *args, **kwargs)
     else:

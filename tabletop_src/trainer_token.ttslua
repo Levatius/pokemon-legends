@@ -2,6 +2,7 @@
 #include utils
 
 ENCOUNTER_COLOURS = {
+  [config.tags.encounters.STARTER]   = Color.StarterPink,
   [config.tags.encounters.WEAK]      = Color.WeakGreen,
   [config.tags.encounters.MODERATE]  = Color.ModerateBlue,
   [config.tags.encounters.STRONG]    = Color.StrongRed,
@@ -12,8 +13,14 @@ local search_params = {}
 local search_button_hide_timer_id
 
 function onLoad()
+  pokemon_decks_api = get_module("pokemon_decks_api")
+
   Wait.condition(load_panel, has_ui_loaded)
 end
+
+--
+-- UTILS
+--
 
 function get_player()
   for _, player in pairs(Player.getPlayers()) do
@@ -23,11 +30,7 @@ function get_player()
   end
 end
 
---
---
---
-
-function player_has_artifact(sanctuary_name)
+function does_player_have_artifact(sanctuary_name)
   local player = get_player()
   if not player then
     return false
@@ -66,7 +69,7 @@ function find_search_params()
     if hit_object.hasTag(config.tags.world.CAMPAIGN) then
       break
     -- Sanctuaries
-    elseif hit_object.hasTag(config.tags.world.SANCTUARY) and player_has_artifact(hit_object.getName()) then
+  elseif hit_object.hasTag(config.tags.world.SANCTUARY) and does_player_have_artifact(hit_object.getName()) then
       set_search_params(hit_object)
       show_search_button()
       break
@@ -84,16 +87,12 @@ function set_search_params(hit_object)
 
   search_params = {
     encounter = get_encounter_tag(tags),
-    biome = get_biome_tag(tags),
-    climate = get_climate_tag(tags),
-    name = hit_object.getGMNotes(),
+    biome     = get_biome_tag(tags),
+    climate   = get_climate_tag(tags),
+    names     = hit_object.getGMNotes(),
+    count     = 2,
   }
 end
-
--- local legendary_names = split(hit_object.getGMNotes(), "/")
--- for legendary_name in legendary_names do
---   log(legendary_name)
--- end
 
 --
 --
@@ -111,20 +110,6 @@ function update_colour_tint(player_colour)
   self.setColorTint(player_colour)
 end
 
-function spawn_hand_zone()
-  print("!")
-  spawnObject({
-    type              = "HandTrigger",
-    position          = self.getPosition() + Vector(0, 5, 0),
-    rotation          = self.getRotation(),
-    scale             = Vector(18, 5, 6.5),
-    sound             = false,
-    callback_function = function(hand)
-      hand.setValue("Brown")
-    end,
-  })
-end
-
 --
 --
 --
@@ -132,6 +117,7 @@ end
 function onPickUp(player_colour)
   hide_search_button(0)
   update_colour_tint(player_colour)
+  pokemon_decks_api.call("return_pokemon_cards", {owner_guid=self.getGUID()})
 end
 
 function onDrop()
@@ -163,7 +149,12 @@ end
 
 function click_search_button()
   hide_search_button(0)
-  spawn_hand_zone()
+  pokemon_cards = pokemon_decks_api.call("find_pokemon_cards", search_params)
+  pokemon_decks_api.call("layout_pokemon_cards", {
+    owner_guid    = self.getGUID(),
+    position      = self.getPosition(),
+    pokemon_cards = pokemon_cards,
+  })
 end
 
 --
@@ -175,11 +166,11 @@ function load_panel()
     {
       tag = "Panel",
       attributes = {
-        position = ui_tuple({0, 0, -650}),
+        position = ui_tuple({0, 0, -600}),
         rotation = ui_tuple({270, 0, 0}),
         scale    = ui_tuple({1, 1, 1}),
-        width    = 250,
-        height   = 500,
+        width    = 300,
+        height   = 450,
       },
       children = {
         tag = "Button",
@@ -187,15 +178,13 @@ function load_panel()
           active  = false,
           id      = "SearchButton",
           onClick = "click_search_button",
-          -- onMouseEnter = "enter_relocate_button",
-          -- onMouseExit  = "exit_relocate_button",
           --
           color = ui_colour(Color(0, 0, 0, 0)),
           --
           textShadow           = ui_colour(Color.AtiusBlack),
           textOutline          = ui_colour(Color.AtiusBlack),
           font                 = "Fonts/La Oriental",
-          resizeTextMaxSize    = 500,
+          resizeTextMaxSize    = 350,
           resizeTextForBestFit = true,
           --
           showAnimation = "Grow",
@@ -211,6 +200,6 @@ end
 
 function update_panel()
   self.UI.setAttribute("SearchButton", "color", search_params.encounter and ui_colour(ENCOUNTER_COLOURS[search_params.encounter]) or ui_colour(Color(0, 0, 0, 0)))
-  self.UI.setAttribute("SearchButton", "text", "!")
+  self.UI.setAttribute("SearchButton", "text", "?")
   self.UI.setAttribute("SearchButton", "textColor", ui_colour(Color.White))
 end

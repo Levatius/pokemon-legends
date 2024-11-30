@@ -4,28 +4,23 @@
 PANEL_WIDTH = 350
 PANEL_HEIGHT = 700
 
-FATIGUE_VALUE_MAX = 5
+MAX_FATIGUE_LEVEL = 5
 
 local calculated_modifiers = {Typeless = 0}
-local finished_dice = {}
-local post_roll_wait_condition_id
 
 local selected_type = "Typeless"
 local number_of_dice = 3
 local use_full_type_chart = false
+local fatigue_level = 0
 
-function _set_fatigue_dice_rotation_values()
-  local rotation_values = fatigue_dice.getRotationValues()
-  for state, data in pairs(rotation_values) do
-    rotation_values[state].rotation = Vector(data.rotation.x, 180 - self.getRotation().y, data.rotation.z)
+function onLoad(save_state)
+  local saved_fatigue_level = JSON.decode(save_state)
+  if saved_fatigue_level then
+    fatigue_level = saved_fatigue_level
   end
-  fatigue_dice.setRotationValues(rotation_values)
-end
 
-function onLoad()
   position = self.getPosition()
   dice_bag = find_closest(position, {config.tags.objects.ATTACK_DICE}, "Infinite")
-  fatigue_dice = find_closest(position, {config.tags.objects.FATIGUE_DICE})
   field_zone = find_closest(position, {config.tags.objects.POKEMON_MODEL}, "Scripting")
   your_active_slot, enemy_active_slot = find_closest(position, {config.tags.property.ARENA, config.tags.zones.POKEMON_SLOT}, "Scripting", 2)
 
@@ -33,15 +28,17 @@ function onLoad()
     object = self,
     other_objects = {
       dice_bag,
-      fatigue_dice,
       field_zone,
       your_active_slot,
       enemy_active_slot,
     }
   })
 
-  _set_fatigue_dice_rotation_values()
   Wait.condition(update_panel, has_ui_loaded)
+end
+
+function onSave()
+  return JSON.encode(fatigue_level)
 end
 
 --
@@ -59,22 +56,6 @@ function animate_model()
   local models = field_zone.getObjects()
   for _, model in pairs(models) do
     model.AssetBundle.playTriggerEffect(1)
-  end
-end
-
-function is_fatigued()
-  return fatigue_dice.getRotationValue() == FATIGUE_VALUE_MAX
-end
-
-function reset_fatigue_dice()
-  fatigue_dice.setValue(1)
-end
-
-function increment_fatigue_dice()
-  local current_value = fatigue_dice.getRotationValue()
-  local new_value = current_value + 1
-  if current_value < FATIGUE_VALUE_MAX then
-    fatigue_dice.setRotationValue(new_value)
   end
 end
 
@@ -96,37 +77,6 @@ function adjust_dice(dice)
   dice.setRotationSmooth(Vector(round(rotation.x / 90) * 90, rotation.y, round(rotation.z / 90) * 90))
 end
 
-function print_dice_result()
-  local results = {
-    ["Status Symbol"] = {["count"] = 0, ["damage"] = 0, ["symbol"] = "[0]"},
-    ["Regular Hit"]   = {["count"] = 0, ["damage"] = 1, ["symbol"] = "[1]"},
-    ["Critical Hit"]  = {["count"] = 0, ["damage"] = 2, ["symbol"] = "[2]"},
-  }
-  for _, dice in pairs(finished_dice) do
-    local result = dice.getRotationValue()
-    results[result].count = results[result].count + 1
-  end
-
-  local base_damage = 0
-  local base_string = "Roll: "
-
-  local result_strings = {}
-  for result, data in pairs(results) do
-    base_damage = base_damage + data.count * data.damage
-    table.insert(result_strings, data.count .. "•" .. data.symbol)
-  end
-  base_string = base_string .. table.concat(result_strings, " + ")
-
-  base_damage = base_damage + calculated_modifiers[selected_type]
-  base_string = base_string .. " (" .. signed_label(calculated_modifiers[selected_type]) .. ")"
-  base_string = base_string .. " = " .. base_damage
-
-  broadcastToAll(base_string, Color[selected_type])
-  if is_fatigued() then
-    broadcastToAll("Fatigued: Take 3 Damage", Color.ErrorRed)
-  end
-end
-
 function roll_callback(dice, direction)
   Wait.frames(function()
     add_forces_to_dice(dice, direction)
@@ -141,9 +91,16 @@ end
 --
 --
 
+function fatigue_truncate_number_of_dice()
+  local max_number_of_dice = 9 - fatigue_level
+  if number_of_dice > max_number_of_dice then
+    number_of_dice = max_number_of_dice
+  end
+end
+
 function click_type_chart_toggle(_, _, id)
   use_full_type_chart = not use_full_type_chart
-  reset_panel()
+  reset_selections()
   update_panel()
 end
 
@@ -154,14 +111,21 @@ end
 
 function move_dice_slider(_, value, _)
   number_of_dice = tonumber(value)
+  fatigue_truncate_number_of_dice()
+  update_elements()
+end
+
+function click_fatigue_button(_, value, _)
+  if value == "-1" and fatigue_level < MAX_FATIGUE_LEVEL then
+    fatigue_level = fatigue_level + 1
+    fatigue_truncate_number_of_dice()
+  elseif value == "-2" and fatigue_level > 0 then
+    fatigue_level = fatigue_level - 1
+  end
   update_elements()
 end
 
 function click_roll_button()
-  if post_roll_wait_condition_id then
-    Wait.stop(post_roll_wait_condition_id)
-  end
-  finished_dice = {}
   cleanup_dice()
   animate_model()
 
@@ -186,16 +150,14 @@ function click_roll_button()
 
     x_offset = x_offset + direction * 1
   end
-  post_roll_wait_condition_id = Wait.condition(post_roll, function() return len(finished_dice) == number_of_dice_to_spawn end)
-end
-
-function post_roll()
   -- Increment the fatigue dice if an enemy Pokémon is present
   local enemy_active_pokemon = get_object(enemy_active_slot, true)
-  if enemy_active_pokemon then
-    increment_fatigue_dice()
+  if enemy_active_pokemon and fatigue_level < MAX_FATIGUE_LEVEL then
+    fatigue_level = fatigue_level + 1
+    fatigue_truncate_number_of_dice()
   end
-  print_dice_result()
+
+  update_elements()
 end
 
 --
@@ -307,7 +269,7 @@ end
 
 function get_selection_panel()
   local selection_panel = {
-    tag = "VerticalLayout",
+    tag = "Panel",
     attributes = {
       anchorMin = ui_tuple({0.0, 0.0}),
       anchorMax = ui_tuple({1.0, 0.2}),
@@ -318,70 +280,85 @@ function get_selection_panel()
       {
         tag = "Panel",
         attributes = {
-          height = 75,
+          anchorMin = ui_tuple({0.0, 0.5}),
+          anchorMax = ui_tuple({1.0, 1.0}),
         },
         children = {
           {
-            tag = "Panel",
+            tag = "ProgressBar",
             attributes = {
-              rectAlignment = "MiddleLeft",
-              width = 75,
-              padding = 10,
+              width = PANEL_WIDTH,
+              --
+              id = "FatigueBar",
+              --
+              color              = ui_colour(Color.AtiusBlackLight),
+              fillImageColor     = ui_colour(Color.AtiusBlack),
+              percentage         = 90,
+              showPercentageText = false,
             },
-            children = {
-              {
-                tag = "Image",
-                attributes = {
-                  id = "SelectedTypeImage",
-                  image = selected_type,
-                  preserveAspect = true,
-                }
-              },
+          },
+          {
+            tag = "Slider",
+            attributes = {
+              width = (PANEL_WIDTH / 3),
+              scale = ui_tuple({3, 3, 1}),
+              --
+              id = "DiceSlider",
+              onValueChanged = "move_dice_slider",
+              minValue = 1,
+              maxValue = 10,
+              value = number_of_dice,
+              wholeNumbers = true,
+              backgroundColor = ui_colour(Color.Clear),
+              handleImage = selected_type,
             }
           },
           {
-            tag = "Panel",
+            tag = "Button",
             attributes = {
-              rectAlignment = "MiddleRight",
-              width = PANEL_WIDTH - 75,
-              padding = 10,
+              anchorMin = ui_tuple({0.9, 0.28}),
+              anchorMax = ui_tuple({1.0, 0.72}),
+              --
+              id = "FatigueButton",
+              --
+              onClick = "click_fatigue_button",
+              image   = "FatigueButton",
+              --
+              text                 = "0",
+              font                 = "Fonts/La Oriental",
+              resizeTextForBestFit = true,
             },
-            children = {
-              {
-                tag = "Slider",
-                attributes = {
-                  id = "DiceSlider",
-                  onValueChanged = "move_dice_slider",
-                  minValue = 1,
-                  maxValue = 9,
-                  value = number_of_dice,
-                  wholeNumbers = true,
-                  backgroundColor = ui_colour(Color.AtiusBlack),
-                  handleImage = "HealthSliderHandle",
-                }
-              },
-            }
           },
         }
       },
       {
-        tag = "Button",
+        tag = "Panel",
         attributes = {
-          id = "RollDiceButton",
-          onClick = "click_roll_button",
-          colors = table.concat({
-            ui_colour(Color.Wood),
-            ui_colour(Color.WoodLight),
-            ui_colour(Color.Wood),
-            ui_colour(Color.AtiusBlack),
-          }, "|"),
-          font = "Fonts/Barlow",
-          resizeTextForBestFit = true,
-          textAlignment = "MiddleLeft",
-          icon = "AttackDice",
-          iconWidth = 50,
-          iconAlignment = "Right",
-          padding = 10,
+          anchorMin = ui_tuple({0.0, 0.0}),
+          anchorMax = ui_tuple({1.0, 0.5}),
+        },
+        children = {
+          {
+            tag = "Button",
+            attributes = {
+              id = "RollDiceButton",
+              onClick = "click_roll_button",
+              colors = table.concat({
+                ui_colour(Color.Wood),
+                ui_colour(Color.WoodLight),
+                ui_colour(Color.Wood),
+                ui_colour(Color.AtiusBlack),
+              }, "|"),
+              text = "?",
+              font = "Fonts/Barlow",
+              resizeTextForBestFit = true,
+              textAlignment = "MiddleLeft",
+              icon = "AttackDice",
+              iconWidth = 50,
+              iconAlignment = "Right",
+              padding = 10,
+            }
+          },
         }
       },
     }
@@ -389,21 +366,27 @@ function get_selection_panel()
   return selection_panel
 end
 
-function reset_panel()
+function reset_selections()
   selected_type = "Typeless"
   number_of_dice = 3
 end
 
-function update_panel()
+function reload_panel()
   local your_active_pokemon = get_object(your_active_slot, true)
-  if not your_active_pokemon then
-    if not use_full_type_chart then
-      reset_panel()
-    end
-    cleanup_dice()
-    reset_fatigue_dice()
+  local enemy_active_pokemon = get_object(enemy_active_slot, true)
+  if your_active_pokemon and enemy_active_pokemon then
+    return
   end
 
+  if not use_full_type_chart then
+    reset_selections()
+  end
+  fatigue_level = 0
+  cleanup_dice()
+  load_panel()
+end
+
+function load_panel()
   local ui_elements = {
     {
       tag = "Panel",
@@ -444,14 +427,30 @@ function update_panel()
   Wait.condition(update_elements, has_ui_loaded)
 end
 
+function update_panel()
+  Wait.time(reload_panel, 1)
+
+  local your_active_pokemon = get_object(your_active_slot, true)
+  local enemy_active_pokemon = get_object(enemy_active_slot, true)
+  if not your_active_pokemon or not enemy_active_pokemon then
+    return
+  end
+
+  load_panel()
+end
+
 function update_elements()
   local selected_type_colour = Color[selected_type]
 
   self.UI.setAttribute("TypeChartToggle", "text", (use_full_type_chart and "Full" or "Learnable") .. " Type Chart")
   self.UI.setAttribute("TypeChartToggle", "textColor", "White")
-  self.UI.setAttribute("SelectedTypeImage", "image", selected_type)
+  self.UI.setAttribute("FatigueBar", "percentage", 95 - 9 * (fatigue_level + 1))
+  self.UI.setAttribute("DiceSlider", "handleImage", selected_type)
   self.UI.setAttribute("DiceSlider", "fillColor", ui_colour(selected_type_colour))
-  self.UI.setAttribute("RollDiceButton", "text", "Roll " .. number_of_dice .. " " .. selected_type .. " Dice")
+  self.UI.setAttribute("DiceSlider", "value", number_of_dice)
+  self.UI.setAttribute("FatigueButton", "text", tostring(fatigue_level))
+  self.UI.setAttribute("FatigueButton", "textColor", ui_colour(Color.ErrorRed))
+  self.UI.setAttribute("RollDiceButton", "text", "Roll " .. number_of_dice .. " " .. selected_type)
   self.UI.setAttribute("RollDiceButton", "iconColor", ui_colour(selected_type_colour))
-  self.UI.setAttribute("RollDiceButton", "textColor", "White")
+  self.UI.setAttribute("RollDiceButton", "textColor", ui_colour(Color.White))
 end

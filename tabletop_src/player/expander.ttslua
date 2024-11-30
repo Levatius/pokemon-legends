@@ -53,6 +53,9 @@ function get_closest_trainer_area_objects()
   local hand_zone = find_closest(position, {}, "Hand")
   table.insert(trainer_area_objects, hand_zone)
 
+  local stamp_sheet = find_closest(position, {config.tags.cards.STAMP_SHEET}, "Card")
+  table.insert(trainer_area_objects, stamp_sheet)
+
   return trainer_area_objects
 end
 

@@ -100,11 +100,11 @@ end
 -- Buttons
 --
 
-function toggle_status_button(params)
-  local guid = get_guid_from_id(params.id)
+function toggle_status_button(player, value, id)
+  local guid = get_guid_from_id(id)
   local pokemon_stats = pokemon_stats_store.call("get", {guid=guid})
   -- Extract, for example, "confused" from "ConfusedStatus123456"
-  local status_name = string.lower(string.sub(params.id, 1, #params.id - 12))
+  local status_name = string.lower(string.sub(id, 1, #id - 12))
   -- Flip 0 to 1 or 1 to 0
   pokemon_stats.status_conditions[status_name] = 1 - pokemon_stats.status_conditions[status_name]
 
@@ -112,42 +112,77 @@ function toggle_status_button(params)
   update_ui(guid)
 end
 
-function move_health_slider(params)
-  local guid = get_guid_from_id(params.id)
+function grow_button(player, value, id)
+  local guid = get_guid_from_id(id)
+  local pokemon_card = getObjectFromGUID(guid)
+  pokemon_card.UI.setAttribute(id, "scale", ui_tuple({1.1, 1.1, 1}))
+end
+
+function shrink_button(player, value, id)
+  local guid = get_guid_from_id(id)
+  local pokemon_card = getObjectFromGUID(guid)
+  pokemon_card.UI.setAttribute(id, "scale", ui_tuple({1, 1, 1}))
+end
+
+function move_health_slider(player, value, id)
+  local guid = get_guid_from_id(id)
   local pokemon_card = getObjectFromGUID(guid)
   local pokemon_stats = pokemon_stats_store.call("get", {guid=guid})
-  pokemon_stats.damage = pokemon_card.getVar("health") + pokemon_stats.health_delta - tonumber(params.value)
+  pokemon_stats.damage = pokemon_card.getVar("health") + pokemon_stats.health_delta - tonumber(value)
   pokemon_stats_store.call("save", {guid=guid, pokemon_stats=pokemon_stats})
   update_ui(guid)
 end
 
-function click_transform_button(params)
-  local guid = get_guid_from_id(params.id)
+function click_transform_button(player, value, id)
+  local guid = get_guid_from_id(id)
   local pokemon_card = getObjectFromGUID(guid)
   local current_state = pokemon_card.getStateId()
   local next_state = get_next_state(current_state, len(pokemon_card.getStates()) + 1)
   pokemon_card:setState(next_state)
 end
 
-function click_health_button(params)
-  local guid = get_guid_from_id(params.id)
+function click_evolve_button(player, value, id)
+  local guid = get_guid_from_id(id)
   local pokemon_card = getObjectFromGUID(guid)
+  local evolve_into_names = {}
+  for _, evolve_into_name in pairs(pokemon_card.getVar("evolve_into")) do
+    table.insert(evolve_into_names, evolve_into_name)
+  end
+
+  local evolution_cards = pokemon_decks_api.call("find_pokemon_cards", {
+    encounter = config.tags.encounters.EVOLUTION,
+    biome     = nil,
+    climate   = nil,
+    names     = evolve_into_names,
+  })
+  for _, evolution_card in pairs(evolution_cards) do
+    evolution_card.flip()
+  end
+  pokemon_decks_api.call("layout_pokemon_cards", {
+    owner_guid    = pokemon_card.getGUID(),
+    position      = pokemon_card.getPosition(),
+    pokemon_cards = evolution_cards,
+  })
+end
+
+function click_health_button(player, value, id)
+  local guid = get_guid_from_id(id)
   local pokemon_stats = pokemon_stats_store.call("get", {guid=guid})
-  if params.value == "-1" then
+  if value == "-1" then
     pokemon_stats.health_delta = pokemon_stats.health_delta + 1
-  elseif params.value == "-2" then
+  elseif value == "-2" then
     pokemon_stats.health_delta = pokemon_stats.health_delta - 1
   end
   pokemon_stats_store.call("save", {guid=guid, pokemon_stats=pokemon_stats})
   update_ui(guid)
 end
 
-function click_initiative_button(params)
-  local guid = get_guid_from_id(params.id)
+function click_initiative_button(player, value, id)
+  local guid = get_guid_from_id(id)
   local pokemon_stats = pokemon_stats_store.call("get", {guid=guid})
-  if params.value == "-1" then
+  if value == "-1" then
     pokemon_stats.initiative_delta = pokemon_stats.initiative_delta + 1
-  elseif params.value == "-2" then
+  elseif value == "-2" then
     pokemon_stats.initiative_delta = pokemon_stats.initiative_delta - 1
   end
   pokemon_stats_store.call("save", {guid=guid, pokemon_stats=pokemon_stats})
@@ -157,33 +192,37 @@ end
 function grow_action_buttons(player, value, id)
   local guid = get_guid_from_id(id)
   local pokemon_card = getObjectFromGUID(guid)
-  pokemon_card.UI.setAttribute("ActionButtons" .. guid, "position", ui_tuple({-60, 100, 0}))
-  pokemon_card.UI.setAttribute("ActionButtons" .. guid, "scale", ui_tuple({2, 2, 1}))
+  pokemon_card.UI.setAttribute("ActionButtons" .. guid, "scale", ui_tuple({1.5, 1.5, 1}))
+  for _, action_type in pairs({"Confirm", "Return", "Take"}) do
+    pokemon_card.UI.setAttribute(action_type .. "Action" .. guid, "interactable", true)
+  end
 end
 
 function shrink_action_buttons(player, value, id)
   local guid = get_guid_from_id(id)
   local pokemon_card = getObjectFromGUID(guid)
-  pokemon_card.UI.setAttribute("ActionButtons" .. guid, "position", ui_tuple({-80, 120, 0}))
   pokemon_card.UI.setAttribute("ActionButtons" .. guid, "scale", ui_tuple({1, 1, 1}))
+  for _, action_type in pairs({"Confirm", "Return", "Take"}) do
+    pokemon_card.UI.setAttribute(action_type .. "Action" .. guid, "interactable", false)
+  end
 end
 
-function click_battle_action_button(player, value, id)
+function click_confirm_action_button(player, value, id)
+  local guid = get_guid_from_id(id)
+  local pokemon_card = getObjectFromGUID(guid)
+  pokemon_decks_api.call("confirm_pokemon_card", {pokemon_card=pokemon_card, player=player})
 end
 
 function click_return_action_button(player, value, id)
   local guid = get_guid_from_id(id)
   local pokemon_card = getObjectFromGUID(guid)
-  pokemon_decks_api.call("return_card", {pokemon_card=pokemon_card})
+  pokemon_decks_api.call("return_pokemon_card", {pokemon_card=pokemon_card})
 end
 
 function click_take_action_button(player, value, id)
   local guid = get_guid_from_id(id)
   local pokemon_card = getObjectFromGUID(guid)
-  pokemon_card.use_hands = true
-  pokemon_card.deal(1, player.color)
-  pokemon_card.flip()
-  pokemon_card.setLock(false)
+  pokemon_decks_api.call("take_pokemon_card", {pokemon_card=pokemon_card, player=player})
 end
 
 --
@@ -195,6 +234,9 @@ function update_ui(guid)
   local pokemon_card = getObjectFromGUID(guid)
   --
   local has_states = (pokemon_card.getStates() ~= nil)
+  --
+  local has_evolution = (pokemon_card.getVar("evolve_into") ~= nil)
+  local evolve_cost = pokemon_card.getVar("evolve_cost")
   --
   local health = pokemon_card.getVar("health") + pokemon_stats.health_delta
   local initiative = pokemon_card.getVar("initiative") + pokemon_stats.initiative_delta
@@ -228,6 +270,9 @@ function update_ui(guid)
   local has_fainted = (pokemon_stats.damage >= health)
   --
   pokemon_card.UI.setAttribute("TransformButton" .. guid, "active", has_states)
+  pokemon_card.UI.setAttribute("EvolveButton" .. guid, "active", has_evolution)
+  pokemon_card.UI.setAttribute("EvolveButton" .. guid, "text", evolve_cost)
+  pokemon_card.UI.setAttribute("EvolveButton" .. guid, "textColor", ui_colour(Color.White))
   pokemon_card.UI.setAttribute("HealthSlider" .. guid, "fillColor", ui_colour(health_slider_colour))
   pokemon_card.UI.setAttribute("HealthSlider" .. guid, "maxValue", health)
   pokemon_card.UI.setAttribute("HealthSlider" .. guid, "value", health - pokemon_stats.damage)
@@ -236,23 +281,27 @@ function update_ui(guid)
   pokemon_card.UI.setAttribute("HealthButtonText" .. guid, "color", ui_colour(health_button_colour))
   pokemon_card.UI.setAttribute("InitiativeButtonText" .. guid, "text", initiative)
   pokemon_card.UI.setAttribute("InitiativeButtonText" .. guid, "color", ui_colour(initiative_button_colour))
-  pokemon_card.UI.setAttribute("ConfusedStatus" .. guid, "sprite", "ConfusedStatus" .. pokemon_stats.status_conditions.confused)
-  pokemon_card.UI.setAttribute("ParalysedStatus" .. guid, "sprite", "ParalysedStatus" .. pokemon_stats.status_conditions.paralysed)
-  pokemon_card.UI.setAttribute("PoisonedStatus" .. guid, "sprite", "PoisonedStatus" .. pokemon_stats.status_conditions.poisoned)
-  pokemon_card.UI.setAttribute("BurnedStatus" .. guid, "sprite", "BurnedStatus" .. pokemon_stats.status_conditions.burned)
-  pokemon_card.UI.setAttribute("FrozenStatus" .. guid, "sprite", "FrozenStatus" .. pokemon_stats.status_conditions.frozen)
-  pokemon_card.UI.setAttribute("DrowsyStatus" .. guid, "sprite", "DrowsyStatus" .. pokemon_stats.status_conditions.drowsy)
+  for _, status_type in pairs({"Confused", "Paralysed", "Poisoned", "Burned", "Frozen", "Drowsy"}) do
+    pokemon_card.UI.setAttribute(status_type .. "Status" .. guid, "sprite",            status_type .. "Status" .. pokemon_stats.status_conditions[string.lower(status_type)])
+    pokemon_card.UI.setAttribute(status_type .. "Status" .. guid, "highlightedSprite", status_type .. "Status2")
+  end
   pokemon_card.UI.setAttribute("FaintedImage" .. guid, "active", has_fainted)
 end
 
-function action_button_ui(guid, sprite, on_click_func)
+function action_button_ui(guid, action_type, on_click_func)
   return {
     tag = "Button",
     attributes = {
-      id      = sprite .. guid,
-      onClick = api_func(on_click_func),
+      id = action_type .. "Action" .. guid,
       --
-      sprite = sprite,
+      onClick      = api_func(on_click_func),
+      onMouseEnter = api_func("grow_button"),
+      onMouseExit  = api_func("shrink_button"),
+      interactable = false,
+      --
+      transition        = "SpriteSwap",
+      sprite            = action_type .. "Action",
+      highlightedSprite = action_type .. "ActionHighlighted",
     }
   }
 end
@@ -261,25 +310,23 @@ function action_buttons_ui(guid)
   return {
     tag = "GridLayout",
     attributes = {
+      anchorMin = ui_tuple({0.75/16, 20.75/28}),
+      anchorMax = ui_tuple({4.25/16, 24.25/28}),
+      --
       id           = "ActionButtons" .. guid,
       onMouseEnter = api_func("grow_action_buttons"),
       onMouseExit  = api_func("shrink_action_buttons"),
       --
-      position = ui_tuple({-80, 120, 0}),
-      width    = 35,
-      height   = 35,
-      scale    = ui_tuple({1, 1, 1}),
-      --
       spacing         = ui_tuple({2, 2}),
-      cellSize        = ui_tuple({20, 20}),
+      cellSize        = ui_tuple({100, 100}),
       childAlignment  = "MiddleCenter",
       constraint      = "FixedColumnCount",
       constraintCount = 2,
     },
     children = {
-      action_button_ui(guid, "BattleAction", "click_battle_action_button"),
-      action_button_ui(guid, "ReturnAction", "click_return_action_button"),
-      action_button_ui(guid, "TakeAction", "click_take_action_button"),
+      action_button_ui(guid, "Confirm", "click_confirm_action_button"),
+      action_button_ui(guid, "Return", "click_return_action_button"),
+      action_button_ui(guid, "Take", "click_take_action_button"),
     }
   }
 end
@@ -288,14 +335,13 @@ function transform_button_ui(guid)
   return {
     tag = "Button",
     attributes = {
+      anchorMin = ui_tuple({11.75/16, 20.75/28}),
+      anchorMax = ui_tuple({15.25/16, 24.25/28}),
+      --
       active  = false,
       id      = "TransformButton" .. guid,
-      onClick = "Global/click_transform_button",
       --
-      position = ui_tuple({80, 120, 0}),
-      width    = 35,
-      height   = 35,
-      --
+      onClick           = api_func("click_transform_button"),
       transition        = "SpriteSwap",
       sprite            = "TransformButton",
       highlightedSprite = "TransformButtonHighlighted",
@@ -304,226 +350,224 @@ function transform_button_ui(guid)
   }
 end
 
+function evolve_button_ui(guid)
+  return {
+    tag = "Button",
+    attributes = {
+      anchorMin = ui_tuple({12.75/16, 8.75/28}),
+      anchorMax = ui_tuple({15.25/16, 11.25/28}),
+      --
+      active  = false,
+      id      = "EvolveButton" .. guid,
+      --
+      onClick           = api_func("click_evolve_button"),
+      transition        = "SpriteSwap",
+      sprite            = "EvolveButton",
+      highlightedSprite = "EvolveButtonHighlighted",
+      pressedSprite     = "EvolveButtonHighlighted",
+      --
+      text                 = "?",
+      textColor            = ui_colour(Color.White),
+      font                 = "Fonts/La Oriental",
+      resizeTextForBestFit = true,
+      resizeTextMaxSize    = 80,
+    }
+  }
+end
+
+function stats_button_ui(guid, anchor_min, anchor_max, stat_type, on_click_func)
+  return {
+    tag = "Panel",
+    attributes = {
+      anchorMin = ui_tuple(anchor_min),
+      anchorMax = ui_tuple(anchor_max),
+    },
+    children = {
+      {
+        tag = "Button",
+        attributes = {
+          id = stat_type .. "Button" .. guid,
+          --
+          onClick = api_func(on_click_func),
+          sprite  = stat_type .. "Base",
+        }
+      },
+      {
+        tag = "Text",
+        attributes = {
+          anchorMin = ui_tuple({0.1/3.5, 0.1/2}),
+          anchorMax = ui_tuple({1.9/3.5, 1.9/2}),
+          --
+          id = stat_type .. "ButtonText" .. guid,
+          --
+          text                 = "?",
+          alignment            = "MiddleCenter",
+          color                = ui_colour(Color.AtiusBlack),
+          font                 = "Fonts/La Oriental",
+          resizeTextForBestFit = true,
+          resizeTextMaxSize    = 1000,
+        }
+      },
+    }
+  }
+end
+
+function status_button_ui(guid, status_type)
+  return {
+    tag = "Button",
+    attributes = {
+      id = status_type .. "Status" .. guid,
+      --
+      onClick      = api_func("toggle_status_button"),
+      onMouseEnter = api_func("grow_button"),
+      onMouseExit  = api_func("shrink_button"),
+      transition   = "SpriteSwap",
+      sprite       = status_type .. "Status0",
+    }
+  }
+end
+
+function health_panel_ui(guid)
+  return {
+    tag = "Panel",
+    attributes = {
+      anchorMin = ui_tuple({0/16, 28/28}),
+      anchorMax = ui_tuple({16/16, 33/28}),
+      --
+      active = false,
+      id     = "HealthPanel" .. guid,
+      --
+      showAnimation = "Grow",
+      hideAnimation = "Shrink",
+    },
+    children = {
+      {
+        tag = "HorizontalLayout",
+        attributes = {
+          anchorMin = ui_tuple({2/16, 3/5}),
+          anchorMax = ui_tuple({14/16, 5/5}),
+          --
+          spacing        = 5,
+          childAlignment = "MiddleCenter",
+        },
+        children = {
+          status_button_ui(guid, "Confused"),
+          status_button_ui(guid, "Paralysed"),
+          status_button_ui(guid, "Poisoned"),
+          status_button_ui(guid, "Burned"),
+          status_button_ui(guid, "Frozen"),
+          status_button_ui(guid, "Drowsy"),
+        }
+      },
+      {
+        tag = "Panel",
+        attributes = {
+          anchorMin = ui_tuple({0/16, 0/5}),
+          anchorMax = ui_tuple({16/16, 3/5}),
+        },
+        children = {
+          {
+            tag = "Slider",
+            attributes = {
+              width  = "25%",
+              height = "50%",
+              --
+              scale = ui_tuple({4, 2.25, 1}),
+              --
+              id = "HealthSlider" .. guid,
+              --
+              onValueChanged  = api_func("move_health_slider"),
+              minValue        = 0,
+              maxValue        = 0,
+              wholeNumbers    = true,
+              backgroundColor = ui_colour(Color.AtiusBlack),
+              fillColor       = ui_colour(Color.ActiveGreen),
+              handleImage     = "HealthSliderHandle",
+            }
+          },
+          {
+            tag = "Text",
+            attributes = {
+              anchorMin = ui_tuple({0.2/16, 0.7/3}),
+              anchorMax = ui_tuple({1.8/16, 2.3/3}),
+              --
+              id = "HealthSliderText" .. guid,
+              --
+              text                 = "?",
+              alignment            = "MiddleLeft",
+              color                = ui_colour(Color.AtiusBlack),
+              font                 = "Fonts/La Oriental",
+              resizeTextForBestFit = true,
+              resizeTextMaxSize    = 1000,
+            }
+          },
+          {
+            tag = "Image",
+            attributes = {
+              anchorMin = ui_tuple({14/16, 0.5/3}),
+              anchorMax = ui_tuple({16/16, 2.5/3}),
+              scale     = ui_tuple({0.8, 0.8, 1}),
+              --
+              active = false,
+              id     = "FaintedImage" .. guid,
+              --
+              image = "FaintedImage",
+            }
+          },
+        }
+      },
+    }
+  }
+end
+
+function tactics_image_ui(guid, tactic_name)
+  return {
+    tag = "Image",
+    attributes = {
+      active = false,
+      id     = "TacticsImage" .. guid,
+      --
+      image          = tactic_name,
+      preserveAspect = true,
+      --
+      showAnimation = "FadeIn",
+      hideAnimation = "FadeOut",
+    }
+  }
+end
+
+--
+--
+--
+
 function add(params)
   local guid = params.guid
   local pokemon_card = getObjectFromGUID(guid)
   local tactic_name = get_tactic_name(pokemon_card)
   local pokemon_stats = pokemon_stats_store.call("get", {guid=guid})
 
+  local WIDTH = 860
+  local RATIO = 28/16
+
   local ui_elements = {
     {
       tag = "Panel",
       attributes = {
+        width  = tostring(WIDTH),
+        height = tostring(WIDTH * RATIO),
+        --
         position = ui_tuple({0, 0, -25}),
         rotation = ui_tuple({0, 0, 180}),
-        scale = ui_tuple({1, 0.81, 1}),
-        width = 205,
-        height = 420,
+        scale    = ui_tuple({0.25, 0.25*0.82, 1}),
       },
       children = {
         action_buttons_ui(guid),
         transform_button_ui(guid),
-        {
-          tag = "Panel",
-          attributes = {
-            anchorMin = ui_tuple({0.75, 0.635}),
-            anchorMax = ui_tuple({0.98, 0.7}),
-          },
-          children = {
-            {
-              tag = "Button",
-              attributes = {
-                id = "HealthButton" .. guid,
-                onClick = "Global/click_health_button",
-                sprite = "HealthBase",
-              }
-            },
-            {
-              tag = "Text",
-              attributes = {
-                id = "HealthButtonText" .. guid,
-                text = "?",
-                alignment = "MiddleCenter",
-                color = ui_colour(Color.AtiusBlack),
-                font = "Fonts/La Oriental",
-                resizeTextForBestFit = true,
-                anchorMin = ui_tuple({-0.2, -0.33}),
-                anchorMax = ui_tuple({0.8, 1.33}),
-                scale = ui_tuple({0.5, 0.5, 1}),
-                width = "100%",
-                height = "100%",
-              }
-            },
-          }
-        },
-        {
-          tag = "Panel",
-          attributes = {
-            anchorMin = ui_tuple({0.75, 0.555}),
-            anchorMax = ui_tuple({0.98, 0.62}),
-          },
-          children = {
-            {
-              tag = "Button",
-              attributes = {
-                id = "InitiativeButton" .. guid,
-                onClick = "Global/click_initiative_button",
-                sprite = "InitiativeBase",
-              }
-            },
-            {
-              tag = "Text",
-              attributes = {
-                id = "InitiativeButtonText" .. guid,
-                text = "?",
-                alignment = "MiddleCenter",
-                color = ui_colour(Color.AtiusBlack),
-                font = "Fonts/La Oriental",
-                resizeTextForBestFit = true,
-                anchorMin = ui_tuple({-0.2, -0.33}),
-                anchorMax = ui_tuple({0.8, 1.33}),
-                scale = ui_tuple({0.5, 0.5, 1}),
-                width = "100%",
-                height = "100%",
-              }
-            },
-          }
-        },
-        {
-          tag = "Panel",
-          attributes = {
-            id = "HealthPanel" .. guid,
-            anchorMin = ui_tuple({-0.05, 0.925}),
-            anchorMax = ui_tuple({1.05, 1.075}),
-            showAnimation = "Grow",
-            hideAnimation = "Shrink",
-            active = false,
-          },
-          children = {
-            {
-              tag = "HorizontalLayout",
-              attributes = {
-                anchorMin = ui_tuple({0.1, 0.7}),
-                anchorMax = ui_tuple({0.9, 1.175}),
-                childAlignment = "MiddleCenter",
-              },
-              children = {
-                {
-                  tag = "Button",
-                  attributes = {
-                    id = "ConfusedStatus" .. guid,
-                    onClick = "Global/toggle_status_button",
-                    sprite = "ConfusedStatus0",
-                  }
-                },
-                {
-                  tag = "Button",
-                  attributes = {
-                    id = "ParalysedStatus" .. guid,
-                    onClick = "Global/toggle_status_button",
-                    sprite = "ParalysedStatus0",
-                  }
-                },
-                {
-                  tag = "Button",
-                  attributes = {
-                    id = "PoisonedStatus" .. guid,
-                    onClick = "Global/toggle_status_button",
-                    sprite = "PoisonedStatus0",
-                  }
-                },
-                {
-                  tag = "Button",
-                  attributes = {
-                    id = "BurnedStatus" .. guid,
-                    onClick = "Global/toggle_status_button",
-                    sprite = "BurnedStatus0",
-                  }
-                },
-                {
-                  tag = "Button",
-                  attributes = {
-                    id = "FrozenStatus" .. guid,
-                    onClick = "Global/toggle_status_button",
-                    sprite = "FrozenStatus0",
-                  }
-                },
-                {
-                  tag = "Button",
-                  attributes = {
-                    id = "DrowsyStatus" .. guid,
-                    onClick = "Global/toggle_status_button",
-                    sprite = "DrowsyStatus0",
-                  }
-                },
-              }
-            },
-            {
-              tag = "Panel",
-              attributes = {
-                anchorMin = ui_tuple({0, 0.1}),
-                anchorMax = ui_tuple({1, 0.9}),
-              },
-              children = {
-                {
-                  tag = "Slider",
-                  attributes = {
-                    id = "HealthSlider" .. guid,
-                    onValueChanged = "Global/move_health_slider",
-                    minValue = 0,
-                    maxValue = 0,
-                    wholeNumbers = true,
-                    backgroundColor = ui_colour(Color.AtiusBlack),
-                    fillColor = ui_colour(Color.ActiveGreen),
-                    handleImage = "HealthSliderHandle",
-                    scale = ui_tuple({0.8, 1, 1}),
-                    width = "125%",
-                    height = "100%",
-                  }
-                },
-                {
-                  tag = "Text",
-                  attributes = {
-                    id = "HealthSliderText" .. guid,
-                    text = "?",
-                    alignment = "MiddleLeft",
-                    color = ui_colour(Color.AtiusBlack),
-                    font = "Fonts/La Oriental",
-                    resizeTextForBestFit = true,
-                    position = ui_tuple({5, 0, 0}),
-                    scale = ui_tuple({0.5, 0.5, 1}),
-                    width = "200%",
-                    height = "200%",
-                  }
-                },
-                {
-                  tag = "Image",
-                  attributes = {
-                    id = "FaintedImage" .. guid,
-                    image = "FaintedImage",
-                    anchorMin = ui_tuple({0.89, 0.25}),
-                    anchorMax = ui_tuple({1, 0.75}),
-                    scale = ui_tuple({0.9, 0.9, 1}),
-                    active = false,
-                  }
-                },
-              }
-            },
-          }
-        },
-        {
-          tag = "Image",
-          attributes = {
-            id = "TacticsImage" .. guid,
-            image = tactic_name,
-            position = ui_tuple({0, -300, 30}),
-            preserveAspect = true,
-            width = "104%",
-            showAnimation = "Grow",
-            hideAnimation = "Shrink",
-            active = false,
-          }
-        },
+        evolve_button_ui(guid),
+        stats_button_ui(guid, {11.75/16, 18.25/28}, {15.25/16, 20.25/28}, "Health", "click_health_button"),
+        stats_button_ui(guid, {11.75/16, 15.75/28}, {15.25/16, 17.75/28}, "Initiative", "click_initiative_button"),
+        health_panel_ui(guid),
+        tactics_image_ui(guid, tactic_name),
       }
     },
   }
@@ -551,7 +595,7 @@ function show(params)
   end
   if not tobool(pokemon_card.UI.getAttribute("TacticsImage" .. guid, "active")) and pokemon_card.UI.getAttribute("TacticsImage" .. guid, "image") ~= nil then
     if params.zone ~= nil then
-      pokemon_card.UI.setAttribute("TacticsImage" .. guid, "position", ui_tuple({0, -300, 30 + count_face_down(params.zone) * 50}))
+      pokemon_card.UI.setAttribute("TacticsImage" .. guid, "position", ui_tuple({0, -1190, 30 + count_face_down(params.zone) * 50}))
     end
     pokemon_card.UI.show("TacticsImage" .. guid)
   end

@@ -1,14 +1,44 @@
 #include ../config
 #include ../utils
 
+HEIGHT_OFFSET_DISTANCE = 5.5
+LAYOUT_OFFSET_DISTANCE = 3
+
+function onLoad(save_state)
+  language_vars = get_module("localised_text_store").getTable("vars")
+
+  pokemon_card_groups = JSON.decode(save_state)
+  if not pokemon_card_layouts then
+    pokemon_card_layouts = {}
+  end
+end
+
+function onSave()
+  return JSON.encode(pokemon_card_layouts)
+end
+
 --
 -- UTILS
 --
 
 function _get_zone_deck(encounter)
   for _, zone_deck in pairs(getObjectsWithTag(config.tags.zones.POKEMON_DECK)) do
-    if zone_deck:hasTag(encounter) then
+    if zone_deck.hasTag(encounter) then
       return zone_deck
+    end
+  end
+end
+
+function _find_unoccupied_npc_slot(pokemon_card)
+  local npc_arena_slot = find_closest(pokemon_card.getPosition(), {config.tags.zones.POKEMON_SLOT, config.tags.property.ARENA, config.tags.property.NPC}, "Scripting")
+  if len(npc_arena_slot.getObjects()) == 0 then
+    return npc_arena_slot
+  end
+
+  local npc_slots = {find_closest(pokemon_card.getPosition(), {config.tags.zones.POKEMON_SLOT, config.tags.property.NPC}, "Scripting", 7)}
+  for _, npc_slot in pairs(npc_slots) do
+    if npc_slot ~= npc_arena_slot and len(npc_slot.getObjects()) == 0 then
+      return npc_slot
     end
   end
 end
@@ -17,15 +47,50 @@ end
 -- SEARCH
 --
 
-function get_pokemon_card(params)
+function find_pokemon_cards(params)
+  local pokemon_cards = {}
+
+  if params.names and params.names ~= "" then
+    local names = params.names
+    if type(names) == "string" then
+      names = split(params.names, "/")
+    end
+    for _, name in pairs(names) do
+      local pokemon_card = find_pokemon_card({
+        encounter = params.encounter,
+        biome     = params.biome,
+        climate   = params.climate,
+        name      = name,
+      })
+      if pokemon_card then
+        table.insert(pokemon_cards, pokemon_card)
+      end
+    end
+  else
+    for _ = 1, params.count do
+      local pokemon_card = find_pokemon_card({
+        encounter = params.encounter,
+        biome     = params.biome,
+        climate   = params.climate,
+      })
+      if pokemon_card then
+        table.insert(pokemon_cards, pokemon_card)
+      end
+    end
+  end
+  return pokemon_cards
+end
+
+function find_pokemon_card(params)
   local zone_deck = _get_zone_deck(params.encounter)
   local guid = _get_guid(zone_deck, params.biome, params.climate, params.name)
   if not guid then
     return
   end
   local take_params = {
-    guid=guid,
-    smooth=false
+    guid     = guid,
+    position = zone_deck.getPosition() + Vector(0, HEIGHT_OFFSET_DISTANCE, 0),
+    smooth   = false,
   }
   local pokemon_card = take_object_from_zone_deck(zone_deck, take_params)
   return pokemon_card
@@ -63,7 +128,7 @@ function _get_guid_from_biome_and_climate(infos, biome, climate)
   for _, info in pairs(infos) do
     local biome_tag = get_biome_tag(info.tags)
     local climate_tag = get_climate_tag(info.tags)
-    if biome_tag == biome and climate_tag == climate then
+    if (not biome or biome_tag == biome) and (not climate or climate_tag == climate) then
       return info.guid
     end
   end
@@ -71,14 +136,123 @@ function _get_guid_from_biome_and_climate(infos, biome, climate)
 end
 
 --
+-- LAYOUT
+--
+
+function layout_pokemon_cards(params)
+  -- params = {owner_guid = ?, position = ?, pokemon_cards = {?}}
+  pokemon_card_layouts[params.owner_guid] = {}
+
+  for i, pokemon_card in pairs(params.pokemon_cards) do
+    pokemon_card.setPosition(params.position)
+    pokemon_card.setLock(true)
+
+    local j = i - 0.5 - len(params.pokemon_cards) / 2
+    local horizontal_offset = Vector(LAYOUT_OFFSET_DISTANCE * j, 0, 0)
+    horizontal_offset:rotateOver("y", pokemon_card.getRotation().y)
+    local vertical_offset = Vector(0, HEIGHT_OFFSET_DISTANCE, 0)
+    local position = pokemon_card.getPosition() + horizontal_offset + vertical_offset
+    pokemon_card.setPositionSmooth(position, false, false)
+
+    table.insert(pokemon_card_layouts[params.owner_guid], pokemon_card.getGUID())
+  end
+end
+
+function remove_pokemon_card_from_layouts(pokemon_card_to_remove)
+  for owner_guid, pokemon_card_guids in pairs(pokemon_card_layouts) do
+    for i, pokemon_card_guid in pairs(pokemon_card_guids) do
+      if pokemon_card_guid == pokemon_card_to_remove.getGUID() then
+        pokemon_card_guids[i] = nil
+      end
+    end
+  end
+end
+
+--
+-- BATTLE
+--
+
+function _get_layout_owner_guid(pokemon_card)
+  local guid_to_find = pokemon_card.getGUID()
+  for owner_guid, layout_guids in pairs(pokemon_card_layouts) do
+    if contains(layout_guids, guid_to_find) then
+      return owner_guid
+    end
+  end
+end
+
+function confirm_pokemon_card(params)
+  local pokemon_card = params.pokemon_card
+  local owner_guid = _get_layout_owner_guid(pokemon_card)
+  if not owner_guid then
+    return
+  end
+  local owner = getObjectFromGUID(owner_guid)
+  if owner.hasTag(config.tags.objects.TRAINER) then
+    _battle_pokemon_card(pokemon_card)
+  elseif owner.hasTag(config.tags.cards.POKEMON) then
+    _evolve_owner_into_pokemon_card(owner, pokemon_card, params.player)
+  end
+  return_pokemon_cards({owner_guid=owner_guid})
+end
+
+function _battle_pokemon_card(pokemon_card)
+  local npc_slot = _find_unoccupied_npc_slot(pokemon_card)
+  if not npc_slot then
+    broadcastToAll(language_vars.errors.ALL_NPC_SLOTS_OCCUPIED, Color.InfoBlue)
+    return
+  end
+  pokemon_card.setPosition(npc_slot.getPosition() + Vector(0, 0.5, get_y_dir(npc_slot) * 1.43))
+  pokemon_card.setRotation(npc_slot.getRotation() + Vector(0, 180, 0))
+  pokemon_card.setLock(false)
+  remove_pokemon_card_from_layouts(pokemon_card)
+end
+
+function _evolve_owner_into_pokemon_card(owner, pokemon_card, player)
+  local owner_pos = owner.getPosition()
+  take_pokemon_card({pokemon_card=owner, player=player})
+  pokemon_card.setPosition(owner_pos)
+  pokemon_card.setLock(false)
+  remove_pokemon_card_from_layouts(pokemon_card)
+end
+
+--
 -- RETURN
 --
+
+function return_pokemon_cards(params)
+  local pokemon_card_guids = pokemon_card_layouts[params.owner_guid]
+  if not pokemon_card_guids then
+    return
+  end
+  for _, pokemon_card_guid in pairs(pokemon_card_guids) do
+    local pokemon_card = getObjectFromGUID(pokemon_card_guid)
+    if pokemon_card then
+      return_pokemon_card({pokemon_card=pokemon_card})
+    end
+  end
+  pokemon_card_layouts[params.owner_guid] = nil
+end
 
 function return_pokemon_card(params)
   local pokemon_card = params.pokemon_card
   local encounter = get_encounter_tag(pokemon_card.getTags())
   local zone_deck = _get_zone_deck(encounter)
-  pokemon_card.setPosition(zone_deck.getPosition() + Vector(0, 2.5, 0))
+  pokemon_card.setPosition(zone_deck.getPosition() + Vector(0, HEIGHT_OFFSET_DISTANCE, 0))
   pokemon_card.setRotation(zone_deck.getRotation())
   pokemon_card.setLock(false)
+  remove_pokemon_card_from_layouts(pokemon_card)
+end
+
+--
+-- TAKE
+--
+
+function take_pokemon_card(params)
+  local pokemon_card = params.pokemon_card
+  pokemon_card.use_hands = true
+  pokemon_card.deal(1, params.player.color)
+  pokemon_card.flip()
+  pokemon_card.setLock(false)
+  remove_pokemon_card_from_layouts(pokemon_card)
 end

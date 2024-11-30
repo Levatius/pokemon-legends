@@ -19,9 +19,9 @@ end
 function dummy_button() end
 
 function tobool(value)
-  if value == "true" or value == 1 then
+  if string.lower(value) == "true" or value == 1 then
     return true
-  elseif value == "false" or value == 0 then
+  elseif string.lower(value) == "false" or value == 0 then
     return false
   end
   return value
@@ -144,7 +144,11 @@ end
 
 function split(value, delimiter)
   local pattern = "([^" .. delimiter .. "]+)"
-  return string.gmatch(value, pattern)
+  local items = {}
+  for item in value:gmatch(pattern) do
+    table.insert(items, item)
+  end
+  return items
 end
 
 function brief_pause()

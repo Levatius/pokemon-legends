@@ -73,23 +73,3 @@ function set_custom_assets()
   local assets = UI.getCustomAssets()
   UI.setCustomAssets(assets)
 end
-
-function toggle_status_button(player, value, id)
-  get_module("pokemon_ui_api").call("toggle_status_button", {player=player, value=value, id=id})
-end
-
-function move_health_slider(player, value, id)
-  get_module("pokemon_ui_api").call("move_health_slider", {player=player, value=value, id=id})
-end
-
-function click_transform_button(player, value, id)
-  get_module("pokemon_ui_api").call("click_transform_button", {player=player, value=value, id=id})
-end
-
-function click_health_button(player, value, id)
-  get_module("pokemon_ui_api").call("click_health_button", {player=player, value=value, id=id})
-end
-
-function click_initiative_button(player, value, id)
-  get_module("pokemon_ui_api").call("click_initiative_button", {player=player, value=value, id=id})
-end
