@@ -1,0 +1,72 @@
+#include ../config
+#include ../utils
+
+
+local position = self.getPosition()
+fixed_position = Vector(position.x, 1.8, position.z)
+
+function onLoad()
+  language_vars = get_module("localised_text_store").getTable("vars")
+
+  self.createButton({
+    click_function = "increment",
+    function_owner = self,
+    width          = 300,
+    height         = 300,
+    color          = {0, 0, 0, 0},
+  })
+  update_panel()
+end
+
+--
+--
+--
+
+function increment(_, _, alt_click)
+  local current_value = self.getRotationValue()
+  local new_value = (current_value + (alt_click and -1 or 1)) % 6
+  self.setRotationValue(new_value)
+end
+
+function adjust()
+  self.setPosition(fixed_position)
+  local rotation = self.getRotation()
+  self.setRotationSmooth(Vector(round(rotation.x / 90) * 90, round(rotation.y / 90) * 90, round(rotation.z / 90) * 90))
+end
+
+function highlight()
+  if self.getRotationValue() == 5 then
+    self.highlightOn(Color.ErrorRed)
+  else
+    self.highlightOff()
+  end
+end
+
+function has_stopped()
+  return not self.isSmoothMoving()
+end
+
+function onCollisionEnter(info)
+    if info.collision_object.type ~= "Board" then
+      return
+    end
+    self.setLock(true)
+    adjust()
+    highlight()
+    Wait.condition(update_panel, has_stopped)
+end
+
+--
+--
+--
+
+function update_panel()
+  local position = self.positionToLocal(self.getPosition() + Vector(0, 1, 0))
+  rotation = Vector(-position.z * 90, 0, -position.x * 90 + position.y * (90 - position.y * 90))
+  position = Vector(-position.x, position.y, position.z)
+  self.editButton({
+    index    = 0,
+    position = position:scale(0.35),
+    rotation = rotation,
+  })
+end

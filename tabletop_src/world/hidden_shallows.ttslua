@@ -1,0 +1,59 @@
+#include ../config
+#include ../utils
+
+--
+-- WARNING: Gameplay spoilers below, read and share with discretion! -Lev
+--
+
+function onLoad()
+  legendary_bird_zones = find_objects({config.tags.zones.LEGENDARY_BIRD}, "Scripting")
+
+  get_module("object_links_store").call("set_links", {
+    object = self,
+    other_objects = legendary_bird_zones
+  })
+
+  if not are_legendary_birds_out() then
+    for _, object in pairs(getObjectsWithTag(config.tags.secrets.HIDDEN_SHALLOWS)) do
+      object.interactable = false
+    end
+  end
+end
+
+--
+--
+--
+
+function are_legendary_birds_out()
+  for _, legendary_bird_zone in pairs(legendary_bird_zones) do
+    if len(legendary_bird_zone.getObjects()) == 0 then
+      return false
+    end
+  end
+  return true
+end
+
+function controller()
+  local offset_y = (are_legendary_birds_out() and 1 or -1) * 10
+
+  for _, object in pairs(getObjectsWithTag(config.tags.secrets.HIDDEN_SHALLOWS)) do
+    if object.isSmoothMoving() then
+      return
+    end
+    local pos = object.getPosition()
+    local current_y = pos.y
+    local new_y = current_y + offset_y
+    if (current_y < 0 and new_y > 0) or (current_y > 0 and new_y < 0) then
+      object.setPositionSmooth(Vector(pos.x, new_y, pos.z), false, false)
+      object.interactable = (new_y > 0)
+    end
+  end
+end
+
+--
+--
+--
+
+function update_panel()
+  controller()
+end

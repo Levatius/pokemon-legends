@@ -1,0 +1,8 @@
+#include ../config
+#include ../utils
+
+function onHover()
+  for _, underground_network_tile in pairs(getObjectsWithTag(config.tags.world.UNDERGROUND_NETWORK)) do
+    underground_network_tile.highlightOn(Color.White, 10)
+  end
+end

@@ -1,0 +1,176 @@
+#include ../config
+#include ../utils
+
+--
+-- WARNING: Gameplay spoilers below, read and share with discretion! -Lev
+--
+
+local TOGGLE_BUTTON_SUFFIXES = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q"}
+local CODE = 100670
+
+local hide_timer_id = nil
+local total = 0
+
+function onLoad()
+  if not check_door_code() then
+    for _, object in pairs(getObjectsWithTag(config.tags.secrets.SNOWPOINT_DOOR)) do
+      object.interactable = false
+    end
+  end
+
+  Wait.condition(load_panel, has_ui_loaded)
+end
+
+--
+--
+--
+
+function onHover()
+  show_door_panel()
+end
+
+function show_door_panel()
+  local door_panel_active = self.UI.getAttribute("DoorPanel", "active")
+  if not tobool(door_panel_active) then
+    self.UI.show("DoorPanel")
+  end
+
+  if hide_timer_id then
+    Wait.stop(hide_timer_id)
+    hide_timer_id = nil
+  end
+  hide_timer_id = Wait.time(function() self.UI.hide("DoorPanel") end, 5)
+end
+
+function click_toggle_button(_, value, id)
+  show_door_panel()
+  self.UI.setAttribute(id, "image", "Button" .. (tobool(value) and "Active" or "Inactive"))
+  local i = find_first_index(TOGGLE_BUTTON_SUFFIXES, id:sub(-1))
+  total = total + (2 ^ (i - 1)) * (tobool(value) and 1 or -1)
+  update_panel()
+end
+
+function check_door_code()
+  return total == CODE
+end
+
+function controller()
+  local offset_y = (check_door_code() and 1 or -1) * 10
+
+  for _, object in pairs(getObjectsWithTag(config.tags.secrets.SNOWPOINT_DOOR)) do
+    if object.isSmoothMoving() then
+      return
+    end
+    local pos = object.getPosition()
+    local current_y = pos.y
+    local new_y = current_y + offset_y
+    if (current_y < 0 and new_y > 0) or (current_y > 0 and new_y < 0) then
+      object.setPositionSmooth(Vector(pos.x, new_y, pos.z), false, false)
+      object.interactable = (new_y > 0)
+    end
+  end
+end
+
+--
+--
+--
+
+function blank_ui()
+  return {
+    tag = "Panel"
+  }
+end
+
+function toggle_button_ui(suffix)
+  return {
+    tag = "ToggleButton",
+    attributes = {
+      id = "ToggleButton" .. suffix,
+      --
+      onValueChanged            = "click_toggle_button",
+      isOn                      = false,
+      selectedBackgroundColor   = ui_colour(Color.White),
+      deselectedBackgroundColor = ui_colour(Color.White),
+      image                     = "ButtonInactive",
+    }
+  }
+end
+
+function row_ui(pattern)
+  local row_ui = {}
+  for _, suffix in pairs(pattern) do
+    if suffix == "_" then
+      table.insert(row_ui, blank_ui())
+    else
+      table.insert(row_ui, toggle_button_ui(suffix))
+    end
+  end
+  return row_ui
+end
+
+function flatten_rows_ui(rows_ui)
+  flattened_rows_ui = {}
+  for _, row_ui in pairs(rows_ui) do
+    for _, ui in pairs(row_ui) do
+      table.insert(flattened_rows_ui, ui)
+    end
+  end
+  return flattened_rows_ui
+end
+
+function grid_layout_ui()
+  return {
+    tag = "GridLayout",
+    attributes = {
+      spacing         = ui_tuple({5, 5}),
+      cellSize        = ui_tuple({25, 25}),
+      childAlignment  = "MiddleCenter",
+      constraint      = "FixedColumnCount",
+      constraintCount = 5,
+    },
+    children = flatten_rows_ui({
+      row_ui({"_", "_", "A", "_", "_"}),
+      row_ui({"B", "C", "D", "E", "F"}),
+      row_ui({"G", "H", "I", "J", "K"}),
+      row_ui({"L", "M", "N", "O", "P"}),
+      row_ui({"_", "_", "Q", "_", "_"}),
+    })
+  }
+end
+
+--
+--
+--
+
+function load_panel()
+  local ui_elements = {
+    {
+      tag = "Panel",
+      attributes = {
+        active = false,
+        id     = "DoorPanel",
+        --
+        width    = 170,
+        height   = 170,
+        position = ui_tuple({0, 0, -6}),
+        rotation = ui_tuple({0, 0, 180}),
+        --
+        image         = "DoorBackground",
+        raycastTarget = true,
+        --
+        showAnimation = "FadeIn",
+        hideAnimation = "FadeOut",
+      },
+      children = {
+        grid_layout_ui(),
+      }
+    },
+  }
+  self.UI.setXmlTable(ui_elements, UI.getCustomAssets())
+
+  Wait.condition(update_panel, has_ui_loaded)
+end
+
+function update_panel()
+  controller()
+end

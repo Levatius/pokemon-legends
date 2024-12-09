@@ -3,5 +3,6 @@ __pycache__
 venv
 ~$*
 output
+outputs
 /old_sinnoh_cube.xlsx
 /assets/card_generator/emblems/vanilla.png

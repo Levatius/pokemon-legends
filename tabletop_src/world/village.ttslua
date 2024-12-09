@@ -1,0 +1,74 @@
+#include ../config
+#include ../utils
+
+function onLoad()
+  language_vars = get_module("localised_text_store").getTable("vars")
+
+  nesburgh = getObjectFromGUID(config.guids.NESBURGH)
+  nesburgh:setVar("fly_coroutine_running", false)
+
+  bird = getObjectFromGUID(config.guids.BIRD)
+  bird.AssetBundle:playLoopingEffect(2)
+  bird:setInvisibleTo(Player:getColors())
+
+  self.createButton({
+    click_function = "fly",
+    function_owner = self,
+    position       = {0, 0.1, 0},
+    width          = 600,
+    height         = 600,
+    color          = {0, 0, 0, 0},
+    tooltip        = language_vars.village.FLY_BUTTON_TOOLTIP_1 .. self:getName() .. "\n" .. language_vars.village.FLY_BUTTON_TOOLTIP_2
+  })
+end
+
+function find_trainer_token(player_colour)
+  local trainer_tokens = getObjectsWithTag(config.tags.objects.TRAINER)
+  for _, trainer_token in pairs(trainer_tokens) do
+    if trainer_token.getColorTint() == Color.fromString(player_colour) then
+      return trainer_token
+    end
+  end
+end
+
+function fly(_, player_colour)
+  local trainer_token = find_trainer_token(player_colour)
+  if not trainer_token then
+    broadcastToAll(language_vars.errors.TRAINER_TOKEN_NOT_FOUND, Color.InfoBlue)
+    return
+  end
+
+  function fly_coroutine()
+    nesburgh:setVar("fly_coroutine_running", true)
+    local initial_pos = trainer_token:getPosition()
+    local target_pos = self:getPosition() + Vector(0, 0.1, 0)
+    local nesburgh_pos = nesburgh:getPosition()
+
+    -- Initial
+    bird:setInvisibleTo({})
+    bird:setPosition(nesburgh_pos)
+    bird:setRotation(Vector(0, (initial_pos - nesburgh_pos):heading("y"), 0))
+    -- Pickup
+    bird:setPositionSmooth(initial_pos, false, false)
+    while bird:isSmoothMoving() do coroutine.yield(0) end
+    -- Flight
+    bird:setRotationSmooth(Vector(0, (target_pos - initial_pos):heading("y"), 0), false, true)
+    while bird:isSmoothMoving() do coroutine.yield(0) end
+    bird:setPositionSmooth(target_pos, false, false)
+    trainer_token:setPositionSmooth(target_pos, false, false)
+    while bird:isSmoothMoving() do coroutine.yield(0) end
+    -- Dropoff
+    bird:setRotationSmooth(Vector(0, (nesburgh_pos - target_pos):heading("y"), 0), false, true)
+    while bird:isSmoothMoving() do coroutine.yield(0) end
+    bird:setPositionSmooth(nesburgh_pos, false, false)
+    while bird:isSmoothMoving() do coroutine.yield(0) end
+    bird:setInvisibleTo(Player:getColors())
+    nesburgh:setVar("fly_coroutine_running", false)
+    return 1
+  end
+  if not nesburgh:getVar("fly_coroutine_running") then
+    startLuaCoroutine(self, "fly_coroutine")
+  else
+    print(language_vars.village.ALREADY_FLYING_MESSAGE)
+  end
+end
