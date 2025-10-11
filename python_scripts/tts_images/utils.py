@@ -10,16 +10,16 @@ def scaled_tuple(tuple_cm: tuple[float, float]) -> tuple[int, int]:
     return int(SCALE_FACTOR * tuple_cm[0]), int(SCALE_FACTOR * tuple_cm[1])
 
 
-def _scaled_font(font: ImageFont):
+def scaled_font(font: ImageFont):
     return font.font_variant(size=2.25 * font.size)
 
 
-def _get_image(image_path: Path, size: tuple[int, int]) -> Image:
+def load_image(image_path: Path, size: tuple[int, int]) -> Image.Image:
     return Image.open(image_path).convert("RGBA").resize(size)
 
 
 def extract_colour_from_image(image_path: Path, position: tuple[int, int]):
-    image = _get_image(image_path, size=(100, 100))
+    image = load_image(image_path, size=(100, 100))
     return image.getpixel(position)
 
 
@@ -28,15 +28,17 @@ def init_apply_methods(base_size_cm: tuple[float, float]):
     d = ImageDraw.Draw(base_image)
 
     def apply_image(
-            image_path: Path,
+            image: Path | Image.Image,
             size_cm: tuple[float, float],
             position_cm: tuple[float, float],
     ) -> None:
         size = scaled_tuple(size_cm)
         position = scaled_tuple(position_cm)
-        full_image_path = image_path.with_suffix(image_path.suffix + ".png")
 
-        image = _get_image(full_image_path, size)
+        if not isinstance(image, Image.Image):
+            full_image_path = image.with_suffix(image.suffix + ".png")
+            image = load_image(full_image_path, size)
+
         base_image.alpha_composite(image, position)
 
     def apply_text(
@@ -48,7 +50,7 @@ def init_apply_methods(base_size_cm: tuple[float, float]):
             anchor: str = "mm",
             align: str = "center",
     ) -> None:
-        font = _scaled_font(font)
+        font = scaled_font(font)
         width, height = scaled_tuple(size_cm)
         position = scaled_tuple(position_cm)
 
@@ -61,7 +63,7 @@ def init_apply_methods(base_size_cm: tuple[float, float]):
                 if m := re.search("\[(.+)]", word):
                     keywords_in_text.append(m.group(1))
                     keyword_text = word.replace("_", " ").replace("[", "").replace("]", "").title()
-                    word = f"{keyword_text} -·-"
+                    word = f"-·- {keyword_text}"
                 _, _, text_width, _ = d.textbbox((0, 0), " ".join(multiline_text_list[-1] + [word]), font)
                 if text_width >= width:
                     multiline_text_list.append(list())
@@ -83,7 +85,7 @@ def init_apply_methods(base_size_cm: tuple[float, float]):
             image_length = d.textbbox((0, 0), "-·-", font)[2]
             image_size = (image_length, image_length)
             adjusted_image_position = tuple(int(value - image_length / 2.0) for value in image_position)
-            image = _get_image(image_path, image_size)
+            image = load_image(image_path, image_size)
             base_image.alpha_composite(image, adjusted_image_position)
 
     return base_image, apply_image, apply_text

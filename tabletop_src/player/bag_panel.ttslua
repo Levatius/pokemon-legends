@@ -173,9 +173,9 @@ function key_item_button_element(key_item_tag, position)
       --
       position = ui_tuple(position),
       width    = 50 * UI_SCALE,
-      height   = 33 * UI_SCALE,
+      height   = 15 * UI_SCALE,
       colors   = table.concat({
-        ui_colour(Color.Wood),
+        ui_colour(Color.WoodDark),
         ui_colour(Color.WoodLight),
         ui_colour(Color.WoodDark),
         ui_colour(Color.AtiusBlack),
@@ -184,7 +184,7 @@ function key_item_button_element(key_item_tag, position)
       text                 = key_item_tag,
       textColor            = ui_colour(Color.White),
       font                 = "Fonts/Barlow",
-      resizeTextMaxSize    = 33,
+      resizeTextMaxSize    = 30,
       resizeTextForBestFit = true,
     },
   }
@@ -227,7 +227,7 @@ function load_panel()
     {
       tag = "Panel",
       attributes = {
-        position = ui_tuple({189.5, 75, -21}),
+        position = ui_tuple({189.5, 67.5, -21}),
         rotation = ui_tuple({0, 0, 180}),
         scale    = ui_tuple({1/UI_SCALE, 1/UI_SCALE, 1}),
         width    = 148 * UI_SCALE,

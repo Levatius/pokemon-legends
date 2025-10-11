@@ -4,10 +4,6 @@
 
 MODULE_LANGUAGE_TAG = "Module Language"
 
-CLIMATE_TAGS = {"Cold", "Temperate", "Warm"}
-BIOME_TAGS = {"Plains", "Forest", "Mountain", "Ocean"}
-ENCOUNTER_TAGS = {"Weak", "Moderate", "Strong", "Legendary", "Distortion", "Secret"}
-
 function get_module(module_name)
   local modules = {}
   for _, module in pairs(getObjectsWithTag("Module")) do
@@ -119,17 +115,17 @@ function take_object_from_zone_deck(zone, params)
 end
 
 function get_biome_tag(tags)
-  for _, tag in pairs(shuffle(tags)) do
-    if contains(BIOME_TAGS, tag) then
-      return tag
+  for _, biome_tag in pairs(config.tags.biomes) do
+    if contains(tags, biome_tag) then
+      return biome_tag
     end
   end
 end
 
 function get_climate_tag(tags)
-  for _, tag in pairs(shuffle(tags)) do
-    if contains(CLIMATE_TAGS, tag) then
-      return tag
+  for _, climate_tag in pairs(config.tags.climates) do
+    if contains(tags, climate_tag) then
+      return climate_tag
     end
   end
 end

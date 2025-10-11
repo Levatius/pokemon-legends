@@ -196,6 +196,18 @@ function confirm_pokemon_card(params)
   return_pokemon_cards({owner_guid=owner_guid})
 end
 
+function battle_pokemon_cards(params)
+  local pokemon_cards = params.pokemon_cards
+  function battle_pokemon_cards_coroutine()
+    for _, pokemon_card in pairs(pokemon_cards) do
+      brief_pause()
+      _battle_pokemon_card(pokemon_card)
+    end
+    return 1
+  end
+  startLuaCoroutine(self, "battle_pokemon_cards_coroutine")
+end
+
 function _battle_pokemon_card(pokemon_card)
   local npc_slot = _find_unoccupied_npc_slot(pokemon_card)
   if not npc_slot then
@@ -251,8 +263,9 @@ end
 function take_pokemon_card(params)
   local pokemon_card = params.pokemon_card
   pokemon_card.use_hands = true
+  pokemon_card.setPosition(pokemon_card.getPosition() + Vector(0, 5, 0))
   pokemon_card.deal(1, params.player.color)
-  pokemon_card.flip()
+  pokemon_card.setRotation(Vector(0, 180, 180))
   pokemon_card.setLock(false)
   remove_pokemon_card_from_layouts(pokemon_card)
 end

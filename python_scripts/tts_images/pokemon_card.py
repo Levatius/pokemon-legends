@@ -4,22 +4,30 @@ from pathlib import Path
 from PIL import Image
 
 from python_scripts.config import SEREBII_ART_URL, Paths, Fonts, Colours
-from python_scripts.models import Pokemon
-from python_scripts.generators.utils import init_apply_methods
+from python_scripts.models import TTSImage, Pokemon
+from python_scripts.tts_images.utils import init_apply_methods
 
 
-class PokemonCard:
-    def __init__(self, pokemon: Pokemon):
+class PokemonCardImage(TTSImage):
+    def __init__(self, pokemon: Pokemon, image_path: Path | None = None):
         self.pokemon = pokemon
-        self.image: Image = self.generate_image()
+        self.image: Image.Image = self.cached_image(image_path) if image_path else self.generate_image()
 
-    def generate_image(self) -> Image:
+    @property
+    def width_cm(self) -> float:
+        return 16
+
+    @property
+    def height_cm(self) -> float:
+        return 28
+
+    def generate_image(self) -> Image.Image:
         assets = Paths.POKEMON_CARD_ASSETS
-        base_image, apply_image, apply_text = init_apply_methods(base_size_cm=(16, 28))
+        base_image, apply_image, apply_text = init_apply_methods(base_size_cm=(self.width_cm, self.height_cm))
 
         # Background
         background = self._get_background()
-        apply_image(assets / "card_bases" / background, (16, 28), (0, 0))
+        apply_image(assets / "card_bases" / background, (self.width_cm, self.height_cm), (0, 0))
 
         # Climate/Biome
         climate = self.pokemon.climate if self.pokemon.climate else "unknown"
@@ -71,7 +79,7 @@ class PokemonCard:
             )
             apply_image(assets / "types" / type_, (length_cm, length_cm), position_cm)
         if len(self.pokemon.learnable_types) == 0:
-            apply_image(assets / "types" / "all", (2.5, 2.5), (0.75, 16.75))
+            apply_image(assets / "types" / "any", (2.5, 2.5), (0.75, 16.75))
 
         # Encounter Tier
         apply_image(assets / "encounter_icons" / self.pokemon.encounter_tier, (2, 2), (7, 17))
@@ -102,11 +110,11 @@ class PokemonCard:
             font = Fonts.LA_ORIENTAL.font_variant(size=44)
             apply_text(self.pokemon.evolve_cost, Colours.WHITE, font, (2.5, 2.5), (14, 18))
 
-        # Location Icon
-        location_text = " ".join([item for item in ["[compass]", self.pokemon.climate, self.pokemon.biome] if item])
-        # apply_image(assets / "compass_icon", (0.75, 0.75), (14.5, 15.5))
-        font = Fonts.BARLOW.font_variant(size=20)
-        apply_text(location_text, Colours.GREY, font, (4.5, 0.5), (8, 16))
+        # # Location Icon
+        # location_text = " ".join([item for item in ["[compass]", self.pokemon.climate, self.pokemon.biome] if item])
+        # # apply_image(assets / "compass_icon", (0.75, 0.75), (14.5, 15.5))
+        # font = Fonts.BARLOW.font_variant(size=20)
+        # apply_text(location_text, Colours.GREY, font, (4.5, 0.5), (8, 16))
 
         # Move
         apply_image(Paths.OUTPUTS / "move_boxes" / self.pokemon.signature_move.name, (14.5, 7.5), (0.75, 19.75))
@@ -133,15 +141,16 @@ class PokemonCard:
         return "standard"
 
 
-# Generator
-
-def generate_pokemon_cards(pokemon_list: list, outputs_path: Path, overwrite: bool = True) -> None:
+def generate(pokemon_list: list[Pokemon], outputs_path: Path, overwrite: bool = True) -> list[PokemonCardImage]:
     pokemon_cards_path = outputs_path / "pokemon_cards"
     pokemon_cards_path.mkdir(parents=True, exist_ok=True)
 
     for i, pokemon in enumerate(pokemon_list):
         save_path = pokemon_cards_path / f"{i}.png"
         if save_path.is_file() and not overwrite:
-            continue
-        pokemon_card_image = PokemonCard(pokemon).image
-        pokemon_card_image.save(save_path)
+            pokemon_card = PokemonCardImage(pokemon, image_path=save_path)
+        else:
+            pokemon_card = PokemonCardImage(pokemon)
+            pokemon_card.image.save(save_path)
+        yield pokemon_card
+

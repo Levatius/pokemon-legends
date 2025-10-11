@@ -8,6 +8,13 @@ ENCOUNTER_COLOURS = {
   [config.tags.encounters.STRONG]    = Color.StrongRed,
   [config.tags.encounters.LEGENDARY] = Color.LegendaryYellow,
 }
+ENCOUNTER_COUNTS = {
+  [config.tags.encounters.GALACTIC_GRUNT]             = 2,
+  [config.tags.encounters.GALACTIC_COMMANDER_JUPITER] = 4,
+  [config.tags.encounters.GALACTIC_COMMANDER_MARS]    = 4,
+  [config.tags.encounters.GALACTIC_COMMANDER_SATURN]  = 4,
+  [config.tags.encounters.GALACTIC_BOSS]              = 6,
+}
 
 local search_params = {}
 local search_button_hide_timer_id
@@ -65,11 +72,8 @@ function find_search_params()
   })
   for _, hit_info in ipairs(hit_list) do
     local hit_object = hit_info.hit_object
-    -- Campaign Tokens
-    if hit_object.hasTag(config.tags.world.CAMPAIGN) then
-      break
     -- Sanctuaries
-  elseif hit_object.hasTag(config.tags.world.SANCTUARY) and does_player_have_artifact(hit_object.getName()) then
+    if hit_object.hasTag(config.tags.world.SANCTUARY) and does_player_have_artifact(hit_object.getName()) then
       set_search_params(hit_object)
       show_search_button()
       break
@@ -84,13 +88,15 @@ end
 
 function set_search_params(hit_object)
   local tags = hit_object.getTags()
+  local encounter = get_encounter_tag(tags)
+  local count = ENCOUNTER_COUNTS[encounter]
 
   search_params = {
-    encounter = get_encounter_tag(tags),
+    encounter = encounter,
     biome     = get_biome_tag(tags),
     climate   = get_climate_tag(tags),
     names     = hit_object.getGMNotes(),
-    count     = 2,
+    count     = (count ~= nil) and count or 2,
   }
 end
 
@@ -108,6 +114,17 @@ function update_colour_tint(player_colour)
   end
   -- Set on this token
   self.setColorTint(player_colour)
+end
+
+function is_choice(pokemon_cards)
+  local is_campaign_battle = contains({
+    config.tags.encounters.GALACTIC_GRUNT,
+    config.tags.encounters.GALACTIC_COMMANDER_JUPITER,
+    config.tags.encounters.GALACTIC_COMMANDER_MARS,
+    config.tags.encounters.GALACTIC_COMMANDER_SATURN,
+    config.tags.encounters.GALACTIC_BOSS,
+  }, search_params.encounter)
+  return (not is_campaign_battle) and len(pokemon_cards) > 1
 end
 
 --
@@ -149,12 +166,18 @@ end
 
 function click_search_button()
   hide_search_button(0)
-  pokemon_cards = pokemon_decks_api.call("find_pokemon_cards", search_params)
+  local pokemon_cards = pokemon_decks_api.call("find_pokemon_cards", search_params)
   pokemon_decks_api.call("layout_pokemon_cards", {
     owner_guid    = self.getGUID(),
     position      = self.getPosition(),
     pokemon_cards = pokemon_cards,
   })
+  -- Send directly to arena if there is no choice
+  if not is_choice(pokemon_cards) then
+    pokemon_decks_api.call("battle_pokemon_cards", {
+      pokemon_cards = pokemon_cards,
+    })
+  end
 end
 
 --
@@ -199,7 +222,8 @@ function load_panel()
 end
 
 function update_panel()
-  self.UI.setAttribute("SearchButton", "color", search_params.encounter and ui_colour(ENCOUNTER_COLOURS[search_params.encounter]) or ui_colour(Color(0, 0, 0, 0)))
+  local encounter_colour = ENCOUNTER_COLOURS[search_params.encounter]
+  self.UI.setAttribute("SearchButton", "color", (encounter_colour ~= nil) and ui_colour(encounter_colour) or ui_colour(Color.AtiusBlack))
   self.UI.setAttribute("SearchButton", "text", "?")
   self.UI.setAttribute("SearchButton", "textColor", ui_colour(Color.White))
 end

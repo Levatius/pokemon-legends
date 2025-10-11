@@ -1,8 +1,13 @@
 from dataclasses import dataclass
 from enum import StrEnum
+from pathlib import Path
+from typing import Protocol
 
 import pandera as pa
 from pandera import DataFrameModel, Field
+from PIL import Image
+
+from python_scripts.tts_images.utils import load_image, scaled_tuple
 
 
 # class PokeType(StrEnum):
@@ -25,6 +30,49 @@ from pandera import DataFrameModel, Field
 #     DARK = "dark"
 #     STEEL = "steel"
 #     FAIRY = "fairy"
+
+class TTSImage(Protocol):
+    image: Image
+
+    @property
+    def width_cm(self) -> float:
+        ...
+
+    @property
+    def height_cm(self) -> float:
+        ...
+
+    def cached_image(self, image_path: Path) -> Image.Image:
+        return load_image(image_path, size=scaled_tuple((self.width_cm, self.height_cm)))
+
+    def generate_image(self) -> Image.Image:
+        ...
+
+class TTSObject(Protocol):
+    @property
+    def nickname(self) -> str | None:
+        """
+        Default name shown on the card in TTS.
+        """
+        ...
+
+    @property
+    def description(self) -> str | None:
+        """
+        Description shown when hovering over the card in TTS.
+        """
+        ...
+
+    @property
+    def tags(self) -> list[str]:
+        """
+        All tags on the card in TTS.
+        """
+        ...
+
+    @property
+    def lua_script(self) -> str | None:
+        ...
 
 
 class PokemonDataModel(DataFrameModel):
@@ -122,7 +170,7 @@ class Pokemon:
     health: int
     total: int
     learnable_types: list[str]
-    evolve_into: str | None
+    evolve_into: list[str] | None
     evolve_cost: int | None
     signature_move: Move
     encounter_tier: str
@@ -146,7 +194,7 @@ class Pokemon:
             health=row.health,
             total=row.total,
             learnable_types=[move for move in (row.move_1, row.move_2, row.move_3, row.move_4) if move],
-            evolve_into=row.evolve_into,
+            evolve_into=row.evolve_into.split("/") if row.evolve_into else None,
             evolve_cost=row.evolve_cost,
             signature_move=Move(
                 name=row.move_name,

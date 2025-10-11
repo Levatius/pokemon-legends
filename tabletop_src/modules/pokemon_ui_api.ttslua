@@ -9,11 +9,8 @@ UI_SCALE = 4
 
 function init_dynamic_assets()
   local assets = {}
-  -- TODO
-  local tactics_zone = getObjectFromGUID(config.guids.TACTICS_ZONE)
-  local tactic_infos = get_object_infos_from_zone_deck(tactics_zone, false)
-  for _, tactic_info in pairs(tactic_infos) do
-    table.insert(assets, {name=tactic_info.name, url=tactic_info.description})
+  for _, innate_ability in pairs(getObjectsWithTag(config.tags.objects.INNATE_ABILITY)) do
+    table.insert(assets, {name=innate_ability.getName(), url=innate_ability.getCustomObject().image})
   end
   self.UI.setCustomAssets(assets)
 end
@@ -67,13 +64,10 @@ function has_any_of_tags(object, tags)
   return false
 end
 
-function get_tactic_name(pokemon_card)
-  -- TODO
-  local tactics_zone = getObjectFromGUID(config.guids.TACTICS_ZONE)
-  local tactic_infos = get_object_infos_from_zone_deck(tactics_zone, false)
-  for _, tactic_info in pairs(tactic_infos) do
-    if has_any_of_tags(pokemon_card, tactic_info.tags) then
-      return tactic_info.name
+function get_innate_ability_name(pokemon_card)
+  for _, innate_ability in pairs(getObjectsWithTag(config.tags.objects.INNATE_ABILITY)) do
+    if has_any_of_tags(pokemon_card, innate_ability.getTags()) then
+      return innate_ability.getName()
     end
   end
 end
@@ -405,7 +399,7 @@ function stats_button_ui(guid, anchor_min, anchor_max, stat_type, on_click_func)
           color                = ui_colour(Color.AtiusBlack),
           font                 = "Fonts/La Oriental",
           resizeTextForBestFit = true,
-          resizeTextMaxSize    = 1000,
+          resizeTextMaxSize    = 100,
         }
       },
     }
@@ -498,7 +492,7 @@ function health_panel_ui(guid)
               color                = ui_colour(Color.AtiusBlack),
               font                 = "Fonts/La Oriental",
               resizeTextForBestFit = true,
-              resizeTextMaxSize    = 1000,
+              resizeTextMaxSize    = 100,
             }
           },
           {
@@ -520,14 +514,14 @@ function health_panel_ui(guid)
   }
 end
 
-function tactics_image_ui(guid, tactic_name)
+function innate_ability_image_ui(guid, innate_ability_name)
   return {
     tag = "Image",
     attributes = {
       active = false,
-      id     = "TacticsImage" .. guid,
+      id     = "InnateAbilityImage" .. guid,
       --
-      image          = tactic_name,
+      image          = innate_ability_name,
       preserveAspect = true,
       --
       showAnimation = "FadeIn",
@@ -543,22 +537,22 @@ end
 function add(params)
   local guid = params.guid
   local pokemon_card = getObjectFromGUID(guid)
-  local tactic_name = get_tactic_name(pokemon_card)
+  local innate_ability_name = get_innate_ability_name(pokemon_card)
   local pokemon_stats = pokemon_stats_store.call("get", {guid=guid})
 
-  local WIDTH = 860
+  local WIDTH = 215
   local RATIO = 28/16
 
   local ui_elements = {
     {
       tag = "Panel",
       attributes = {
-        width  = tostring(WIDTH),
-        height = tostring(WIDTH * RATIO),
+        width  = tostring(WIDTH * UI_SCALE),
+        height = tostring(WIDTH * UI_SCALE * RATIO),
         --
         position = ui_tuple({0, 0, -25}),
         rotation = ui_tuple({0, 0, 180}),
-        scale    = ui_tuple({0.25, 0.25*0.82, 1}),
+        scale    = ui_tuple({1/UI_SCALE, (1/UI_SCALE)*0.82, 1}),
       },
       children = {
         action_buttons_ui(guid),
@@ -567,7 +561,7 @@ function add(params)
         stats_button_ui(guid, {11.75/16, 18.25/28}, {15.25/16, 20.25/28}, "Health", "click_health_button"),
         stats_button_ui(guid, {11.75/16, 15.75/28}, {15.25/16, 17.75/28}, "Initiative", "click_initiative_button"),
         health_panel_ui(guid),
-        tactics_image_ui(guid, tactic_name),
+        innate_ability_image_ui(guid, innate_ability_name),
       }
     },
   }
@@ -593,11 +587,11 @@ function show(params)
   if not tobool(pokemon_card.UI.getAttribute("HealthPanel" .. guid, "active")) then
     pokemon_card.UI.show("HealthPanel" .. guid)
   end
-  if not tobool(pokemon_card.UI.getAttribute("TacticsImage" .. guid, "active")) and pokemon_card.UI.getAttribute("TacticsImage" .. guid, "image") ~= nil then
+  if not tobool(pokemon_card.UI.getAttribute("InnateAbilityImage" .. guid, "active")) and pokemon_card.UI.getAttribute("InnateAbilityImage" .. guid, "image") ~= nil then
     if params.zone ~= nil then
-      pokemon_card.UI.setAttribute("TacticsImage" .. guid, "position", ui_tuple({0, -1190, 30 + count_face_down(params.zone) * 50}))
+      pokemon_card.UI.setAttribute("InnateAbilityImage" .. guid, "position", ui_tuple({0, -1190, 30 + count_face_down(params.zone) * 50}))
     end
-    pokemon_card.UI.show("TacticsImage" .. guid)
+    pokemon_card.UI.show("InnateAbilityImage" .. guid)
   end
 end
 
@@ -610,5 +604,5 @@ function hide(params)
   end
 
   pokemon_card.UI.hide("HealthPanel" .. guid)
-  pokemon_card.UI.hide("TacticsImage" .. guid)
+  pokemon_card.UI.hide("InnateAbilityImage" .. guid)
 end

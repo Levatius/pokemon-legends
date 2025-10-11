@@ -4,8 +4,11 @@ import numpy as np
 import pandas as pd
 
 from python_scripts.config import Paths
-from python_scripts.generators.moves import generate_move_boxes, generate_move_cards
-from python_scripts.generators.pokemon_cards import generate_pokemon_cards
+from python_scripts.tts_images.deck import generate as generate_deck_images
+from python_scripts.tts_images.move_box import generate as generate_move_box_images
+from python_scripts.tts_images.move_card import generate as generate_move_card_images
+from python_scripts.tts_images.pokemon_card import generate as generate_pokemon_card_images
+from python_scripts.tts_objects.pokemon_card import generate as generate_pokemon_card_objects
 from python_scripts.models import PokemonDataModel, Pokemon, MovesDataModel, Move
 
 
@@ -26,9 +29,16 @@ def run(outputs_path: Path):
     moves_df = read_cube("sinnoh_cube", "moves", data_model=MovesDataModel)
     moves_list = [Move.from_df_row(row) for _, row in moves_df.iterrows()]
 
-    generate_move_boxes(moves_list, outputs_path, overwrite=False)
-    generate_move_cards(moves_list, outputs_path, overwrite=False)
-    generate_pokemon_cards(pokemon_list, outputs_path, overwrite=False)
+    _ = list(generate_move_box_images(moves_list, outputs_path, overwrite=False))
+    move_card_images = list(generate_move_card_images(moves_list, outputs_path, overwrite=False))
+    move_card_images_indexed = {image.move.name: image for image in move_card_images}
+    pokemon_card_images = list(generate_pokemon_card_images(pokemon_list, outputs_path, overwrite=False))
+    pokemon_card_deck_images = list(generate_deck_images(pokemon_card_images, outputs_path / "decks" / "faces", overwrite=False))
+    back_images = [move_card_images_indexed[pokemon_card.pokemon.signature_move.name] for pokemon_card in pokemon_card_images]
+    back_deck_images = list(generate_deck_images(back_images, outputs_path / "decks" / "backs", overwrite=False))
+    deck_images = zip(pokemon_card_deck_images, back_deck_images)
+
+    pokemon_cards = list(generate_pokemon_card_objects(pokemon_list))
 
 
 if __name__ == "__main__":
